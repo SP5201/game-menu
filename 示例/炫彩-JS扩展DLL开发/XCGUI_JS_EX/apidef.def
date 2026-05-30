@@ -1,0 +1,5 @@
+LIBRARY  XCGUI_JS_EX
+
+EXPORTS
+
+InitModule

@@ -1,0 +1,44 @@
+---
+description: QDesktop 游戏菜单（Delphi XE2 + XCGUI）全局约定，始终应用
+alwaysApply: true
+---
+
+# QDesktop 全局约定
+
+## 1. 基础与 Agent（无人值守）
+- **Delphi**：`D:\办公软件\Delphi Xe2`；**栈**：Delphi XE2 32 位 + XCGUI；**回复中文**。
+- **全权推进**：文件/终端/网络/工具均视为已批准；**禁止**问「是否继续/需要批准吗」，多步任务一气呵成。
+- **须确认**：用户单次明确禁止、不可逆操作（如 force push）、访问 `__history/`。
+
+## 2. 工程与源码
+- **联动**：`*.pas` 增删改名须同步 `QDesktop.dproj`、`QDesktop.dpr`。
+- **编码**：见 `encoding.mdc`（源码 UTF-8 无 BOM，`DCC_CodePage=65001`）。
+- **布局**：运行期 `Resource/Layout/*.xml`；优先 `fill`、`:1`，禁止写死绝对像素。
+- **目录**：`窗口/`、`样式/`、`功能/`；**禁止改** `库/`。
+
+## 3. VCL 隔离
+- **禁止** `uses` 引用 `Vcl.*`；`QDesktop.dproj` 的 `DCC_Namespace` 不得含 `Vcl`。
+- 对话框：`功能/Shell/ShellHelper.pas`（WinAPI `CommDlg`）。
+- 父窗口句柄写 **`Windows.HWND`**，禁止裸 `HWND`（与 XCGUI 冲突）。
+
+## 4. 命名与 XCGUI 校验
+- 变量名与类型名（忽略大小写）**不得相同**（否则 E2007）；须后缀避让（如 `hSvgIcon`）。
+- 判空与类型：优先 `XC_GetObjectType(h) = XC_*`；已用时禁止再叠 `IsHELE`/`XC_IsHELE` 或与 `0` 比较。
+
+## 5. 事件与 D2D
+- `pbHandled` 始终有效，直接 `pbHandled^`；未处理不写 `False`，拦截时写 `True`。
+- D2D：先 `XC_IsEnableD2D`，否则 `XDraw_*`；目标 `ID2D1RenderTarget(XDraw_GetD2dRenderTarget(hDraw))`；坐标经 `XEle_RectClientToWndClientDPI`。
+
+## 6. WOW64（32 位进程）
+- 路径：`System32` → `SysWOW64`（真 64 位用 `Sysnative`）。
+- 注册表须标明 32/64 视图（含 `Wow6432Node`）。
+
+## 7. 改码后收尾
+改 `*.pas` / `*.dpr` / `*.dproj` 后，**先清 DCU、再关 QDesktop**，然后编译/运行（`BeforeBuild` 会删 DCU，Agent 仍须主动执行一次）：
+
+```
+Remove-Item -Path 'Dcu\*.dcu' -Force -ErrorAction SilentlyContinue
+Stop-Process -Name QDesktop -Force -ErrorAction SilentlyContinue
+```
+
+避免 DCU 陈旧、exe 占用链接失败、`QDesktop_SingleInstance_Mutex` 挡新实例。

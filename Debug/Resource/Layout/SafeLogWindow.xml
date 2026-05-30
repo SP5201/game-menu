@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,743,580" windowStyle="60" minSize="560,360" maxWindow="false">
+	<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="fill" padding="12,8,12,12" layout.spaceRow="8">
+		<layoutEleUI rect="0,0,100,36" layout.width="fill" layout.height="36" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+			<shapeText name="txt_safelog_title" rect="0,0,200,28" layout.width=":1" layout.height="fill" content="安全日志" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+			<layoutEleUI rect="0,0,80,36" layout.width="auto" layout.height="fill" layout.horizon="true" layout.alignH="right" layout.alignV="center" layout.space="8" expandT="false">
+				<buttonUI name="btn_safelog_min" buttonType="min" rect="0,0,20,20" layout.width="20" layout.height="20" />
+				<buttonUI name="btn_safelog_max" buttonType="max" rect="0,0,20,20" layout.width="20" layout.height="20" />
+				<buttonUI name="btn_safelog_close" buttonType="close" rect="0,0,20,20" layout.width="20" layout.height="20" />
+			</layoutEleUI>
+		</layoutEleUI>
+		<listUI name="list_safelog" rect="0,0,100,100" layout.width="fill" layout.height=":1" list.headerHeight="28" list.rowHeight="32,32" list.multiSel="false" list.rowBkFull="true" list.dragChangeColumnWidth="true" scrollBarShowH="false" />
+		<shapeRect name="rect_safelog_sep" rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" expandT="false" />
+		<editUI name="edit_safelog_detail" rect="0,0,100,120" layout.width="fill" layout.height="180" edit.autoWrap="true" edit.readOnly="true" contentTips="选择上方记录查看详情" />
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" expandT="false" />
+		<layoutEleUI rect="0,0,100,44" layout.width="fill" layout.height="38" layout.horizon="true" layout.alignV="center" layout.alignH="right" layout.space="10" expandT="false">
+			<buttonUI name="btn_safelog_export" rect="0,0,90,32" layout.width="90" layout.height="32" content="导出日志" />
+			<buttonUI name="btn_safelog_clear" rect="0,0,90,32" layout.width="90" layout.height="32" content="清空日志" />
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

@@ -1,0 +1,302 @@
+	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{74E4EE94-21EA-403B-AC39-85FF38C900C0}</ProjectGuid>
+			<MainSource>QDesktop.dpr</MainSource>
+			<Base>True</Base>
+			<Config Condition="'$(Config)'==''">Release</Config>
+			<TargetedPlatforms>1</TargetedPlatforms>
+			<AppType>Application</AppType>
+			<FrameworkType>None</FrameworkType>
+			<ProjectVersion>16.1</ProjectVersion>
+			<Platform Condition="'$(Platform)'==''">Win32</Platform>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+			<Base_Win32>true</Base_Win32>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+			<Cfg_1_Win32>true</Cfg_1_Win32>
+			<CfgParent>Cfg_1</CfgParent>
+			<Cfg_1>true</Cfg_1>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+			<Cfg_2_Win32>true</Cfg_2_Win32>
+			<CfgParent>Cfg_2</CfgParent>
+			<Cfg_2>true</Cfg_2>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_DependencyCheckOutputName>QMovie.exe</DCC_DependencyCheckOutputName>
+			<SanitizedProjectName>QMovie</SanitizedProjectName>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=13.1.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
+			<Manifest_File>QDesktop.manifest</Manifest_File>
+			<VerInfo_Locale>2052</VerInfo_Locale>
+			<DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win32)'!=''">
+			<DCC_DcuOutput>Dcu</DCC_DcuOutput>
+			<DCC_CodePage>65001</DCC_CodePage>
+			<DCC_UnitSearchPath>库\SQLite3;库\XCGUI;库\官方库;库\ZXingQRCode;功能\Shell;功能;功能\硬件;功能\硬件\CPU;功能\硬件\Mem;功能\硬件\GPU;功能\硬件\Net;功能\天气IP;功能\日志;功能\数据库;功能\配置;样式;窗口;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_IncludePath>样式;$(DCC_IncludePath)</DCC_IncludePath>
+			<DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<DCC_ExeOutput>Debug</DCC_ExeOutput>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+			<Icon_MainIcon>QDesktop.ico</Icon_MainIcon>
+			<VerInfo_Build>2</VerInfo_Build>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+			<VerInfo_Release>1</VerInfo_Release>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.1.2;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
+			<DCC_ExeOutput>Debug</DCC_ExeOutput>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="$(MainSource)">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<None Include="功能\数据库\Sqlite3BinPath.pas"/>
+			<None Include="功能\配置\AppConfig.pas"/>
+			<None Include="功能\配置\AppSettings.pas"/>
+			<None Include="功能\ListItemTypes.pas"/>
+			<None Include="功能\Shell\ShellHelper.pas"/>
+			<None Include="功能\Shell\ShellIconHelper.pas"/>
+			<None Include="功能\Shell\ShellPathHelper.pas"/>
+			<None Include="功能\Shell\ShellDialogs.pas"/>
+			<None Include="功能\Shell\ShellExecuteHelper.pas"/>
+			<None Include="功能\Shell\ShellOpenWith.pas"/>
+			<None Include="功能\硬件\Net\NetIfTable2.pas"/>
+			<None Include="功能\硬件\Net\NetTrafficMonitor.pas"/>
+			<None Include="样式\UI_Ele.pas"/>
+			<None Include="样式\UI_SidebarGrip.pas"/>
+			<None Include="库\SQLite3\SQLite3Utils.pas"/>
+			<None Include="库\SQLite3\SQLite3Wrap.pas"/>
+			<None Include="库\SQLite3\SQLite3.pas"/>
+			<None Include="库\XCGUI\XAdTable.pas"/>
+			<None Include="库\XCGUI\XCGUI.pas"/>
+			<None Include="库\XCGUI\XElement.pas"/>
+			<None Include="库\XCGUI\XEdit.pas"/>
+			<None Include="库\XCGUI\XEditor.pas"/>
+			<None Include="库\XCGUI\XForm.pas"/>
+			<None Include="库\XCGUI\XWidget.pas"/>
+			<None Include="库\XCGUI\XLayout.pas"/>
+			<None Include="库\XCGUI\XList.pas"/>
+			<None Include="库\XCGUI\XListview.pas"/>
+			<None Include="库\XCGUI\XMenu.pas"/>
+			<None Include="库\XCGUI\XBUTTON.pas"/>
+			<None Include="库\XCGUI\XScrollView.pas"/>
+			<None Include="库\XCGUI\XListbox.pas"/>
+			<None Include="库\XCGUI\Xlstbox.pas"/>
+			<None Include="库\XCGUI\XComboBox.pas"/>
+			<None Include="库\XCGUI\XDateTime.pas"/>
+			<None Include="库\XCGUI\XMonthCal.pas"/>
+			<None Include="库\XCGUI\XLayoutFrame.pas"/>
+			<None Include="库\XCGUI\XSliderBar.pas"/>
+			<None Include="库\XCGUI\XTextLink.pas"/>
+			<None Include="库\官方库\Sqlite2.pas"/>
+			<None Include="库\官方库\WinHTTP2.pas"/>
+			<None Include="功能\数据库\LibraryStore.pas"/>
+			<None Include="功能\HardwareMonitor.pas"/>
+			<None Include="功能\硬件\CPU\CpuInfoTypes.pas"/>
+			<None Include="功能\硬件\CPU\CpuInfoNative.pas"/>
+			<None Include="功能\硬件\CPU\CpuInfoNwInfo.pas"/>
+			<None Include="功能\硬件\CPU\CpuInfo.pas"/>
+			<None Include="功能\硬件\Mem\MemInfoTypes.pas"/>
+			<None Include="功能\硬件\Mem\MemInfoNative.pas"/>
+			<None Include="功能\硬件\Mem\MemInfoNwInfo.pas"/>
+			<None Include="功能\硬件\Mem\MemInfo.pas"/>
+			<None Include="功能\硬件\Net\NetInfoTypes.pas"/>
+			<None Include="功能\硬件\Net\NetInfoNative.pas"/>
+			<None Include="功能\硬件\Net\NetInfoNwInfo.pas"/>
+			<None Include="功能\硬件\Net\NetInfo.pas"/>
+			<None Include="功能\硬件\NwInfoRunner.pas"/>
+			<None Include="功能\天气IP\NetHttpWorker.pas"/>
+			<None Include="功能\天气IP\IpCityCoords.pas"/>
+			<None Include="功能\天气IP\ExternalIpParser.pas"/>
+			<None Include="功能\天气IP\WeatherParser.pas"/>
+			<None Include="功能\天气IP\ExternalIpFetcher.pas"/>
+			<None Include="功能\天气IP\WeatherFetcher.pas"/>
+			<None Include="窗口\UI_MainWindow.pas"/>
+			<None Include="窗口\UI_MainWindowHelpers.pas"/>
+			<None Include="窗口\UI_MainWindowTools.pas"/>
+			<None Include="窗口\UI_MainWindowStat.pas"/>
+			<None Include="窗口\UI_EditItemDialog.pas"/>
+			<None Include="窗口\UI_HintPopup.pas"/>
+			<None Include="窗口\UI_CategoryDialog.pas"/>
+			<None Include="窗口\UI_QrCodeDialog.pas"/>
+			<None Include="库\ZXingQRCode\DelphiZXIngQRCode.pas"/>
+			<None Include="样式\UI_Form.pas"/>
+			<None Include="样式\UI_Edit.pas"/>
+			<None Include="样式\UI_SearchBox.pas"/>
+			<None Include="样式\UI_ComboBox.pas"/>
+			<None Include="样式\UI_Button.pas"/>
+			<None Include="样式\UI_ListBox.pas"/>
+			<None Include="样式\UI_ListView.pas"/>
+			<None Include="样式\UI_Icon_ListView.pas"/>
+			<None Include="样式\UI_MessageBox.pas"/>
+			<None Include="样式\UI_PopupMenu.pas"/>
+			<None Include="样式\UI_PopupAnimation.pas"/>
+			<None Include="样式\UI_InfoListPopup.pas"/>
+			<None Include="样式\UI_ScrollBar.pas"/>
+			<None Include="样式\UI_SliderBar.pas"/>
+			<None Include="样式\UI_Theme.pas"/>
+			<None Include="窗口\UI_SettingsDialog.pas"/>
+			<None Include="Debug\Resource\Layout\MainWindow.xml"/>
+			<None Include="Debug\Resource\Layout\EditItemDialog.xml"/>
+			<None Include="Debug\Resource\Layout\MessageBox.xml"/>
+			<None Include="Debug\Resource\Layout\ListBox_Item.xml"/>
+			<None Include="Debug\Resource\Layout\ListView_Item.xml"/>
+			<None Include="Debug\Resource\Layout\ComboBox_Item.xml"/>
+			<None Include="Debug\Resource\Layout\RenameCategoryDialog.xml"/>
+			<None Include="Debug\Resource\Layout\QrCodeDialog.xml"/>
+			<None Include="Debug\Resource\Layout\IconListView_Item.xml"/>
+			<RcItem Include="QDesktop.ico">
+				<ResourceType>ICON</ResourceType>
+				<ResourceId>Icon</ResourceId>
+			</RcItem>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<Target Name="BeforeBuild">
+			<ItemGroup>
+				<DcuFilesToDelete Include="$(MSBuildProjectDirectory)\Dcu\*.dcu"/>
+			</ItemGroup>
+			<Delete Files="@(DcuFilesToDelete)"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Source>
+						<Source Name="MainSource">QDesktop.dpr</Source>
+					</Source>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">0</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">2052</VersionInfo>
+						<VersionInfo Name="CodePage">936</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName"/>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">13.1.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName"/>
+						<VersionInfoKeys Name="ProductVersion">13.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments"/>
+					</VersionInfoKeys>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<Excluded_Packages>
+						<Excluded_Packages Name="$(BDSBIN)\dcloffice2k160.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+						<Excluded_Packages Name="$(BDSBIN)\dclofficexp160.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+					</Excluded_Packages>
+				</Delphi.Personality>
+				<Platforms>
+					<Platform value="Win32">True</Platform>
+				</Platforms>
+				<Deployment>
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QMovie.exe">
+						<Platform Name="Win32"/>
+					</DeployFile>
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QYvideo.rsm">
+						<Platform Name="Win32">
+							<RemoteName>QYvideo.rsm</RemoteName>
+						</Platform>
+					</DeployFile>
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QYvideo.exe">
+						<Platform Name="Win32"/>
+					</DeployFile>
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QMovie.rsm">
+						<Platform Name="Win32">
+							<RemoteName>QMovie.rsm</RemoteName>
+						</Platform>
+					</DeployFile>
+					<DeployClass Name="DependencyPackage" Required="true">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+							<Extensions>.bpl</Extensions>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="DependencyModule">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+							<Extensions>.dll;.bpl</Extensions>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="ProjectOutput" Required="true">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="DebugSymbols">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="DependencyFramework">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="File">
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="AdditionalDebugSymbols">
+						<Platform Name="Win32">
+							<RemoteDir>Contents\MacOS</RemoteDir>
+							<Operation>0</Operation>
+						</Platform>
+					</DeployClass>
+					<ProjectRoot Name="$(PROJECTNAME)" Platform="Win32"/>
+				</Deployment>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+		<Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+		<Import Condition="Exists('$(MSBuildProjectName).deployproj')" Project="$(MSBuildProjectName).deployproj"/>
+	</Project>

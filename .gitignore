@@ -1,0 +1,44 @@
+# Delphi / IDE — 任意目录下的 __history 均不上传
+**/__history/
+*.~*
+*.local
+*.identcache
+*.projdata
+*.tvsconfig
+*.dsk
+*.dproj.local
+*.groupproj.local
+
+# Build output
+Debug/xcgui_debug.txt
+Debug/Data/_ip2tmp/
+Debug/Data/IconCache/
+Dcu/
+*.dcu
+*.ddp
+*.dcp
+*.bpl
+*.res
+*.dres
+!Debug/**/*.res
+!Debug/**/*.dres
+*.dll.map
+*.exe.map
+*.tds
+*.map
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Cursor (optional local state; rules stay in repo)
+.cursor/**/*.log
+
+# Local setup / archives (not shared)
+scripts/
+*.bat
+*.7z
+*.zip

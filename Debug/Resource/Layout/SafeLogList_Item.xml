@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-列表元素项模板文件-->
+<head />
+<xc_template_list>
+	<listHeader_item widthT="300" heightT="28">
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="fill" layout.height="fill" content="{binding field=col_status}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="fill" layout.height="fill" content="{binding field=col_time}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="fill" layout.height="fill" content="{binding field=col_type}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="fill" layout.height="fill" content="{binding field=col_feature}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="fill" layout.height="fill" content="{binding field=col_summary}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+	</listHeader_item>
+	<list_Item widthT="300" heightT="32">
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="0" layout.height="0" content="{binding field=col_status}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="0" layout.height="0" content="{binding field=col_time}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="0" layout.height="0" content="{binding field=col_type}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="0" layout.height="0" content="{binding field=col_feature}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+		<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="fill" layout.height="fill" layout.space="2">
+			<shapeText itemID="1" layout.width="0" layout.height="0" content="{binding field=col_summary}" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+		</layoutEleUI>
+	</list_Item>
+</xc_template_list>

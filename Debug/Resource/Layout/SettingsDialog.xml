@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,680,480" windowType="modalWindow" windowStyle="20" center="true" minSize="560,400" maxWindow="false">
+	<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="fill" padding="12,8,12,12" layout.spaceRow="8">
+		<layoutEleUI rect="0,0,100,36" layout.width="fill" layout.height="36" layout.alignV="center" expandT="false">
+			<shapeText name="txt_settings_title" rect="0,0,200,28" layout.width=":1" layout.height="fill" content="设置" />
+			<buttonUI name="btn_settings_close" rect="0,0,60,25" layout.width="20" layout.height="20" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height=":1" layout.horizon="true" layout.space="12">
+			<listBoxUI name="list_settings_nav" rect="0,0,148,100" layout.width="148" layout.height="fill" expandT="false" />
+			<layoutEleUI rect="0,0,100,100" layout.width=":1" layout.height="fill" padding="4,0,0,0">
+				<layoutEleUI name="pane_settings_general" rect="0,0,100,100" layout.width="fill" layout.height="fill" layout.spaceRow="16" padding="8,4,8,4" showT="false" expandT="false">
+					<shapeText name="txt_settings_group_startup" rect="0,0,100,22" layout.width="fill" layout.height="22" content="启动" textColor="@Resource:\ID_COLOR_PRIMARY" />
+					<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="auto" layout.spaceRow="10" expandT="false">
+						<buttonUI name="chk_settings_run_with_windows" rect="0,0,260,28" layout.width="fill" layout.height="28" content="Windows 启动时运行" buttonType="check" style="check" />
+						<buttonUI name="chk_settings_minimize_to_tray" rect="0,0,260,28" layout.width="fill" layout.height="28" content="最小化到系统托盘" buttonType="check" style="check" />
+					</layoutEleUI>
+					<shapeText name="txt_settings_group_display" rect="0,0,100,22" layout.width="fill" layout.height="22" content="显示" textColor="@Resource:\ID_COLOR_PRIMARY" />
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_label_render_mode" rect="0,0,80,22" layout.width="80" layout.height="fill" content="渲染模式" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<comboBoxUI name="combo_settings_render_mode" rect="0,0,100,32" layout.width="100" layout.height="32" comboBox.dropHeight="72" />
+						<shapeText name="txt_settings_render_mode_hint" rect="0,0,200,22" layout.width=":1" layout.height="fill" content="修改后需重启程序生效" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_label_paint_frequency" rect="0,0,80,22" layout.width="80" layout.height="fill" content="绘制频率" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<shapeText name="txt_settings_paint_frequency_value" rect="0,0,56,22" layout.width="56" layout.height="fill" content="30 ms" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<sliderBarUI name="slider_settings_paint_frequency" rect="0,0,100,24" layout.width=":1" layout.height="24" />
+					</layoutEleUI>
+				</layoutEleUI>
+				<layoutEleUI name="pane_settings_data_update" rect="0,0,100,100" layout.width="fill" layout.height="fill" layout.spaceRow="16" padding="8,4,8,4" expandT="false">
+					<shapeText name="txt_settings_group_city_coords" rect="0,0,100,22" layout.width="fill" layout.height="22" content="城市坐标数据" textColor="@Resource:\ID_COLOR_PRIMARY" />
+					<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="auto" layout.spaceRow="10" expandT="false">
+						<buttonUI name="chk_settings_city_coords_update" rect="0,0,260,28" layout.width="fill" layout.height="28" content="从 GitHub 更新 city.json" buttonType="check" style="check" />
+					</layoutEleUI>
+				</layoutEleUI>
+			</layoutEleUI>
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" expandT="false" />
+		<layoutEleUI rect="0,0,100,44" layout.width="fill" layout.height="44" layout.horizon="true" layout.alignV="center" expandT="false">
+			<buttonUI name="btn_settings_reset" rect="0,0,120,32" layout.width="120" layout.height="32" content="重置为默认" />
+			<layoutEleUI rect="0,0,100,32" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignH="right" layout.space="10" layout.alignV="center">
+				<buttonUI name="btn_settings_apply" rect="0,0,90,32" layout.width="90" layout.height="32" content="应用" />
+				<buttonUI name="btn_settings_ok" rect="0,0,90,32" layout.width="90" layout.height="32" content="确定" />
+			</layoutEleUI>
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

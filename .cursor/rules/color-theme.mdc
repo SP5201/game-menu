@@ -1,0 +1,63 @@
+---
+description: UI 颜色与主题约束（色板来源 UI_Theme.pas，编辑样式/窗口/布局时生效）
+globs: 样式/**/*.pas,窗口/**/*.pas,**/Resource/Layout/**/*.xml
+alwaysApply: false
+---
+
+# 颜色约束
+
+- 深色扁平；主色 **#D21B46**（`RGBA(210, 27, 70, 255)`）。
+- 表面以低透明度白叠加深灰底；边框/分隔线用半透明白，避免纯 `#FFFFFF` 硬边。
+- 新增/调整 UI 色值：**只改** `样式/UI_Theme.pas`；业务单元引用 `UITheme_*`，禁止在 `窗口/`、`样式/` 其它单元散落 `RGBA(...)` 常量（空状态插画等一次性绘制除外，且须注释说明）。
+
+## 色板（`UI_Theme.pas`）
+
+| 变量 | RGBA |用途 |
+| --- | --- | --- |
+| `UITheme_PrimaryColor` | 210, 27, 70, 255 | 主色、Combo 选中条、强调 |
+| `UITheme_SurfaceBase` | 30, 30, 30, 255 | 窗口/菜单/编辑底（α 随 `UITheme_WindowAlpha`） |
+| `UITheme_SurfaceOutline` | 255, 255, 255, 10 | 表面描边 |
+| `UITheme_SurfaceHover` | 255, 255, 255, 10 | 悬停底 |
+| `UITheme_SurfaceSelected` | 255, 255, 255, 20 | 选中底 |
+| `UITheme_ShadowDefault` | 0, 0, 0, 225 | 阴影 |
+| `UITheme_TextPrimary` | 207, 207, 207, 255 | 主文本 |
+| `UITheme_TextPlaceholder` | 255, 255, 255, 36 | 占位/提示 |
+| `UITheme_ListHeaderSurface` | 42, 42, 42, 255 | 报表列表表头背景 |
+| `UITheme_ListHeaderText` | 207, 207, 207, 255 | 报表列表表头文字 |
+| `UITheme_ListHeaderSplitLine` | 255, 255, 255, 36 | 报表列表表头列分隔线 |
+| `UITheme_BorderDefault` | 255, 255, 255, 30 | 默认边框 |
+| `UITheme_InputSurface` | 255, 255, 255, 4 | 输入框底 |
+| `UITheme_InputSurfaceFocus` | 0, 0, 0, 60 | 输入聚焦底 |
+| `UITheme_InputBorder` | 255, 255, 255, 30 | 输入框边框 |
+| `UITheme_InputText` | 255, 255, 255, 150 | 输入文本 |
+| `UITheme_InputCaret` | 255, 255, 255, 190 | 光标 |
+| `UITheme_InputSelection` | 255, 255, 255, 80 | 选区 |
+| `UITheme_ScrollThumbIdle` | 255, 255, 255, 40 | 滚动条常态 |
+| `UITheme_ScrollThumbActive` | 255, 255, 255, 80 | 滚动条激活 |
+| `UITheme_ButtonHighlightBk` | 210, 27, 70, 255 | 主按钮底 |
+| `UITheme_ButtonHighlightBkHover` | 210, 27, 70, 245 | 主按钮悬停 |
+| `UITheme_ButtonNormalBk` | 255, 255, 255, 32 | 次按钮底 |
+| `UITheme_ButtonNormalBkHover` | 255, 255, 255, 42 | 次按钮悬停 |
+| `UITheme_IconFill` | 255, 255, 255, 160 | 图标填充 |
+| `UITheme_SvgColor` | 255, 255, 255, 230 | SVG 着色 |
+| `UITheme_CheckMark` | 255, 255, 255, 255 | 勾选 |
+| `UITheme_ProgressBarFill` | 239, 68, 68, 255 | CPU 进度 |
+| `UITheme_ProgressBarTrack` | 64, 64, 64, 255 | 进度轨道 |
+| `UITheme_StatRamFill` | 16, 185, 129, 255 | RAM |
+| `UITheme_StatGpuFill` | 59, 130, 246, 255 | GPU |
+| `UITheme_StatNetDownFill` | 125, 212, 232, 255 | 状态栏下载 SVG |
+| `UITheme_StatNetUpFill` | 52, 211, 153, 255 | 状态栏上传 SVG |
+| `UITheme_StatLabel` | 156, 163, 175, 200 | 状态栏标签 |
+| `UITheme_StatBarTopLine` | 255, 255, 255, 28 | 状态栏顶线 |
+| `UITheme_PopupMenu_AccentWhiteAlpha30` | 255, 255, 255, 18 | 菜单分隔/选中 |
+
+窗口透明度与圆角：`UITheme_WindowAlpha`、`UITheme_WindowCornerRadius`。
+
+## 使用规则
+
+- **Pas 绘制**：`XDraw_SetBrushColor` / `XShapeText_SetTextColor` / `XSvg_SetUserFillColor` 等优先传 `UITheme_*`。
+- **组件默认色**：`TEditUI`/`TButtonUI`/`TComboBoxUI`/`TListViewUI`/`TPopupMenuUI` 等在 `Init`/`Apply*Style` 内绑定主题，窗口层 `ApplyDefaultStyles` 只做控件级覆盖（如状态栏 CPU/RAM/GPU 分色）。
+- **XML**：强调文字可用 `textColor="@Resource:\ID_COLOR_PRIMARY"`（与 `UITheme_PrimaryColor` 一致）；其余颜色由代码 `ApplyDefaultStyles` 设置，XML 不写死十六进制色。
+- **用户可选色**（二维码/背景设置等）：运行时色值存配置，不入 `UI_Theme`。
+- **D2D**：`XC_IsEnableD2D` 为真时用 `RGBAToD2D1ColorF(UITheme_*)`；坐标须 DPI 转换（见 `global.mdc` D2D 节）。
+  

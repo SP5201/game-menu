@@ -1,0 +1,972 @@
+{
+	"comment": [
+		"字段: [类型,  标识,  英文名, 中文名, 注释]",
+		"字段组合框: [类型为组合框,  标识,  英文名, 中文名, 注释, [组合框成员]]",
+		"标识: edit(编辑框-可编辑) | multiLine(编辑框-多行模块) | set(编辑框-已设置)",
+		"分组: rect, common,  bool,   style,  layout",
+		"类型: edit, edit_bool, edit_color,  edit_set, edit_set_icon, edit_set_properties, edit_set_image, edit_set_textAlign, edit_set_drawItemBkFlag, edit_file, comboBox, string"
+	],
+	"help": {
+		"id": "ID,窗口内唯一标识符, 如值为0忽略, 代码可通过ID获取对象句柄",
+		"uid": "UID,全局唯一标识符, 如值为0忽略, 代码可通过UID获取对象句柄",
+		"name": "name, 全局唯一名称,不允许重复, 代码可通过名称获取对象句柄",
+		"nameTable": "名称前缀, 避免名称重复, 例如: @页面1:账号, @页面2:账号",
+		"textColor": "文本颜色",
+		"font": "字体",
+		"alpha": "透明度(0-255)",
+		"show": "显示/隐藏",
+		"enable": "启用/禁用",
+		"drawFocus": "是否绘制焦点",
+		"enableFocus": "是否启用焦点",
+		"transparent": "背景是否透明",
+		"mouseThrough": "鼠标穿透; 如果启用,那么该元素不能接收到鼠标事件,但是他的子元素不受影响,仍然可以接收鼠标事件",
+		"toolTip": "工具提示内容",
+		"layout.width": "布局宽度,比例用法例如:':1',':2',':3',他们将按照比例分配剩余空间; 当父非布局对象时,[元素]的布局属性无效,[形状对象文本]属性有效",
+		"layout.height": "布局高度,比例用法例如:':1',':2',':3',他们将按照比例分配剩余空间; 当父非布局对象时,[元素]的布局属性无效,[形状对象文本]属性有效",
+		"content": "内容 或 绑定字段名; 当为列表项模板中对象时, 如果启用[列延伸], 那么绑定字段名作为-字段名前缀",
+		"center": "是否居中显示",
+		"dragBorder": "是否可拖动边框,例如:拖动窗口的边框",
+		"dragWindow": "是否可拖动整个窗口,如果启用不管鼠标按在窗口任何位置都可以拖动窗口,前提是鼠标没有按在窗口的子元素之上",
+		"focusBorderColor": "焦点边框颜色",
+		"lockScroll": "锁定滚动",
+		"toolTipTextAlign": "工具提示文本对齐",
+		"switchFocus": "启用切换焦点",
+		"drawBorder": "绘制默认边框",
+		"enableKeyTab": "启用接收TAB",
+		"event_XE_PAINT_END": "事件绘制完成",
+		"event_XE_MOUSEWHEEL": "事件鼠标滚动滚动",
+
+		"hotkeyPrefix": "启用热键前缀",
+		"comboBox.bindName": "组合框绑定字段名",
+		"comboBox.buttonSize": "下拉按钮大小",
+		"comboBox.dropHeight": "下拉列表高度",
+		"comboBox.dropHeightFixed": "下拉列表高度固定",
+		"comboBox.drawButton": "绘制下拉按钮",
+		"comboBox.enableEdit": "启用编辑",
+		"edit.autoWrap": "自动换行",
+		"edit.readOnly": "只读",
+		"edit.password": "启用密码",
+		"edit.autoSel": "自动选择",
+		"edit.autoCancelSel": "自动取消选择",
+		"edit.tabSpace": "TAB占空格数量",
+		"edit.passwordChar": "密码字符",
+		"edit.spaceSize": "空格大小",
+		"edit.charSpaceSize": "字符间距",
+
+		"className": "窗口类名,需要注册后才有效",
+		"transparentFlag": "窗口透明类型",
+		"windowType": "窗口类型,如:普通窗口,框架窗口,模态窗口",
+		"transparentAlpha": "透明度(0-255)",
+		"transparentColor": "透明色",
+		"drawBk": "是否绘制背景",
+
+		"left": "坐标, 相对与父X轴坐标",
+		"top": "坐标, 相对与父Y轴坐标",
+		"width": "宽度",
+		"height": "高度",
+		"groupID": "组ID,可对多个按钮进行分组, 若是组ID为0则不支持跨层分组",
+		"textAlign": "文本对齐方式",
+		"iconAlign": "图标对齐方式",
+		"iconSpace": "图标间距",
+		"offsetXY": "文本偏移(x,y)",
+		"offsetIconXY": "图标偏移(x,y)",
+
+		"buttonType": "按钮类型, 类型决定功能",
+		"style": "按钮风格, 风格决定外观",
+		"bindEle": "指定要绑定的UI对象[ID]或[名称]; 当按钮为单选类型时, 当选中状态显示绑定的元素, 当未选中时隐藏绑定的元素",
+		"check": "是否选中",
+		"expandButton": "项展开按钮,设置后,可通过该按钮展开收缩项",
+		"imageIcon": "按钮-图标",
+		"imageIconDisable": "按钮-图标-禁用状态",
+
+		"imageLoad": "图片-进度",
+		"underlineLeave": "下划线-离开",
+		"underlineStay": "下划线-停留",
+		"textColorStay": "文字颜色-停留",
+		"underlineColorLeave": "下滑线颜色-离开",
+		"underlineColorStay": "下滑线颜色-停留",
+
+		"bkInfoM": "从资源中选择背景资源",
+		"css.enable": "启用CSS,默认启用",
+		"css.name": "套用CSS[被动]样式名称",
+
+		"enableCanvas": "当启用画布后, 该对象拥有独立的画布层, 否则它将直接绘制在父对象上,默认为启用, 布局元素默认关闭",
+		"topmost": "将对象设置为顶层显示",
+		"windowStyle": "设置窗口的样式, 窗口创建时传入的样式, 如果你在属性视图中修改了重叠的属性, 就会覆盖重叠的部分属性; 例如: 标题栏, 边框, 控制按钮, 拖动窗口等",
+
+		"titleColor": "设置窗口标题文本颜色",
+		"captionMargin": "可调整标题栏(图标,标题,控制按钮)外间距",
+		"maxWindow": "启动窗口时窗口最大化显示",
+		"enableLayout": "启用布局后[布局-盒子]属性生效,该对象可控制子对象的布局",
+		"overlayBorder": "启用后布局将覆盖窗口边框及标题栏",
+		"cursor": "鼠标光标",
+
+		"layout.horizon": "水平或垂直布局",
+		"layout.alignH": "设置水平对齐方式",
+		"layout.alignV": "设置垂直对齐方式",
+		"layout.alignBaseline": "一排UI对象取最大高度,相对于自身对齐顶端或底部",
+		"layout.autoWrap": "自动换行, 当对象排列长度超出范围时,超出内容自动换到下一行",
+		"layout.overflowHide": "当对象排列长度超出范围时, 超出内容将被隐藏",
+		"layout.space": "设置子项之间的间距",
+		"layout.spaceRow": "设置行间距, 只有启用自动换行后内容超出范围才会换行",
+		"border": "设置四条边大小, 如果为窗口,顶边包含标题栏",
+		"padding": "内填充",
+		"layout.margin": "外间距, 设置外围四边间距",
+		"layout.position": "设置对象固定位置,相对于布局盒子四周间距, 四个值分别对应四条边, 允许出现负值,-3200(为无效值)",
+		"layout.minSize": "限制最小宽度和高度,限制大小仅针对缩放属性有效(自动, 填充父, 比例, 百分比)",
+		"layout.align": "设置项的独立对齐方式, 如果布局盒子启用自动换行, 那么不支持项对齐",
+
+		"layout.wrap": "强制该对象换到下一行",
+		"layout.float": "项浮动,设置该对象反方向对齐",
+		"layout.swap": "项属性交换,根据水平垂直布局变换, 交换属性(宽度,高度,最小宽度,最小高度)",
+		"layoutControl": "该对象是否受布局控制",
+
+		"tempExtend.start": "列延伸.字段名起始值(整数), 大于等于0; 前缀为绑定字段名, [字段名 + (字段名起始值 + 当前延伸次数)], 例如: 当字段名为\"name\",字段名起始值为3, 延伸次数为4, 那么动态生成的字段名为: name3, name4, name5, name6",
+		"tempExtend.count": "列延伸.延伸数量(整数), 大于等于0, 当为0时从当前列延伸到末尾列, 否则延伸指定数量列; 如果未指定那么值为0",
+
+		"shadowSize": "阴影大小",
+		"shadowDepth": "阴影深度(0-255), 阴影颜色的深浅",
+		"shadowAngleSize": "隐藏窗口圆角上阴影内收大小, 阴影圆角大小",
+		"shadowRightAngle": "是否强制直角, 圆角或直角",
+		"shadowColor": "阴影颜色",
+		"itemID": "itemID(列表项模板中对象ID标识), 如值为0忽略, 代码可通过itemID获取对象句柄; 注意需要在项模板创建完成事件中获取,否则没有实例化的模板是不存在的",
+		"userData": "UI元素绑定数据(变整型), XEle_SetUserdata() XEle_GetUserdata()",
+		"properties": "自定义属性名(自定义名称 = 值), 类型为字符串, 可设置多个自定义属性,不能与现有属性重复, 代码中通过 XC_GetProperty(对象句柄, 属性名) 获取属性值"
+	},
+	"windowUI": {
+		"rect": [
+			[ "edit", "true", "left", "左边(left)", "" ],
+			[ "edit", "true", "top", "上边(top)", "" ],
+			[ "edit", "true", "width", "宽度(width)", "" ],
+			[ "edit", "true", "height", "高度(height)", "" ]
+		],
+		"common": [
+			[ "edit_set_id", "true", "id", "ID", "" ],
+			[ "edit", "true", "name", "名称(name)", "" ],
+			[ "comboBox", "true", "nameTable", "名称前缀(已废弃)", "" ],
+			[ "edit_set_text", "true | multiLine", "content", "内容", "" ],
+			[ "edit", "true", "className", "窗口类名", "" ],
+			[
+				"comboBox",
+				"true",
+				"windowType",
+				"窗口类型",
+				"",
+				[
+					[ "frameWindow", "框架窗口" ],
+					[ "modalWindow", "模态窗口" ]
+				]
+			],
+			[ "edit_set_windowStyle", "true", "windowStyle", "窗口样式", "" ],
+			[ "edit_set_properties", "false", "properties", "自定义属性列表", "" ]
+		],
+		"self": [
+			[ "edit", "true", "border", "边框(0,0,0,0)", "" ],
+			[ "edit", "true", "padding", "内填充(0,0,0,0)", "" ],
+			[ "edit", "true", "captionMargin", "标题外间距(0, 0, 0, 0)", "" ],
+			[ "edit", "true", "minSize", "最小大小(w,h)", "" ],
+			[ "edit_bool", "false", "center", "居中", "" ],
+			[ "edit_bool", "false", "maxWindow", "启动时窗口最大化", "" ],
+			[ "edit_bool", "false", "dragBorder", "拖动边框", "" ],
+			[ "edit_bool", "false", "dragWindow", "拖动窗口", "" ],
+			[ "edit_bool", "false", "enableLayout", "启用布局", "" ],
+			[ "edit_bool", "false", "overlayBorder", "覆盖窗口边框", "" ],
+
+			[ "edit_bool", "false", "dragFiles", "启用拖入文件", "" ],
+			[ "edit_bool", "false", "topmost", "置顶", "" ]
+		],
+		"style": [
+			[ "edit_set_bkInfo", "false", "bkInfoM", "背景信息", "" ],
+			[ "edit_set_icon", "true", "icon", "图标", "" ],
+			[ "edit_set_font", "true", "font", "字体", "" ],
+			[ "edit_set_color", "true", "titleColor", "标题颜色", "" ],
+			[ "edit_set_color", "true", "textColor", "文本颜色", "" ],
+			[ "edit_set_color", "true", "transparentColor", "窗口透明色", "" ],
+			[ "edit", "true", "transparentAlpha", "透明度", "" ],
+			[ "edit_bool", "false", "css.enable", "CSS启用样式", "" ],
+			[ "edit_set_css", "true", "css.name", "CSS套用样式", "" ],
+			[
+				"comboBox",
+				"false",
+				"transparentFlag",
+				"透明窗口类型",
+				"",
+				[
+					[ "", "" ],
+					[ "shaped", "透明窗口" ],
+					[ "shadow", "透明窗口阴影" ],
+					[ "simple", "指定透明色" ]
+				]
+			],
+			[ "edit", "false", "shadowSize", "阴影大小", "" ],
+			[ "edit", "true", "shadowDepth", "阴影深度(0-255)", "" ],
+			[ "edit", "true", "shadowAngleSize", "角内收大小", "" ],
+			[ "edit_bool", "false", "shadowRightAngle", "是否直角", "" ],
+			[ "edit_set_color", "true", "shadowColor", "阴影颜色", "" ]
+		],
+		"layout-box": [
+			[
+				"comboBox",
+				"false",
+				"layout.horizon",
+				"水平/垂直",
+				"",
+				[
+					[ "", "" ],
+					[ "true", "水平" ],
+					[ "false", "垂直" ]
+				]
+			],
+			[
+				"comboBox",
+				"false",
+				"layout.alignH",
+				"水平对齐",
+				"",
+				[
+					[ "", "" ],
+					[ "left", "左" ],
+					[ "right", "右" ],
+					[ "center", "居中" ],
+					[ "equidistant", "等距" ]
+				]
+			],
+			[
+				"comboBox",
+				"false",
+				"layout.alignV",
+				"垂直对齐",
+				"",
+				[
+					[ "", "" ],
+					[ "top", "上" ],
+					[ "bottom", "下" ],
+					[ "center", "居中" ],
+					[ "equidistant", "等距" ]
+				]
+			],
+			[
+				"comboBox",
+				"false",
+				"layout.alignBaseline",
+				"基线对齐",
+				"",
+				[
+					[ "", "" ],
+					[ "auto", "自动" ],
+					[ "start", "顶部" ],
+					[ "center", "居中" ],
+					[ "end", "底部" ]
+				]
+			],
+			[ "edit_bool", "false", "layout.autoWrap", "自动换行", "" ],
+			[ "edit_bool", "false", "layout.overflowHide", "溢出隐藏", "" ],
+			[ "edit", "true", "layout.space", "子项间距", "" ],
+			[ "edit", "true", "layout.spaceRow", "行间距", "" ]
+		],
+		"frameWindowUI": {},
+		"modalWindowUI": {},
+		"menuMainWindowUI": {},
+		"menuChildWindowUI": {},
+		"comboBoxWindowUI": {},
+		"tooltipWindowUI": {},
+		"notifyWindowUI": {},
+		"floatWindowUI": {}
+	},
+	"elementUI": {
+		"common": [
+			[ "edit_set_id", "true", "id", "ID", "" ],
+			[ "edit_set_id", "true", "uid", "UID", "" ],
+			[ "edit", "true", "name", "名称(name)", "" ],
+			[ "comboBox", "true", "nameTable", "名称前缀(已废弃)", "" ],
+			[ "edit", "true", "userData", "用户数据", "" ],
+			[ "edit_set_properties", "false", "properties", "自定义属性列表", "" ],
+			[ "edit_bool", "false", "enable", "启用", "" ],
+			[ "edit_bool", "false", "show", "显示", "" ]
+		],
+		"rect": [
+			[ "edit", "true", "left", "左边(left)", "" ],
+			[ "edit", "true", "top", "上边(top)", "" ],
+			[ "edit", "true", "width", "宽度(width)", "" ],
+			[ "edit", "true", "height", "高度(height)", "" ]
+		],
+		"style": [
+			[ "edit_set_bkInfo", "false", "bkInfoM", "背景信息", "" ],
+			[ "edit_set_font", "true", "font", "字体", "" ],
+			[ "edit_set_color", "true", "textColor", "文本颜色", "" ],
+			[ "edit_set_color", "true", "focusBorderColor", "焦点边框颜色", "" ],
+			[ "edit", "true", "alpha", "透明度", "" ],
+			[
+				"comboBox",
+				"false",
+				"cursor",
+				"光标",
+				"",
+				[
+					[ "IDC_ARROW", "" ],
+					[ "IDC_CROSS", "十字" ],
+					[ "IDC_HAND", "手型" ],
+					[ "IDC_HELP", "帮助" ],
+					[ "IDC_IBEAM", "工字型" ],
+					[ "IDC_SIZEALL", "十字箭头" ],
+					[ "IDC_WAIT", "沙漏" ],
+					[ "IDC_APPSTARTING", "标准箭头和沙漏" ],
+					[ "IDC_NO", "禁用警告图标" ]
+				]
+			],
+			[ "edit_bool", "false", "enableCanvas", "启用画布", "" ],
+			[ "edit_bool", "false", "transparent", "背景透明", "" ],
+			[ "edit_bool", "false", "drawFocus", "绘制焦点", "" ],
+			[ "edit_bool", "false", "drawBorder", "绘制默认边框", "" ],
+			[ "edit_bool", "false", "css.enable", "CSS启用样式", "" ],
+			[ "edit_set_css", "true", "css.name", "CSS套用样式", "" ]
+		],
+		"self": [
+			[ "edit_set_text", "true | multiLine", "toolTip", "工具提示", "" ],
+			[ "edit_set_textAlign", "true", "toolTipTextAlign", "工具提示文本对齐", "" ],
+			[ "edit_bool", "false", "enableFocus", "启用焦点", "" ],
+			[ "edit_bool", "false", "switchFocus", "启用切换焦点", "" ],
+			[ "edit_bool", "false", "mouseThrough", "启用鼠标穿透", "" ],
+			[ "edit_bool", "false", "enableKeyTab", "启用接收TAB", "" ],
+			[ "edit_bool", "false", "topmost", "置顶", "" ],
+			[
+				"comboBox",
+				"false",
+				"lockScroll",
+				"锁定滚动",
+				"",
+				[
+					[ "", "" ],
+					[ "1", "水平锁定" ],
+					[ "2", "垂直锁定" ],
+					[ "3", "水平垂直锁定" ]
+				]
+			],
+			[ "edit_bool", "false", "event_XE_PAINT_END", "事件绘制完成", "" ],
+			[ "edit_bool", "false", "event_XE_MOUSEWHEEL", "事件鼠标滚动滚动", "" ]
+		],
+		"layout-item": [
+			[
+				"comboBox",
+				"true",
+				"layout.width",
+				"布局宽度",
+				"",
+				[
+					[ "fill", "填充父" ],
+					[ "auto", "自动" ],
+					[ ":1", ":1(占用剩余空间)" ],
+					[ "%20", "%20(百分比)" ]
+				]
+			],
+			[
+				"comboBox",
+				"true",
+				"layout.height",
+				"布局高度",
+				"",
+				[
+					[ "fill", "填充父" ],
+					[ "auto", "自动" ],
+					[ ":1", ":1(占用剩余空间)" ],
+					[ "%20", "%20(百分比)" ]
+				]
+			],
+			[ "edit", "true", "border", "边框(0,0,0,0)", "" ],
+			[ "edit", "true", "padding", "内填充(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.margin", "外间距(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.position", "固定位置(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.minSize", "最小大小(w,h)", "" ],
+			[
+				"comboBox",
+				"false",
+				"layout.align",
+				"项对齐",
+				"",
+				[
+					[ "", "" ],
+					[ "auto", "自动" ],
+					[ "start", "顶部" ],
+					[ "center", "居中" ],
+					[ "end", "底部" ]
+				]
+			],
+			[ "edit_bool", "false", "layout.wrap", "项换行", "" ],
+			[ "edit_bool", "false", "layout.float", "项浮动", "" ],
+			[ "edit_bool", "false", "layout.swap", "项属性交换", "" ],
+			[ "edit_bool", "false", "layoutControl", "布局控制", "" ]
+		],
+		"paneUI": {},
+		"paneSplitUI": {},
+		"layoutEleUI": {
+			"layout-box": [
+				[
+					"comboBox",
+					"false",
+					"layout.horizon",
+					"水平/垂直",
+					"",
+					[
+						[ "", "" ],
+						[ "true", "水平" ],
+						[ "false", "垂直" ]
+					]
+				],
+				[
+					"comboBox",
+					"false",
+					"layout.alignH",
+					"水平对齐",
+					"",
+					[
+						[ "", "" ],
+						[ "left", "左" ],
+						[ "right", "右" ],
+						[ "center", "居中" ],
+						[ "equidistant", "等距" ]
+					]
+				],
+				[
+					"comboBox",
+					"false",
+					"layout.alignV",
+					"垂直对齐",
+					"",
+					[
+						[ "", "" ],
+						[ "top", "上" ],
+						[ "bottom", "下" ],
+						[ "center", "居中" ],
+						[ "equidistant", "等距" ]
+					]
+				],
+				[
+					"comboBox",
+					"false",
+					"layout.alignBaseline",
+					"基线对齐",
+					"",
+					[
+						[ "", "" ],
+						[ "auto", "自动" ],
+						[ "start", "顶部" ],
+						[ "center", "居中" ],
+						[ "end", "底部" ]
+					]
+				],
+				[ "edit_bool", "false", "layout.autoWrap", "自动换行", "" ],
+				[ "edit_bool", "false", "layout.overflowHide", "溢出隐藏", "" ],
+				[ "edit", "true", "layout.space", "子项间距", "" ],
+				[ "edit", "true", "layout.spaceRow", "行间距", "" ]
+			]
+		},
+		"buttonUI": {
+			"common": [
+				[ "edit_set_id", "true", "groupID", "组ID", "" ],
+				[ "edit_set_text_bind", "true | multiLine", "content", "内容", "" ],
+				[ "edit_set_textAlign", "true", "textAlign", "文本对齐", "" ]
+			],
+			"style": [
+				[ "edit_set_image", "true", "imageIcon", "图标", "" ],
+				[ "edit_set_image", "true", "imageIconDisable", "图标禁用", "" ]
+			],
+			"self": [
+				[ "edit", "true", "offsetXY", "内容偏移(x,y)", "" ],
+				[ "edit", "true", "offsetIconXY", "图标偏移(x,y)", "" ],
+				[ "edit", "true", "iconSpace", "图标间距", "" ],
+				[
+					"comboBox",
+					"false",
+					"iconAlign",
+					"图标对齐",
+					"",
+					[
+						[ "", "" ],
+						[ "left", "左" ],
+						[ "top", "上" ],
+						[ "right", "右" ],
+						[ "bottom", "下" ]
+					]
+				],
+				[
+					"comboBox",
+					"false",
+					"buttonType",
+					"按钮类型",
+					"",
+					[
+						[ "", "" ],
+						[ "radio", "单选" ],
+						[ "check", "多选" ],
+						[ "max", "最大化" ],
+						[ "min", "最小化" ],
+						[ "close", "关闭" ]
+					]
+				],
+				[
+					"comboBox",
+					"false",
+					"style",
+					"样式",
+					"",
+					[
+						[ "", "" ],
+						[ "radio", "单选" ],
+						[ "check", "多选" ],
+						[ "min", "最小化" ],
+						[ "max", "最大化" ],
+						[ "close", "关闭" ],
+						[ "icon", "图标" ],
+						[ "expand", "展开/收缩" ]
+					]
+				],
+				[ "edit_set_id", "true", "bindEle", "绑定元素", "" ],
+				[ "edit_bool", "false", "check", "是否选中", "" ],
+				[ "edit_bool", "false", "expandButton", "项展开按钮", "" ],
+				[ "edit_bool", "false", "hotkeyPrefix", "启用热键前缀", "" ]
+			],
+			"textLinkUI": {
+				"style": [
+					[ "edit_set_color", "false", "textColorStay", "文字颜色-停留", "" ],
+					[ "edit_set_color", "false", "underlineColorLeave", "下滑线颜色-离开", "" ],
+					[ "edit_set_color", "false", "underlineColorStay", "下滑线颜色-停留", "" ]
+				],
+				"self": [
+					[ "edit_bool", "false", "underlineLeave", "下划线-离开", "" ],
+					[ "edit_bool", "false", "underlineStay", "下划线-停留", "" ]
+				]
+			},
+			"menuBarButtonUI": {}
+		},
+		"scrollViewUI": {
+			"self": [
+				[ "edit", "true", "scrollView.totalSize", "视图内容大小(w,h)", "" ],
+				[ "edit", "true", "scrollView.lineSize", "滚动单位大小(w,h)", "" ],
+				[ "edit", "true", "scrollView.scrollBarSize", "滚动条大小", "" ],
+
+				[ "edit_bool", "false", "scrollBarShowH", "水平滚动条", "" ],
+				[ "edit_bool", "false", "scrollBarShowV", "垂直滚动条", "" ],
+				[ "edit_bool", "false", "scrollBarAuto", "滚动条自动", "" ]
+			],
+			"layoutFrameUI": {
+				"layout-box": [
+					[
+						"comboBox",
+						"false",
+						"layout.horizon",
+						"水平/垂直",
+						"",
+						[
+							[ "", "" ],
+							[ "true", "水平" ],
+							[ "false", "垂直" ]
+						]
+					],
+					[
+						"comboBox",
+						"false",
+						"layout.alignH",
+						"水平对齐",
+						"",
+						[
+							[ "", "" ],
+							[ "left", "左" ],
+							[ "right", "右" ],
+							[ "center", "居中" ],
+							[ "equidistant", "等距" ]
+						]
+					],
+					[
+						"comboBox",
+						"false",
+						"layout.alignV",
+						"垂直对齐",
+						"",
+						[
+							[ "", "" ],
+							[ "top", "上" ],
+							[ "bottom", "下" ],
+							[ "center", "居中" ],
+							[ "equidistant", "等距" ]
+						]
+					],
+					[
+						"comboBox",
+						"false",
+						"layout.alignBaseline",
+						"基线对齐",
+						"",
+						[
+							[ "", "" ],
+							[ "auto", "自动" ],
+							[ "start", "顶部" ],
+							[ "center", "居中" ],
+							[ "end", "底部" ]
+						]
+					],
+					[ "edit_bool", "false", "layout.autoWrap", "自动换行", "" ],
+					[ "edit_bool", "false", "layout.overflowHide", "溢出隐藏", "" ],
+					[ "edit", "true", "layout.space", "子项间距", "" ],
+					[ "edit", "true", "layout.spaceRow", "行间距", "" ]
+				]
+			},
+			"editUI": {
+				"common": [
+					[ "edit_set_text_bind", "true | multiLine", "content", "内容", "" ],
+					[ "edit_set_textAlign", "true", "textAlign", "文本对齐", "文本对齐方式, 目前仅支持单行模块" ]
+				],
+				"style": [
+					[ "edit_set_color", "true", "contentTipsColor", "提示内容颜色", "" ],
+					[ "edit_set_color", "true", "caretColor", "插入符颜色", "" ],
+					[ "edit_set_color", "true", "edit.selectBkColor", "选择背景颜色", "" ]
+				],
+				"self": [
+					[
+						"comboBox",
+						"true",
+						"edit.type",
+						"编辑框类型",
+						"",
+						[
+							[ "", "常规(默认)" ],
+							[ "richedit", "富文本" ],
+							[ "chat", "聊天气泡" ]
+						]
+					],
+					[ "edit_set_text", "true | multiLine", "contentTips", "提示内容", "" ],
+					[ "edit_bool", "false", "multiLine", "多行模式", "" ],
+					[ "edit_bool", "false", "edit.readOnly", "只读", "" ],
+					[ "edit_bool", "false", "edit.autoWrap", "自动换行", "" ],
+					[ "edit_bool", "false", "edit.password", "启用密码", "" ],
+					[ "edit", "true", "edit.passwordChar", "密码字符", "" ],
+					[ "edit", "true", "edit.charSpaceSize", "字符间距", "" ],
+					[ "edit", "true", "edit.rowHeight", "行高度", "" ],
+					[ "edit", "true", "edit.rowSpace", "行间距", "" ],
+					[ "edit", "true", "edit.spaceSize", "空格大小", "空格大小, TAB显示大小 = 空格大小 * TAB占空格数量" ],
+					[ "edit", "true", "edit.tabSpace", "TAB占空格数量, TAB显示大小 = 空格大小 * TAB占空格数量", "" ],
+					[ "edit_bool", "false", "edit.autoSel", "自动选择", "" ],
+					[ "edit_bool", "false", "edit.autoCancelSel", "自动取消选择", "" ]
+				],
+				"editorUI": {},
+				"editColorUI": {},
+				"editSetUI": {},
+				"editFileUI": {},
+				"editFolderUI": {},
+				"richEditSetUI": {},
+				"richEditColorUI": {},
+				"comboBoxUI": {
+					"self": [
+						[ "edit", "true", "comboBox.itemTemplate", "项模板文件", "设置项模板文件并且创建数据适配器,如果使用内置项模板值填\"1\",如果留空将由用户通过代码设置;" ],
+						[ "edit", "true", "comboBox.buttonSize", "下拉按钮大小", "" ],
+						[ "edit", "true", "comboBox.dropHeight", "下拉列表高度", "" ],
+						[ "edit_bool", "false", "comboBox.dropHeightFixed", "下拉列表高度固定", "" ],
+						[ "edit", "true", "comboBox.bindName", "组合框绑定字段名", "" ],
+						[ "edit_bool", "false", "comboBox.drawButton", "绘制下拉按钮", "" ],
+						[ "edit_bool", "false", "comboBox.enableEdit", "启用编辑", "" ]
+					]
+				}
+			},
+			"listBoxUI": {
+				"style": [
+					[ "edit_set_color", "true", "listBox.splitLineColor", "分割线颜色", "" ],
+					[ "edit_set_color", "true", "listBox.dragRectColor", "拖动选择矩形颜色", "" ]
+				],
+				"self": [
+					[ "edit", "true", "listBox.itemTemplate", "项模板文件", "设置项模板文件并且创建数据适配器,如果使用内置项模板值填\"1\",如果留空将由用户通过代码设置;" ],
+					[ "edit", "true", "listBox.itemHeight", "项高度(20,20)", "" ],
+					[ "edit", "true", "listBox.rowSpace", "行间距", "" ],
+					[ "edit_set_drawItemBkFlag", "true", "listBox.drawItemBkFlag", "项背景绘制标识", "" ],
+					[ "edit_bool", "false", "listBox.fixedRowHeight", "固定行高", "" ],
+					[ "edit_bool", "false", "listBox.multiSel", "启用多选", "" ],
+					[ "edit_bool", "false", "listBox.templateReuse", "项模板复用", "" ],
+					[ "edit_bool", "false", "listBox.virtualTable", "启用虚表", "" ],
+					[ "edit", "true", "listBox.virtualRowCount", "虚表行数", "" ]
+				]
+			},
+			"listUI": {
+				"style": [
+					[ "edit_set_color", "true", "list.splitLineColor", "分割线颜色", "" ],
+					[ "edit_set_color", "true", "list.dragRectColor", "拖动选择矩形颜色", "" ]
+				],
+				"self": [
+					[ "edit", "true", "list.itemTemplate", "项模板(文件,列数)", "格式:[项模板文件名,最大延伸列数], 设置了项模板文件并且自动创建数据适配器, 如果使用内置项模板文件名填\"1\",如果留空将由用户通过代码设置;" ],
+					[ "edit", "true", "list.rowHeight", "行高度(20,20)", "" ],
+					[ "edit", "true", "list.headerHeight", "列表头高度", "" ],
+					[ "edit", "true", "list.rowSpace", "行间距", "" ],
+
+					[ "edit_bool", "false", "list.fixedRowHeight", "固定行高", "" ],
+					[ "edit_bool", "false", "list.multiSel", "启用多选", "" ],
+					[ "edit_set_drawItemBkFlag", "true", "list.drawItemBkFlag", "项背景绘制标识", "" ],
+
+					[ "edit_bool", "false", "list.dragChangeColumnWidth", "拖动改变列宽", "" ],
+					[ "edit_bool", "false", "list.vScrollBarTop", "垂直滚动条顶部对齐", "" ],
+					[ "edit_bool", "false", "list.rowBkFull", "行背景铺满", "" ],
+
+					[ "edit_bool", "false", "list.templateReuse", "项模板复用", "" ],
+					[ "edit_bool", "false", "list.virtualTable", "启用虚表", "" ],
+					[ "edit", "true", "list.virtualRowCount", "虚表行数", "" ]
+				]
+			},
+			"treeUI": {
+				"style": [
+					[ "edit_set_color", "true", "tree.splitLineColor", "分割线颜色", "" ],
+					[ "edit_set_color", "true", "tree.connectLineColor", "连接线颜色", "" ],
+					[ "edit_set_color", "true", "tree.dragInsertPositionColor", "拖动插入位置颜色", "" ]
+				],
+				"self": [
+					[ "edit", "true", "tree.itemTemplate", "项模板文件", "设置项模板文件并且创建数据适配器,如果使用内置项模板值填\"1\", 如果留空将由用户通过代码设置;" ],
+					[ "edit", "false", "tree.itemHeight", "项高度(20,20)", "" ],
+					[ "edit", "false", "tree.rowSpace", "行间距", "" ],
+
+					[ "edit", "false", "tree.expandButtonSize", "展开按钮大小", "" ],
+					[ "edit", "false", "tree.connectLineLength", "连接线长度", "" ],
+					[ "edit", "false", "tree.indentationSize", "缩进大小", "" ],
+					[ "edit_set_drawItemBkFlag", "true", "tree.drawItemBkFlag", "项背景绘制标识", "" ],
+
+					[ "edit_bool", "false", "tree.dragItem", "启用拖动项", "" ],
+					[ "edit_bool", "false", "tree.connectLine", "启用连接线(1,1)", "" ],
+					[ "edit_bool", "false", "tree.expand", "启用默认展开", "" ],
+					[ "edit_bool", "false", "tree.templateReuse", "启用模板复用", "" ]
+				]
+			},
+			"listViewUI": {
+				"style": [
+					[ "edit_set_color", "true", "listView.dragRectColor", "拖动选择矩形颜色", "" ]
+				],
+				"self": [
+					[ "edit", "true", "listView.itemTemplate", "项模板文件", "设置了项模板文件并且创建数据适配器, 如果使用内置项模板值填\"1\", 如果留空将由用户通过代码设置;" ],
+					[ "edit", "false", "listView.rowSpace", "行间距", "" ],
+					[ "edit", "false", "listView.colSpace", "列间距", "" ],
+					[ "edit", "false", "listView.groupHeight", "组高度", "" ],
+					[ "edit", "false", "listView.itemSize", "项大小(w.h)", "" ],
+
+					[ "edit_set_drawItemBkFlag", "true", "listView.drawItemBkFlag", "项背景绘制标识", "" ],
+
+					[ "edit_bool", "false", "listView.multiSel", "启用多选", "" ],
+					[ "edit_bool", "false", "listView.templateReuse", "启用模板复用", "" ],
+					[ "edit_bool", "false", "listView.virtualTable", "启用虚表", "" ]
+				]
+			},
+			"propertyGridUI": {}
+		},
+		"scrollBarUI": {
+			"self": [
+				[ "edit", "true", "scrollBar.range", "范围", "" ],
+				[ "edit", "true", "scrollBar.pos", "当前位置点", "" ],
+				[ "edit", "true", "scrollBar.sliderLength", "滑块长度", "" ],
+				[ "edit", "true", "scrollBar.sliderMinLength", "滑块最小长度", "" ],
+				[ "edit", "true", "scrollBar.sliderSpace", "滑块两端间距", "" ],
+
+				[ "edit_bool", "false", "horizon", "水平/垂直", "" ],
+				[ "edit_bool", "false", "showButton", "显示两端按钮", "" ]
+			]
+		},
+		"sliderBarUI": {
+			"style": [
+				[ "edit_set_image", "false", "imageLoad", "图片-进度", "" ]
+			],
+			"self": [
+				[ "edit_bool", "false", "horizon", "水平/垂直", "" ],
+				[ "edit", "true", "sliderBar.range", "范围", "" ],
+				[ "edit", "true", "sliderBar.pos", "当前位置点", "" ],
+				[ "edit", "true", "sliderBar.buttonSize", "滑块大小(w,h)", "" ]
+			]
+		},
+		"progressBarUI": {
+			"style": [
+				[ "edit_set_image", "false", "imageLoad", "进度图片", "" ],
+				[ "edit_set_color", "true", "progressBar.colorLoad", "进度颜色", "" ]
+			],
+			"self": [
+				[ "edit_bool", "false", "horizon", "水平/垂直", "" ],
+				[ "edit_bool", "false", "progressBar.showText", "显示进度文本", "" ],
+				[ "edit_bool", "false", "progressBar.stretch", "缩放", "" ],
+				[ "edit_bool", "false", "progressBar.range", "范围", "" ],
+				[ "edit", "true", "progressBar.pos", "当前位置点", "" ]
+			]
+		},
+		"listHeaderUI": {},
+		"toolBarUI": {
+			"self": [
+				[ "edit", "true", "toolBar.space", "间距", "" ],
+				[ "edit_bool", "false", "toolBar.buttonMenu", "启用下拉菜单", "" ]
+			]
+		},
+		"menuBarUI": {
+			"self": [
+				[ "edit", "true", "menuBar.itemHeight", "项高度", "" ],
+				[ "edit_bool", "false", "menuBar.itemAutoWidth", "项自动宽度", "" ]
+			]
+		},
+		"tabBarUI": {
+			"self": [
+				[ "edit", "true", "tabBar.itemSpace", "项间距", "" ],
+				[ "edit", "true", "tabBar.itemCloseSize", "项关闭按钮大小(w,h)", "" ],
+				[ "edit", "true", "tabBar.turnButtonSize", "滚动按钮大小(w,h)", "" ],
+
+				[ "edit_bool", "false", "tabBar.enableTile", "启用平铺", "" ],
+				[ "edit_bool", "false", "tabBar.enableDropMenu", "启用下拉菜单", "" ],
+				[ "edit_bool", "false", "tabBar.enableClose", "启用项关闭按钮", "" ]
+			]
+		},
+		"monthCalUI": {},
+		"dateTimeUI": {}
+	},
+	"shape": {
+		"rect": [
+			[ "edit", "true", "left", "左边(left)", "" ],
+			[ "edit", "true", "top", "上边(top)", "" ],
+			[ "edit", "true", "width", "宽度(width)", "" ],
+			[ "edit", "true", "height", "高度(height)", "" ]
+		],
+		"common": [
+			[ "edit_set_id", "true", "id", "ID", "" ],
+			[ "edit", "true", "name", "名称(name)", "" ],
+			[ "comboBox", "true", "nameTable", "名称前缀(已废弃)", "" ],
+			[ "edit_set_properties", "false", "properties", "自定义属性列表", "" ]
+		],
+		"style": [
+			[ "edit", "true", "alpha", "透明度", "" ]
+		],
+		"layout-item": [
+			[
+				"comboBox",
+				"true",
+				"layout.width",
+				"布局宽度",
+				"",
+				[
+					[ "fill", "填充父" ],
+					[ "auto", "自动" ],
+					[ ":1", ":1(占用剩余空间)" ],
+					[ "%20", "%20(百分比)" ]
+				]
+			],
+			[
+				"comboBox",
+				"true",
+				"layout.height",
+				"布局高度",
+				"",
+				[
+					[ "fill", "填充父" ],
+					[ "auto", "自动" ],
+					[ ":1", ":1(占用剩余空间)" ],
+					[ "%20", "%20(百分比)" ]
+				]
+			],
+			[ "edit", "true", "border", "边框(0,0,0,0)", "" ],
+			[ "edit", "true", "padding", "内填充(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.margin", "外间距(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.position", "固定位置(0,0,0,0)", "" ],
+			[ "edit", "true", "layout.minSize", "最小大小(w,h)", "" ],
+			[
+				"comboBox",
+				"false",
+				"layout.align",
+				"项对齐",
+				"",
+				[
+					[ "", "" ],
+					[ "auto", "自动" ],
+					[ "start", "顶部" ],
+					[ "center", "居中" ],
+					[ "end", "底部" ]
+				]
+			],
+			[ "edit_bool", "false", "layout.wrap", "项换行", "" ],
+			[ "edit_bool", "false", "layout.float", "项浮动", "" ],
+			[ "edit_bool", "false", "layout.swap", "项属性交换", "" ],
+			[ "edit_bool", "false", "layoutControl", "布局控制", "" ]
+		],
+		"shapeText": {
+			"self": [
+				[ "edit", "true", "offsetXY", "内容偏移(x,y)", "" ]
+			],
+			"common": [
+				[ "edit_set_text_bind", "true | multiLine", "content", "内容", "" ],
+				[ "edit_set_textAlign", "true", "textAlign", "文本对齐", "" ]
+			],
+			"style": [
+				[ "edit_set_font", "true", "font", "字体", "" ],
+				[ "edit_set_color", "true", "textColor", "文本颜色", "" ],
+				[ "edit_bool", "false", "css.enable", "CSS启用样式", "" ],
+				[ "edit_set_css", "true", "css.name", "CSS套用样式", "" ]
+			]
+		},
+		"shapePicture": {
+			"common": [
+				[ "edit_set_image", "true", "image", "图片", "" ]
+			]
+		},
+		"shapeGif": {
+			"common": [
+				[ "edit_set_image", "true", "image", "图片", "" ]
+			]
+		},
+		"shapeRect": {
+			"style": [
+				[ "edit_set_color", "true", "borderColor", "边框颜色", "" ],
+				[ "edit_set_color", "true", "fillColor", "填充颜色", "" ]
+			],
+			"self": [
+				[ "edit", "true", "angleWidth", "圆角宽度", "" ],
+				[ "edit", "true", "angleHeight", "圆角高度", "" ],
+				[ "edit_bool", "false", "enableBorder", "描边", "" ],
+				[ "edit_bool", "false", "fill", "填充", "" ],
+				[ "edit_bool", "false", "roundAngle", "圆角", "" ]
+			]
+		},
+		"shapeEllipse": {
+			"style": [
+				[ "edit_set_color", "true", "borderColor", "边框颜色", "" ],
+				[ "edit_set_color", "true", "fillColor", "填充颜色", "" ]
+			],
+			"self": [
+				[ "edit_bool", "false", "enableBorder", "描边", "" ],
+				[ "edit_bool", "false", "fill", "填充", "" ]
+			]
+		},
+		"shapeGroupBox": {
+			"common": [
+				[ "edit_set_font", "true", "font", "字体", "" ],
+				[ "edit_set_text_bind", "true | multiLine", "content", "内容", "" ]
+			],
+			"style": [
+				[ "edit_set_color", "true", "borderColor", "边框颜色", "" ],
+				[ "edit_set_color", "true", "textColor", "文本颜色", "" ]
+			],
+			"self": [
+				[ "edit", "true", "textOffsetXY", "文本偏移", "" ],
+				[ "edit", "true", "angleWidth", "圆角宽度", "" ],
+				[ "edit", "true", "angleHeight", "圆角高度", "" ],
+				[ "edit_bool", "false", "roundAngle", "圆角", "" ]
+			]
+		},
+		"shapeTable": {
+			"self":[
+				[ "edit", "true", "rowCount", "行数", "" ],
+				[ "edit", "true", "colCount", "列数", "" ]
+			],
+			"style": [
+				[ "edit_set_font", "true", "font", "字体", "" ],
+				[ "edit_set_color", "true", "textColor", "文本颜色", "" ],
+				[ "edit_set_color", "true", "borderColor", "边框颜色", "" ]
+			]
+		}
+	},
+	"shapeLine": {
+		"rect": [
+			[ "edit", "true", "pointX1", "坐标点X1", "" ],
+			[ "edit", "true", "pointY1", "坐标点X2", "" ],
+			[ "edit", "true", "pointX2", "坐标点Y1", "" ],
+			[ "edit", "true", "pointY2", "坐标点Y2", "" ]
+		],
+		"common": [
+			[ "edit_set_id", "true", "id", "ID", "" ]
+		],
+		"style": [
+			[ "edit_set_color", "true", "color", "颜色", "" ]
+		]
+	}
+}

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,358,437" windowType="modalWindow" windowStyle="20" center="true" minSize="420,320" maxWindow="false">
+	<layoutEleUI rect="8,30,400,280" layout.width="fill" layout.height="fill" layout.space="12" padding="8,2,8,0">
+		<layoutEleUI rect="0,0,100,32" layout.width="fill" layout.height="32" layout.alignV="center" expandT="false">
+			<shapeText name="txt_colorpicker_title" rect="0,0,200,28" layout.width=":1" layout.height="fill" content="背景颜色设置" />
+			<buttonUI name="btn_colorpicker_close" rect="0,0,60,25" layout.width="20" layout.height="20" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,180" layout.width="fill" layout.height="255" layout.horizon="true" layout.space="8" expandT="false">
+			<elementUI name="ele_color_panel" rect="0,0,256,180" layout.width="255" layout.height="255" />
+			<elementUI name="ele_hue_bar" rect="0,0,24,180" layout.width="15" layout.height="255" />
+			<elementUI name="ele_alpha_bar" rect="-324,90,24,180" layout.width="15" layout.height="255" />
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.space="8" layout.alignV="center" layout.margin="0,4,0,0">
+			<elementUI name="ele_colorpicker_preview" rect="0,0,80,28" layout.width="26" layout.height="26" />
+			<layoutEleUI rect="0,0,100,34" layout.width="60" layout.height="fill" layout.horizon="true" layout.space="4" layout.alignV="center" expandT="false">
+				<shapeText name="txt_colorpicker_label_r" rect="0,0,14,20" layout.width="14" layout.height="20" content="R" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" />
+				<editUI name="edit_colorpicker_r" rect="0,0,50,28" layout.width=":1" layout.height="28" content="255" />
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,34" layout.width="60" layout.height="fill" layout.horizon="true" layout.space="4" layout.alignV="center" expandT="false">
+				<shapeText name="txt_colorpicker_label_g" rect="0,0,14,20" layout.width="14" layout.height="20" content="G" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" />
+				<editUI name="edit_colorpicker_g" rect="0,0,50,28" layout.width=":1" layout.height="28" content="255" />
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,34" layout.width="60" layout.height="fill" layout.horizon="true" layout.space="4" layout.alignV="center" expandT="false">
+				<shapeText name="txt_colorpicker_label_b" rect="0,0,14,20" layout.width="14" layout.height="20" content="B" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" />
+				<editUI name="edit_colorpicker_b" rect="0,0,50,28" layout.width=":1" layout.height="28" content="255" />
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,34" layout.width="60" layout.height="fill" layout.horizon="true" layout.space="4" layout.alignV="center" layout.alignH="right" expandT="false">
+				<shapeText name="txt_colorpicker_label_a" rect="0,0,14,20" layout.width="14" layout.height="20" content="A" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" />
+				<editUI name="edit_colorpicker_a" rect="0,0,50,28" layout.width=":1" layout.height="28" content="255" />
+			</layoutEleUI>
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.space="8" layout.alignV="center">
+			<buttonUI name="btn_colorpicker_screen" rect="145,17,80,28" layout.width="26" layout.height="26" />
+			<layoutEleUI rect="0,0,100,34" layout.width=":1" layout.height="fill" layout.horizon="true" layout.space="4" layout.alignV="center" expandT="false">
+				<shapeText rect="115,17,14,20" layout.width="14" layout.height="20" content="#" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" />
+				<editUI name="edit_colorpicker_hex" rect="69,17,50,28" layout.width="80" layout.height="28" />
+			</layoutEleUI>
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" layout.margin="0,4,0,4" expandT="false" />
+		<layoutEleUI rect="0,0,100,40" layout.width="fill" layout.height="40" layout.horizon="true" layout.alignH="right" layout.space="10" layout.alignV="center" expandT="false">
+			<buttonUI name="btn_colorpicker_cancel" rect="0,0,90,30" layout.width="90" layout.height="30" content="取消" />
+			<buttonUI name="btn_colorpicker_ok" rect="0,0,90,30" layout.width="90" layout.height="30" content="确定" />
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>
