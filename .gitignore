@@ -13,6 +13,7 @@
 Debug/xcgui_debug.txt
 Debug/Data/_ip2tmp/
 Debug/Data/IconCache/
+Debug/Data/FileTypeIcons/
 Dcu/
 *.dcu
 *.ddp
