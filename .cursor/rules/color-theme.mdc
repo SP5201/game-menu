@@ -1,0 +1,20 @@
+---
+description: UI 颜色与主题约束（色板来源 UI_Theme.pas，编辑样式/窗口/布局时生效）
+globs: 样式/**/*.pas,窗口/**/*.pas,**/Resource/Layout/**/*.xml
+alwaysApply: false
+---
+
+# 颜色约束
+
+- 深色扁平；主色 **#D21B46**（`RGBA(210, 27, 70, 255)`）。
+- 表面以低透明度白叠加深灰底；边框/分隔线用半透明白，避免纯 `#FFFFFF` 硬边。
+- **色板唯一来源**：`样式/UI_Theme.pas`（变量 `UITheme_*` 及 `initialization` 赋值）；改色只改此文件，业务单元引用 `UITheme_*`，禁止在 `窗口/`、`样式/` 其它单元散落 `RGBA(...)`（空状态插画等一次性绘制除外，须注释说明）。
+- 窗口透明度与圆角：`UITheme_WindowAlpha`、`UITheme_WindowCornerRadius`。
+
+## 使用规则
+
+- **Pas 绘制**：`XDraw_SetBrushColor` / `XShapeText_SetTextColor` / `XSvg_SetUserFillColor` 等传 `UITheme_*`。
+- **组件默认色**：`TEditUI`/`TButtonUI`/`TComboBoxUI`/`TListViewUI`/`TPopupMenuUI` 在 `Init`/`Apply*Style` 内绑定主题；窗口层 `ApplyDefaultStyles` 只做控件级覆盖（如状态栏 CPU/RAM/GPU 分色）。
+- **XML**：强调文字可用 `textColor="@Resource:\ID_COLOR_PRIMARY"`；其余由代码 `ApplyDefaultStyles` 设置，XML 不写死十六进制色。
+- **用户可选色**（二维码/背景设置等）：运行时存配置，不入 `UI_Theme`。
+- **D2D**：`XC_IsEnableD2D` 为真时用 `RGBAToD2D1ColorF(UITheme_*)`；坐标 DPI 转换见 `global.mdc` §7。

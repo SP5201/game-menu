@@ -1,0 +1,74 @@
+---
+description: QDesktop 全局约定；多线程 PostMessage 回 UI；性能优先；复杂任务先 MD 方案
+alwaysApply: true
+---
+
+# QDesktop 全局约定
+
+## 1. 基础与 Agent（无人值守）
+- **Delphi**：`D:\办公软件\Delphi Xe2`；**栈**：Delphi XE2 32 位 + XCGUI；**回复中文**。
+- **全权推进**：文件/终端/网络/工具均视为已批准；**禁止**问「是否继续/需要批准吗」，多步任务一气呵成。
+- **复杂任务先方案**：架构变动、跨多模块重构、性能敏感热路径大改、新子系统引入等，须先输出 **Markdown 方案**（目标、步骤、风险、取舍），**待用户确认后再动代码**；此条优先于「全权推进」。
+- **须确认**：用户单次明确禁止、不可逆操作（如 force push）、访问 `__history/`。
+
+## 2. 工程与源码
+- **联动**：`*.pas` 增删改名须同步 `QDesktop.dproj`、`QDesktop.dpr`。
+- **编码**：`*.pas` / `*.dpr` 保存为 **UTF-8 无 BOM**；`QDesktop.dproj` 已设 `DCC_CodePage=65001`，勿改回系统代码页。
+- **布局**：运行期 `Resource/Layout/*.xml`；优先 `fill`、`:1`，禁止写死绝对像素。
+- **目录**：`窗口/`、`样式/`、`功能/`；**禁止改** `库/`。
+- **GitHub 同步含删除**：同步须 `git add -A`（或等价全量暂存），本地已删的已跟踪文件必须一并提交；`Debug/Bin/`、`Debug/Data/` 删减后远程也要同步，禁止只推新增/修改而遗漏 `D` 删除项。推送前用 `git status` 核对。
+- **本地数据库不上传**：`Debug/Data/games.db`、`Debug/Data/Everything.db`（及 `Debug/Bin/Everything.db`）仅本地使用，**禁止**提交；远程若曾存在须 `git rm --cached` 后推送。
+
+## 3. 编码原则
+- **性能优先**：热路径零/少拷贝——传引用、`const`、复用缓冲；避免 `string`/动态数组整份复制与无谓临时对象。
+- **少 I/O**：磁盘、注册表、网络、驱动调用能缓存则缓存（硬件传感器见 §9 TTL）；禁止循环或高频回调内反复读文件、枚举设备、查注册表。
+- **最小改动**：最简单正确实现；不扩无关范围，不顺手重构周边。
+- **禁止过度封装/防御**：1～2 行、单处逻辑不抽函数；不为极不可能边界堆砌 `try/except` 或多层 fallback。
+- **先读再写**：匹配周边命名与分层；优先扩展 `窗口/`、`样式/`、`功能/` 已有模块。
+- **替换即删除**：新封装取代旧调用时，同步删旧函数/重复实现；功能变动直接切新行为，**仅当用户明确要求**才做向后兼容。
+- **注释节制**：仅对非显而易见的业务规则、XCGUI/D2D 细节或 WOW64 陷阱写注释。
+
+## 4. VCL 隔离
+- **禁止** `uses` 引用 `Vcl.*`；`QDesktop.dproj` 的 `DCC_Namespace` 不得含 `Vcl`。
+- 对话框：`功能/Shell/ShellHelper.pas`（WinAPI `CommDlg`）。
+- 父窗口句柄写 **`Windows.HWND`**，禁止裸 `HWND`（与 XCGUI 冲突）。
+
+## 5. 多线程与 UI
+- **禁止 VCL 线程 UI 模型**：不得 `TThread.Synchronize`、`TThread.Queue`、`CheckSynchronize` 回主线程改界面。
+- **线程分工**：工作线程只做计算 / I/O / 采样；**禁止**在非 UI 线程调用 `XEle_*`、`XShape_*`、`XDraw_*` 等 XCGUI API。
+- **回 UI 用消息**：经 `XC_PostMessage` / `PostMessageW` 投递自定义 `WM_QD_*`；载荷堆分配（`New`），窗口过程消费后 `Dispose`；投递失败须释放载荷。
+- **毫秒级中断**：`功能/` 工作线程类须 `RequestStop`（`Terminate` + `TEvent.SetEvent` 唤醒）；主循环、分批任务、网络/磁盘 I/O 内高频检查 `Terminated` 或代际令牌；等待用限时 `WaitFor`/`Sleep`，**禁止**无超时阻塞（暂停态 `WaitFor(INFINITE)` 除外）；停止后须在数百毫秒内退出。
+- **参照**：`UI_MainWindowStat.PostStat*`、`HardwareMonitor`、`NetTrafficMonitor`、`WeatherFetcher`；新增 `WM_APP + n` 须避开已有常量。
+
+## 6. 命名与 XCGUI 校验
+- 变量名与类型名（忽略大小写）**不得相同**（**E2007**）；须后缀避让（如 `hSvgIcon`）。
+- **事件形参禁止 `hEle`**：会遮蔽类型 `HELE`，过程体内不得再声明 `var hBtn: HELE`。统一 `hSender`，比较写 `hBtn = hSender`。
+- 判空与类型：优先 `XC_GetObjectType(h) = XC_*`；已用时禁止再叠 `IsHELE`/`XC_IsHELE` 或与 `0` 比较。
+
+## 7. 事件与 D2D
+- `pbHandled` 始终有效，直接 `pbHandled^`；未处理不写 `False`，拦截时写 `True`。
+- **重绘**：`XEle_Redraw` 第二参数 `bImmediate` **禁止** `True`；省略或 `False`。`shapeText` 用 `XShape_Redraw` / `XShape_AdjustLayout`。
+- D2D：先 `XC_IsEnableD2D`，否则 `XDraw_*`；目标 `ID2D1RenderTarget(XDraw_GetD2dRenderTarget(hDraw))`；坐标经 `XEle_RectClientToWndClientDPI`。
+
+## 8. WOW64（32 位进程）
+- 路径：`System32` → `SysWOW64`（真 64 位用 `Sysnative`）。
+- 注册表须标明 32/64 视图（含 `Wow6432Node`）；**本节指路径/WOW64 陷阱；若须读注册表取硬件，须符合 §9 末位兜底**。
+
+## 9. 硬件获取（`功能/硬件/`）
+**所有**硬件信息获取须遵守 **驱动 → Native API → WMI / 注册表** 优先级，**不得跳级、不得并列混用**；WMI / 注册表**慎用**，仅前两级均不可用且业务必须时兜底。新增或调整获取路径时，**先参考主流工具**（CPU-Z、HWiNFO、LibreHardwareMonitor 等；开源优先查源码）的已验证做法，再映射到下列分层，**禁止**自创未经验证的冷门旁路。
+
+- **驱动**：传感器及可经内核/驱动获取的数据走 `PawnIO`（`DeviceIoControl`）；`Bin\PawnIO.sys` 随程序分发，按 CPU 选模块（AMD Zen → `AMDFamily17.bin`，Intel → `IntelMSR.bin`）。
+- **Native API**：静态/动态信息优先直接系统调用——CPU：`CPUID` + NT API；内存：`GlobalMemoryStatusEx` + SMBIOS；GPU：`HardwarePdh` + `EnumDisplayDevicesW` + D3DKMT + ADL2/NVML（无 COM）；网卡：`GetAdaptersAddresses` + `GetIfEntry2`。
+- **WMI / 注册表**：`IWbem*`、`Win32_*`、`TRegistry`/`RegQuery*` **禁止**作为首选、并列源或「图省事」捷径；新增兜底须单行注释说明为何驱动与 Native API 均不可用。
+- **分层**：`*Info.pas` 接口 + `*InfoNative.pas` 静态 + `*InfoPawnIo.pas`/`PawnIo.pas` 传感器；传感器按 TTL 缓存（见 `README.md`）。
+
+## 10. 改码后编译检测（必做）
+
+### 何时必须编译
+- **必须**：修改 `*.pas` / `*.dpr` / `*.dproj` 后，**编译通过**才能向用户汇报任务完成。
+- **可跳过**：仅改 `Resource/Layout/*.xml`、静态资源、文档、规则，且未动 Pascal 工程文件。
+
+```bat
+cd /d "d:\游戏菜单"
+编译测试.bat nopause
+```

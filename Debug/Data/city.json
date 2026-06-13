@@ -1,0 +1,3575 @@
+[
+  {
+    "name": "北京市",
+    "shortName": "北京",
+    "province": "北京市",
+    "city": null,
+    "latitude": "39.90459941931698",
+    "longitude": "116.40700054364608",
+    "level": 1
+  },
+  {
+    "name": "天津市",
+    "shortName": "天津",
+    "province": "天津市",
+    "city": null,
+    "latitude": "39.08779973014428",
+    "longitude": "117.20300015579028",
+    "level": 1
+  },
+  {
+    "name": "河北省",
+    "shortName": "河北",
+    "province": "河北省",
+    "city": null,
+    "latitude": "38.037500985795087",
+    "longitude": "114.52999996606381",
+    "level": 1
+  },
+  {
+    "name": "石家庄市",
+    "shortName": "石家庄",
+    "province": "河北省",
+    "city": "石家庄市",
+    "latitude": "38.04588578040913",
+    "longitude": "114.4625852614034",
+    "level": 2
+  },
+  {
+    "name": "唐山市",
+    "shortName": "唐山",
+    "province": "河北省",
+    "city": "唐山市",
+    "latitude": "39.63040075036429",
+    "longitude": "118.17999974577005",
+    "level": 2
+  },
+  {
+    "name": "秦皇岛市",
+    "shortName": "秦皇岛",
+    "province": "河北省",
+    "city": "秦皇岛市",
+    "latitude": "39.93589956566576",
+    "longitude": "119.6020001965223",
+    "level": 2
+  },
+  {
+    "name": "邯郸市",
+    "shortName": "邯郸",
+    "province": "河北省",
+    "city": "邯郸市",
+    "latitude": "36.62560008548382",
+    "longitude": "114.53899999962204",
+    "level": 2
+  },
+  {
+    "name": "邢台市",
+    "shortName": "邢台",
+    "province": "河北省",
+    "city": "邢台市",
+    "latitude": "37.071502132951099",
+    "longitude": "115.0250637608464",
+    "level": 2
+  },
+  {
+    "name": "保定市",
+    "shortName": "保定",
+    "province": "河北省",
+    "city": "保定市",
+    "latitude": "38.87389945728855",
+    "longitude": "115.46500010373302",
+    "level": 2
+  },
+  {
+    "name": "张家口市",
+    "shortName": "张家口",
+    "province": "河北省",
+    "city": "张家口市",
+    "latitude": "40.76750082245494",
+    "longitude": "114.88599968604562",
+    "level": 2
+  },
+  {
+    "name": "承德市",
+    "shortName": "承德",
+    "province": "河北省",
+    "city": "承德市",
+    "latitude": "40.95149966020222",
+    "longitude": "117.96300014913446",
+    "level": 2
+  },
+  {
+    "name": "沧州市",
+    "shortName": "沧州",
+    "province": "河北省",
+    "city": "沧州市",
+    "latitude": "38.30439885490131",
+    "longitude": "116.83900043832229",
+    "level": 2
+  },
+  {
+    "name": "廊坊市",
+    "shortName": "廊坊",
+    "province": "河北省",
+    "city": "廊坊市",
+    "latitude": "39.5376011222547",
+    "longitude": "116.68399938622476",
+    "level": 2
+  },
+  {
+    "name": "衡水市",
+    "shortName": "衡水",
+    "province": "河北省",
+    "city": "衡水市",
+    "latitude": "37.738901053451147",
+    "longitude": "115.6689999805396",
+    "level": 2
+  },
+  {
+    "name": "山西省",
+    "shortName": "山西",
+    "province": "山西省",
+    "city": null,
+    "latitude": "37.87349978049548",
+    "longitude": "112.56300040285743",
+    "level": 1
+  },
+  {
+    "name": "太原市",
+    "shortName": "太原",
+    "province": "山西省",
+    "city": "太原市",
+    "latitude": "37.87070105018573",
+    "longitude": "112.54999987354882",
+    "level": 2
+  },
+  {
+    "name": "大同市",
+    "shortName": "大同",
+    "province": "山西省",
+    "city": "大同市",
+    "latitude": "40.07629901082284",
+    "longitude": "113.30000018680191",
+    "level": 2
+  },
+  {
+    "name": "阳泉市",
+    "shortName": "阳泉",
+    "province": "山西省",
+    "city": "阳泉市",
+    "latitude": "37.85669981105221",
+    "longitude": "113.58099969380189",
+    "level": 2
+  },
+  {
+    "name": "长治市",
+    "shortName": "长治",
+    "province": "山西省",
+    "city": "长治市",
+    "latitude": "36.19549903210429",
+    "longitude": "113.11600011790391",
+    "level": 2
+  },
+  {
+    "name": "晋城市",
+    "shortName": "晋城",
+    "province": "山西省",
+    "city": "晋城市",
+    "latitude": "35.49060043366363",
+    "longitude": "112.85199986502738",
+    "level": 2
+  },
+  {
+    "name": "朔州市",
+    "shortName": "朔州",
+    "province": "山西省",
+    "city": "朔州市",
+    "latitude": "39.33080089183508",
+    "longitude": "112.43299965369393",
+    "level": 2
+  },
+  {
+    "name": "晋中市",
+    "shortName": "晋中",
+    "province": "山西省",
+    "city": "晋中市",
+    "latitude": "37.687099004910617",
+    "longitude": "112.75300059635589",
+    "level": 2
+  },
+  {
+    "name": "运城市",
+    "shortName": "运城",
+    "province": "山西省",
+    "city": "运城市",
+    "latitude": "35.026399184294",
+    "longitude": "111.00700000022305",
+    "level": 2
+  },
+  {
+    "name": "忻州市",
+    "shortName": "忻州",
+    "province": "山西省",
+    "city": "忻州市",
+    "latitude": "38.41670082735863",
+    "longitude": "112.73400000222098",
+    "level": 2
+  },
+  {
+    "name": "临汾市",
+    "shortName": "临汾",
+    "province": "山西省",
+    "city": "临汾市",
+    "latitude": "36.087900367307749",
+    "longitude": "111.51899981650591",
+    "level": 2
+  },
+  {
+    "name": "吕梁市",
+    "shortName": "吕梁",
+    "province": "山西省",
+    "city": "吕梁市",
+    "latitude": "37.518399149416698",
+    "longitude": "111.14400035425703",
+    "level": 2
+  },
+  {
+    "name": "内蒙古自治区",
+    "shortName": "内蒙古",
+    "province": "内蒙古自治区",
+    "city": null,
+    "latitude": "40.81830992852094",
+    "longitude": "111.67080156728814",
+    "level": 1
+  },
+  {
+    "name": "呼和浩特市",
+    "shortName": "呼和浩特",
+    "province": "内蒙古自治区",
+    "city": "呼和浩特市",
+    "latitude": "40.84240013809136",
+    "longitude": "111.74899997056873",
+    "level": 2
+  },
+  {
+    "name": "包头市",
+    "shortName": "包头",
+    "province": "内蒙古自治区",
+    "city": "包头市",
+    "latitude": "40.65710068862159",
+    "longitude": "109.83999981672858",
+    "level": 2
+  },
+  {
+    "name": "乌海市",
+    "shortName": "乌海",
+    "province": "内蒙古自治区",
+    "city": "乌海市",
+    "latitude": "39.65570078816936",
+    "longitude": "106.79400009125824",
+    "level": 2
+  },
+  {
+    "name": "赤峰市",
+    "shortName": "赤峰",
+    "province": "内蒙古自治区",
+    "city": "赤峰市",
+    "latitude": "42.25569948636254",
+    "longitude": "118.889000102726",
+    "level": 2
+  },
+  {
+    "name": "通辽市",
+    "shortName": "通辽",
+    "province": "内蒙古自治区",
+    "city": "通辽市",
+    "latitude": "43.65209970217661",
+    "longitude": "122.24400019581144",
+    "level": 2
+  },
+  {
+    "name": "鄂尔多斯市",
+    "shortName": "鄂尔多斯",
+    "province": "内蒙古自治区",
+    "city": "鄂尔多斯市",
+    "latitude": "39.60830084707291",
+    "longitude": "109.78099951580659",
+    "level": 2
+  },
+  {
+    "name": "呼伦贝尔市",
+    "shortName": "呼伦贝尔",
+    "province": "内蒙古自治区",
+    "city": "呼伦贝尔市",
+    "latitude": "49.21209940753259",
+    "longitude": "119.76599999615007",
+    "level": 2
+  },
+  {
+    "name": "巴彦淖尔市",
+    "shortName": "巴彦淖尔",
+    "province": "内蒙古自治区",
+    "city": "巴彦淖尔市",
+    "latitude": "40.74310110931755",
+    "longitude": "107.38799985714562",
+    "level": 2
+  },
+  {
+    "name": "乌兰察布市",
+    "shortName": "乌兰察布",
+    "province": "内蒙古自治区",
+    "city": "乌兰察布市",
+    "latitude": "40.99470055556334",
+    "longitude": "113.13299982755436",
+    "level": 2
+  },
+  {
+    "name": "兴安盟",
+    "shortName": "兴安盟",
+    "province": "内蒙古自治区",
+    "city": "兴安盟",
+    "latitude": "46.08209897677579",
+    "longitude": "122.03799950241276",
+    "level": 2
+  },
+  {
+    "name": "锡林郭勒盟",
+    "shortName": "锡林郭勒盟",
+    "province": "内蒙古自治区",
+    "city": "锡林郭勒盟",
+    "latitude": "43.93309924336527",
+    "longitude": "116.04800005871766",
+    "level": 2
+  },
+  {
+    "name": "阿拉善盟",
+    "shortName": "阿拉善盟",
+    "province": "内蒙古自治区",
+    "city": "阿拉善盟",
+    "latitude": "38.85199919888936",
+    "longitude": "105.72900029391072",
+    "level": 2
+  },
+  {
+    "name": "辽宁省",
+    "shortName": "辽宁",
+    "province": "辽宁省",
+    "city": null,
+    "latitude": "41.83579896278453",
+    "longitude": "123.42900003873054",
+    "level": 1
+  },
+  {
+    "name": "沈阳市",
+    "shortName": "沈阳",
+    "province": "辽宁省",
+    "city": "沈阳市",
+    "latitude": "41.67756788398772",
+    "longitude": "123.46466579067313",
+    "level": 2
+  },
+  {
+    "name": "大连市",
+    "shortName": "大连",
+    "province": "辽宁省",
+    "city": "大连市",
+    "latitude": "38.913300699660378",
+    "longitude": "121.61499969637326",
+    "level": 2
+  },
+  {
+    "name": "鞍山市",
+    "shortName": "鞍山",
+    "province": "辽宁省",
+    "city": "鞍山市",
+    "latitude": "41.10870072452231",
+    "longitude": "122.99500008158137",
+    "level": 2
+  },
+  {
+    "name": "抚顺市",
+    "shortName": "抚顺",
+    "province": "辽宁省",
+    "city": "抚顺市",
+    "latitude": "41.87960002977349",
+    "longitude": "123.95799950795777",
+    "level": 2
+  },
+  {
+    "name": "本溪市",
+    "shortName": "本溪",
+    "province": "辽宁省",
+    "city": "本溪市",
+    "latitude": "41.48699974999591",
+    "longitude": "123.68600000787545",
+    "level": 2
+  },
+  {
+    "name": "丹东市",
+    "shortName": "丹东",
+    "province": "辽宁省",
+    "city": "丹东市",
+    "latitude": "40.00050091667516",
+    "longitude": "124.35499965509861",
+    "level": 2
+  },
+  {
+    "name": "锦州市",
+    "shortName": "锦州",
+    "province": "辽宁省",
+    "city": "锦州市",
+    "latitude": "41.09520107922441",
+    "longitude": "121.12599929949904",
+    "level": 2
+  },
+  {
+    "name": "营口市",
+    "shortName": "营口",
+    "province": "辽宁省",
+    "city": "营口市",
+    "latitude": "40.66739906037754",
+    "longitude": "122.23500057091383",
+    "level": 2
+  },
+  {
+    "name": "阜新市",
+    "shortName": "阜新",
+    "province": "辽宁省",
+    "city": "阜新市",
+    "latitude": "42.02170070871689",
+    "longitude": "121.66999959102849",
+    "level": 2
+  },
+  {
+    "name": "辽阳市",
+    "shortName": "辽阳",
+    "province": "辽宁省",
+    "city": "辽阳市",
+    "latitude": "41.267800234248",
+    "longitude": "123.23699956508983",
+    "level": 2
+  },
+  {
+    "name": "盘锦市",
+    "shortName": "盘锦",
+    "province": "辽宁省",
+    "city": "盘锦市",
+    "latitude": "41.11989977322943",
+    "longitude": "122.07100005004802",
+    "level": 2
+  },
+  {
+    "name": "铁岭市",
+    "shortName": "铁岭",
+    "province": "辽宁省",
+    "city": "铁岭市",
+    "latitude": "42.22359899753555",
+    "longitude": "123.72600005480119",
+    "level": 2
+  },
+  {
+    "name": "朝阳市",
+    "shortName": "朝阳",
+    "province": "辽宁省",
+    "city": "朝阳市",
+    "latitude": "41.57379988801588",
+    "longitude": "120.45100001151839",
+    "level": 2
+  },
+  {
+    "name": "葫芦岛市",
+    "shortName": "葫芦岛",
+    "province": "辽宁省",
+    "city": "葫芦岛市",
+    "latitude": "40.7110003263196",
+    "longitude": "120.83699996151398",
+    "level": 2
+  },
+  {
+    "name": "吉林省",
+    "shortName": "吉林",
+    "province": "吉林省",
+    "city": null,
+    "latitude": "43.88684211382201",
+    "longitude": "125.32449956489933",
+    "level": 1
+  },
+  {
+    "name": "长春市",
+    "shortName": "长春",
+    "province": "吉林省",
+    "city": "长春市",
+    "latitude": "43.816201670699587",
+    "longitude": "125.3239995997326",
+    "level": 2
+  },
+  {
+    "name": "吉林市",
+    "shortName": "吉林",
+    "province": "吉林省",
+    "city": "吉林市",
+    "latitude": "43.83789884126699",
+    "longitude": "126.54900031532101",
+    "level": 2
+  },
+  {
+    "name": "四平市",
+    "shortName": "四平",
+    "province": "吉林省",
+    "city": "四平市",
+    "latitude": "43.16599962619162",
+    "longitude": "124.35000016202919",
+    "level": 2
+  },
+  {
+    "name": "辽源市",
+    "shortName": "辽源",
+    "province": "吉林省",
+    "city": "辽源市",
+    "latitude": "42.88780109189523",
+    "longitude": "125.14399980779807",
+    "level": 2
+  },
+  {
+    "name": "通化市",
+    "shortName": "通化",
+    "province": "吉林省",
+    "city": "通化市",
+    "latitude": "41.7281998651864",
+    "longitude": "125.93999995490737",
+    "level": 2
+  },
+  {
+    "name": "白山市",
+    "shortName": "白山",
+    "province": "吉林省",
+    "city": "白山市",
+    "latitude": "41.933999330034918",
+    "longitude": "126.42299975635788",
+    "level": 2
+  },
+  {
+    "name": "松原市",
+    "shortName": "松原",
+    "province": "吉林省",
+    "city": "松原市",
+    "latitude": "45.14130080457189",
+    "longitude": "124.82500011524987",
+    "level": 2
+  },
+  {
+    "name": "白城市",
+    "shortName": "白城",
+    "province": "吉林省",
+    "city": "白城市",
+    "latitude": "45.61969766268096",
+    "longitude": "122.83900062697447",
+    "level": 2
+  },
+  {
+    "name": "延边朝鲜族自治州",
+    "shortName": "延边",
+    "province": "吉林省",
+    "city": "延边朝鲜族自治州",
+    "latitude": "42.909401176932707",
+    "longitude": "129.47099990767584",
+    "level": 2
+  },
+  {
+    "name": "黑龙江省",
+    "shortName": "黑龙江",
+    "province": "黑龙江省",
+    "city": null,
+    "latitude": "45.742298464982777",
+    "longitude": "126.66300030322863",
+    "level": 1
+  },
+  {
+    "name": "哈尔滨市",
+    "shortName": "哈尔滨",
+    "province": "黑龙江省",
+    "city": "哈尔滨市",
+    "latitude": "45.803199416442648",
+    "longitude": "126.534999646075",
+    "level": 2
+  },
+  {
+    "name": "齐齐哈尔市",
+    "shortName": "齐齐哈尔",
+    "province": "黑龙江省",
+    "city": "齐齐哈尔市",
+    "latitude": "47.35419935092699",
+    "longitude": "123.91800027767597",
+    "level": 2
+  },
+  {
+    "name": "鸡西市",
+    "shortName": "鸡西",
+    "province": "黑龙江省",
+    "city": "鸡西市",
+    "latitude": "45.29520142654559",
+    "longitude": "130.96899922430695",
+    "level": 2
+  },
+  {
+    "name": "鹤岗市",
+    "shortName": "鹤岗",
+    "province": "黑龙江省",
+    "city": "鹤岗市",
+    "latitude": "47.34990185533531",
+    "longitude": "130.29799966574707",
+    "level": 2
+  },
+  {
+    "name": "双鸭山市",
+    "shortName": "双鸭山",
+    "province": "黑龙江省",
+    "city": "双鸭山市",
+    "latitude": "46.64679977177538",
+    "longitude": "131.15900000398998",
+    "level": 2
+  },
+  {
+    "name": "大庆市",
+    "shortName": "大庆",
+    "province": "黑龙江省",
+    "city": "大庆市",
+    "latitude": "46.58799916432251",
+    "longitude": "125.10200016269376",
+    "level": 2
+  },
+  {
+    "name": "伊春市",
+    "shortName": "伊春",
+    "province": "黑龙江省",
+    "city": "伊春市",
+    "latitude": "47.72749997724942",
+    "longitude": "128.84100025682037",
+    "level": 2
+  },
+  {
+    "name": "佳木斯市",
+    "shortName": "佳木斯",
+    "province": "黑龙江省",
+    "city": "佳木斯市",
+    "latitude": "46.799299533249129",
+    "longitude": "130.320999654568",
+    "level": 2
+  },
+  {
+    "name": "七台河市",
+    "shortName": "七台河",
+    "province": "黑龙江省",
+    "city": "七台河市",
+    "latitude": "45.770397946758",
+    "longitude": "131.0050001799133",
+    "level": 2
+  },
+  {
+    "name": "牡丹江市",
+    "shortName": "牡丹江",
+    "province": "黑龙江省",
+    "city": "牡丹江市",
+    "latitude": "44.55030084639939",
+    "longitude": "129.63299968322293",
+    "level": 2
+  },
+  {
+    "name": "黑河市",
+    "shortName": "黑河",
+    "province": "黑龙江省",
+    "city": "黑河市",
+    "latitude": "50.245299645054128",
+    "longitude": "127.52899995820124",
+    "level": 2
+  },
+  {
+    "name": "绥化市",
+    "shortName": "绥化",
+    "province": "黑龙江省",
+    "city": "绥化市",
+    "latitude": "46.65369824775688",
+    "longitude": "126.9690004106577",
+    "level": 2
+  },
+  {
+    "name": "大兴安岭地区",
+    "shortName": "大兴安岭",
+    "province": "黑龙江省",
+    "city": "大兴安岭地区",
+    "latitude": "50.41437245591563",
+    "longitude": "124.1462726792786",
+    "level": 2
+  },
+  {
+    "name": "上海市",
+    "shortName": "上海",
+    "province": "上海市",
+    "city": null,
+    "latitude": "31.230000555064284",
+    "longitude": "121.47399982458053",
+    "level": 1
+  },
+  {
+    "name": "江苏省",
+    "shortName": "江苏",
+    "province": "江苏省",
+    "city": null,
+    "latitude": "32.06089911057974",
+    "longitude": "118.76300031815032",
+    "level": 1
+  },
+  {
+    "name": "南京市",
+    "shortName": "南京",
+    "province": "江苏省",
+    "city": "南京市",
+    "latitude": "32.05830027444024",
+    "longitude": "118.7959997119601",
+    "level": 2
+  },
+  {
+    "name": "无锡市",
+    "shortName": "无锡",
+    "province": "江苏省",
+    "city": "无锡市",
+    "latitude": "31.4930989462276",
+    "longitude": "120.31199998264002",
+    "level": 2
+  },
+  {
+    "name": "徐州市",
+    "shortName": "徐州",
+    "province": "江苏省",
+    "city": "徐州市",
+    "latitude": "34.206901100781518",
+    "longitude": "117.28399990062195",
+    "level": 2
+  },
+  {
+    "name": "常州市",
+    "shortName": "常州",
+    "province": "江苏省",
+    "city": "常州市",
+    "latitude": "31.80970026108385",
+    "longitude": "119.97499985204029",
+    "level": 2
+  },
+  {
+    "name": "苏州市",
+    "shortName": "苏州",
+    "province": "江苏省",
+    "city": "苏州市",
+    "latitude": "31.297300986755489",
+    "longitude": "120.5859995757488",
+    "level": 2
+  },
+  {
+    "name": "南通市",
+    "shortName": "南通",
+    "province": "江苏省",
+    "city": "南通市",
+    "latitude": "31.980900352097298",
+    "longitude": "120.89499950358734",
+    "level": 2
+  },
+  {
+    "name": "连云港市",
+    "shortName": "连云港",
+    "province": "江苏省",
+    "city": "连云港市",
+    "latitude": "34.596599709424648",
+    "longitude": "119.2219999950238",
+    "level": 2
+  },
+  {
+    "name": "淮安市",
+    "shortName": "淮安",
+    "province": "江苏省",
+    "city": "淮安市",
+    "latitude": "33.610200395769158",
+    "longitude": "119.01499980414427",
+    "level": 2
+  },
+  {
+    "name": "盐城市",
+    "shortName": "盐城",
+    "province": "江苏省",
+    "city": "盐城市",
+    "latitude": "33.34930084020835",
+    "longitude": "120.16099999210957",
+    "level": 2
+  },
+  {
+    "name": "扬州市",
+    "shortName": "扬州",
+    "province": "江苏省",
+    "city": "扬州市",
+    "latitude": "32.394399018056358",
+    "longitude": "119.41300000356432",
+    "level": 2
+  },
+  {
+    "name": "镇江市",
+    "shortName": "镇江",
+    "province": "江苏省",
+    "city": "镇江市",
+    "latitude": "32.188599826899658",
+    "longitude": "119.42400006974596",
+    "level": 2
+  },
+  {
+    "name": "泰州市",
+    "shortName": "泰州",
+    "province": "江苏省",
+    "city": "泰州市",
+    "latitude": "32.454900991160538",
+    "longitude": "119.92299948886059",
+    "level": 2
+  },
+  {
+    "name": "宿迁市",
+    "shortName": "宿迁",
+    "province": "江苏省",
+    "city": "宿迁市",
+    "latitude": "33.96199913549783",
+    "longitude": "118.27500051283012",
+    "level": 2
+  },
+  {
+    "name": "浙江省",
+    "shortName": "浙江",
+    "province": "浙江省",
+    "city": null,
+    "latitude": "30.265600645056407",
+    "longitude": "120.15299985859606",
+    "level": 1
+  },
+  {
+    "name": "杭州市",
+    "shortName": "杭州",
+    "province": "浙江省",
+    "city": "杭州市",
+    "latitude": "30.24709986422286",
+    "longitude": "120.2090000813704",
+    "level": 2
+  },
+  {
+    "name": "宁波市",
+    "shortName": "宁波",
+    "province": "浙江省",
+    "city": "宁波市",
+    "latitude": "29.86039989151771",
+    "longitude": "121.62200024473455",
+    "level": 2
+  },
+  {
+    "name": "温州市",
+    "shortName": "温州",
+    "province": "浙江省",
+    "city": "温州市",
+    "latitude": "27.99490037456015",
+    "longitude": "120.6999999985694",
+    "level": 2
+  },
+  {
+    "name": "嘉兴市",
+    "shortName": "嘉兴",
+    "province": "浙江省",
+    "city": "嘉兴市",
+    "latitude": "30.74510080968774",
+    "longitude": "120.7569998235885",
+    "level": 2
+  },
+  {
+    "name": "湖州市",
+    "shortName": "湖州",
+    "province": "浙江省",
+    "city": "湖州市",
+    "latitude": "30.892999489142967",
+    "longitude": "120.08800002622725",
+    "level": 2
+  },
+  {
+    "name": "绍兴市",
+    "shortName": "绍兴",
+    "province": "浙江省",
+    "city": "绍兴市",
+    "latitude": "30.03020061705315",
+    "longitude": "120.57899988520156",
+    "level": 2
+  },
+  {
+    "name": "金华市",
+    "shortName": "金华",
+    "province": "浙江省",
+    "city": "金华市",
+    "latitude": "29.078299609230958",
+    "longitude": "119.64700025623377",
+    "level": 2
+  },
+  {
+    "name": "衢州市",
+    "shortName": "衢州",
+    "province": "浙江省",
+    "city": "衢州市",
+    "latitude": "28.969899912996767",
+    "longitude": "118.85999971929995",
+    "level": 2
+  },
+  {
+    "name": "舟山市",
+    "shortName": "舟山",
+    "province": "浙江省",
+    "city": "舟山市",
+    "latitude": "29.985200662873358",
+    "longitude": "122.20700004171552",
+    "level": 2
+  },
+  {
+    "name": "台州市",
+    "shortName": "台州",
+    "province": "浙江省",
+    "city": "台州市",
+    "latitude": "28.656001064300854",
+    "longitude": "121.42099972966197",
+    "level": 2
+  },
+  {
+    "name": "丽水市",
+    "shortName": "丽水",
+    "province": "浙江省",
+    "city": "丽水市",
+    "latitude": "28.467501086005055",
+    "longitude": "119.92299979765844",
+    "level": 2
+  },
+  {
+    "name": "安徽省",
+    "shortName": "安徽",
+    "province": "安徽省",
+    "city": null,
+    "latitude": "31.7283992095993",
+    "longitude": "117.32400008939374",
+    "level": 1
+  },
+  {
+    "name": "合肥市",
+    "shortName": "合肥",
+    "province": "安徽省",
+    "city": "合肥市",
+    "latitude": "31.82030057746136",
+    "longitude": "117.2269996717286",
+    "level": 2
+  },
+  {
+    "name": "芜湖市",
+    "shortName": "芜湖",
+    "province": "安徽省",
+    "city": "芜湖市",
+    "latitude": "31.352200342223207",
+    "longitude": "118.4329999010002",
+    "level": 2
+  },
+  {
+    "name": "蚌埠市",
+    "shortName": "蚌埠",
+    "province": "安徽省",
+    "city": "蚌埠市",
+    "latitude": "32.91550034329894",
+    "longitude": "117.3889999698603",
+    "level": 2
+  },
+  {
+    "name": "淮南市",
+    "shortName": "淮南",
+    "province": "安徽省",
+    "city": "淮南市",
+    "latitude": "32.625500031577157",
+    "longitude": "116.99999973086939",
+    "level": 2
+  },
+  {
+    "name": "马鞍山市",
+    "shortName": "马鞍山",
+    "province": "安徽省",
+    "city": "马鞍山市",
+    "latitude": "31.67059949084345",
+    "longitude": "118.50700044870797",
+    "level": 2
+  },
+  {
+    "name": "淮北市",
+    "shortName": "淮北",
+    "province": "安徽省",
+    "city": "淮北市",
+    "latitude": "33.955800701574087",
+    "longitude": "116.79799998273428",
+    "level": 2
+  },
+  {
+    "name": "铜陵市",
+    "shortName": "铜陵",
+    "province": "安徽省",
+    "city": "铜陵市",
+    "latitude": "30.945200271619965",
+    "longitude": "117.81199989631436",
+    "level": 2
+  },
+  {
+    "name": "安庆市",
+    "shortName": "安庆",
+    "province": "安徽省",
+    "city": "安庆市",
+    "latitude": "30.525300132793889",
+    "longitude": "117.05699966479496",
+    "level": 2
+  },
+  {
+    "name": "黄山市",
+    "shortName": "黄山",
+    "province": "安徽省",
+    "city": "黄山市",
+    "latitude": "29.7156990542428",
+    "longitude": "118.3390003919005",
+    "level": 2
+  },
+  {
+    "name": "滁州市",
+    "shortName": "滁州",
+    "province": "安徽省",
+    "city": "滁州市",
+    "latitude": "32.25499895207538",
+    "longitude": "118.33300020100137",
+    "level": 2
+  },
+  {
+    "name": "阜阳市",
+    "shortName": "阜阳",
+    "province": "安徽省",
+    "city": "阜阳市",
+    "latitude": "32.88979927209583",
+    "longitude": "115.81399999850017",
+    "level": 2
+  },
+  {
+    "name": "宿州市",
+    "shortName": "宿州",
+    "province": "安徽省",
+    "city": "宿州市",
+    "latitude": "33.64619931087037",
+    "longitude": "116.96400018526306",
+    "level": 2
+  },
+  {
+    "name": "六安市",
+    "shortName": "六安",
+    "province": "安徽省",
+    "city": "六安市",
+    "latitude": "31.735100019283697",
+    "longitude": "116.52000031582462",
+    "level": 2
+  },
+  {
+    "name": "亳州市",
+    "shortName": "亳州",
+    "province": "安徽省",
+    "city": "亳州市",
+    "latitude": "33.84450068314206",
+    "longitude": "115.77799970929472",
+    "level": 2
+  },
+  {
+    "name": "池州市",
+    "shortName": "池州",
+    "province": "安徽省",
+    "city": "池州市",
+    "latitude": "30.664599054295988",
+    "longitude": "117.49200050440915",
+    "level": 2
+  },
+  {
+    "name": "宣城市",
+    "shortName": "宣城",
+    "province": "安徽省",
+    "city": "宣城市",
+    "latitude": "30.940799336937489",
+    "longitude": "118.75900027581136",
+    "level": 2
+  },
+  {
+    "name": "福建省",
+    "shortName": "福建",
+    "province": "福建省",
+    "city": null,
+    "latitude": "26.100099287534353",
+    "longitude": "119.29600037744706",
+    "level": 1
+  },
+  {
+    "name": "福州市",
+    "shortName": "福州",
+    "province": "福建省",
+    "city": "福州市",
+    "latitude": "26.07419959743139",
+    "longitude": "119.29700014616921",
+    "level": 2
+  },
+  {
+    "name": "厦门市",
+    "shortName": "厦门",
+    "province": "福建省",
+    "city": "厦门市",
+    "latitude": "24.479099328043728",
+    "longitude": "118.08999983075226",
+    "level": 2
+  },
+  {
+    "name": "莆田市",
+    "shortName": "莆田",
+    "province": "福建省",
+    "city": "莆田市",
+    "latitude": "25.453899608082837",
+    "longitude": "119.00800009565435",
+    "level": 2
+  },
+  {
+    "name": "三明市",
+    "shortName": "三明",
+    "province": "福建省",
+    "city": "三明市",
+    "latitude": "26.26390036378007",
+    "longitude": "117.63900000405882",
+    "level": 2
+  },
+  {
+    "name": "泉州市",
+    "shortName": "泉州",
+    "province": "福建省",
+    "city": "泉州市",
+    "latitude": "24.87360027709936",
+    "longitude": "118.67600005652437",
+    "level": 2
+  },
+  {
+    "name": "漳州市",
+    "shortName": "漳州",
+    "province": "福建省",
+    "city": "漳州市",
+    "latitude": "24.513200933125814",
+    "longitude": "117.64699976793215",
+    "level": 2
+  },
+  {
+    "name": "南平市",
+    "shortName": "南平",
+    "province": "福建省",
+    "city": "南平市",
+    "latitude": "26.641630480343289",
+    "longitude": "118.17789974861934",
+    "level": 2
+  },
+  {
+    "name": "龙岩市",
+    "shortName": "龙岩",
+    "province": "福建省",
+    "city": "龙岩市",
+    "latitude": "25.07499921109612",
+    "longitude": "117.01699991164733",
+    "level": 2
+  },
+  {
+    "name": "宁德市",
+    "shortName": "宁德",
+    "province": "福建省",
+    "city": "宁德市",
+    "latitude": "26.66620015338118",
+    "longitude": "119.54799991927077",
+    "level": 2
+  },
+  {
+    "name": "江西省",
+    "shortName": "江西",
+    "province": "江西省",
+    "city": null,
+    "latitude": "28.675400727003305",
+    "longitude": "115.90899950639518",
+    "level": 1
+  },
+  {
+    "name": "南昌市",
+    "shortName": "南昌",
+    "province": "江西省",
+    "city": "南昌市",
+    "latitude": "28.68380026666442",
+    "longitude": "115.85800032844009",
+    "level": 2
+  },
+  {
+    "name": "景德镇市",
+    "shortName": "景德镇",
+    "province": "江西省",
+    "city": "景德镇市",
+    "latitude": "29.2686002613824",
+    "longitude": "117.17800028683175",
+    "level": 2
+  },
+  {
+    "name": "萍乡市",
+    "shortName": "萍乡",
+    "province": "江西省",
+    "city": "萍乡市",
+    "latitude": "27.62230002127779",
+    "longitude": "113.85499995174324",
+    "level": 2
+  },
+  {
+    "name": "九江市",
+    "shortName": "九江",
+    "province": "江西省",
+    "city": "九江市",
+    "latitude": "29.70549935152467",
+    "longitude": "116.00099994636362",
+    "level": 2
+  },
+  {
+    "name": "新余市",
+    "shortName": "新余",
+    "province": "江西省",
+    "city": "新余市",
+    "latitude": "27.817799510061648",
+    "longitude": "114.91700017853248",
+    "level": 2
+  },
+  {
+    "name": "鹰潭市",
+    "shortName": "鹰潭",
+    "province": "江西省",
+    "city": "鹰潭市",
+    "latitude": "28.2600993065851",
+    "longitude": "117.06899982347753",
+    "level": 2
+  },
+  {
+    "name": "赣州市",
+    "shortName": "赣州",
+    "province": "江西省",
+    "city": "赣州市",
+    "latitude": "25.829099974477228",
+    "longitude": "114.9340000017254",
+    "level": 2
+  },
+  {
+    "name": "吉安市",
+    "shortName": "吉安",
+    "province": "江西省",
+    "city": "吉安市",
+    "latitude": "27.113800221820225",
+    "longitude": "114.99400004313809",
+    "level": 2
+  },
+  {
+    "name": "宜春市",
+    "shortName": "宜春",
+    "province": "江西省",
+    "city": "宜春市",
+    "latitude": "27.81520019661063",
+    "longitude": "114.41700002417508",
+    "level": 2
+  },
+  {
+    "name": "抚州市",
+    "shortName": "抚州",
+    "province": "江西省",
+    "city": "抚州市",
+    "latitude": "27.949099426497435",
+    "longitude": "116.35800030577485",
+    "level": 2
+  },
+  {
+    "name": "上饶市",
+    "shortName": "上饶",
+    "province": "江西省",
+    "city": "上饶市",
+    "latitude": "28.45440058113288",
+    "longitude": "117.94299970787402",
+    "level": 2
+  },
+  {
+    "name": "山东省",
+    "shortName": "山东",
+    "province": "山东省",
+    "city": null,
+    "latitude": "36.66869899078256",
+    "longitude": "117.02100040617769",
+    "level": 1
+  },
+  {
+    "name": "济南市",
+    "shortName": "济南",
+    "province": "山东省",
+    "city": "济南市",
+    "latitude": "36.65020001165898",
+    "longitude": "117.12000030220425",
+    "level": 2
+  },
+  {
+    "name": "青岛市",
+    "shortName": "青岛",
+    "province": "山东省",
+    "city": "青岛市",
+    "latitude": "36.06609912031365",
+    "longitude": "120.38300033989066",
+    "level": 2
+  },
+  {
+    "name": "淄博市",
+    "shortName": "淄博",
+    "province": "山东省",
+    "city": "淄博市",
+    "latitude": "36.81300074554309",
+    "longitude": "118.05499969800289",
+    "level": 2
+  },
+  {
+    "name": "枣庄市",
+    "shortName": "枣庄",
+    "province": "山东省",
+    "city": "枣庄市",
+    "latitude": "34.81009923550394",
+    "longitude": "117.32400031058649",
+    "level": 2
+  },
+  {
+    "name": "东营市",
+    "shortName": "东营",
+    "province": "山东省",
+    "city": "东营市",
+    "latitude": "37.433300460299637",
+    "longitude": "118.67499946513824",
+    "level": 2
+  },
+  {
+    "name": "烟台市",
+    "shortName": "烟台",
+    "province": "山东省",
+    "city": "烟台市",
+    "latitude": "37.46369927545523",
+    "longitude": "121.44800010578241",
+    "level": 2
+  },
+  {
+    "name": "潍坊市",
+    "shortName": "潍坊",
+    "province": "山东省",
+    "city": "潍坊市",
+    "latitude": "36.70629958033153",
+    "longitude": "119.1619997966021",
+    "level": 2
+  },
+  {
+    "name": "济宁市",
+    "shortName": "济宁",
+    "province": "山东省",
+    "city": "济宁市",
+    "latitude": "35.41449925219722",
+    "longitude": "116.5870004513892",
+    "level": 2
+  },
+  {
+    "name": "泰安市",
+    "shortName": "泰安",
+    "province": "山东省",
+    "city": "泰安市",
+    "latitude": "36.199899950439547",
+    "longitude": "117.08799993004307",
+    "level": 2
+  },
+  {
+    "name": "威海市",
+    "shortName": "威海",
+    "province": "山东省",
+    "city": "威海市",
+    "latitude": "37.510599222737187",
+    "longitude": "122.12100003530662",
+    "level": 2
+  },
+  {
+    "name": "日照市",
+    "shortName": "日照",
+    "province": "山东省",
+    "city": "日照市",
+    "latitude": "35.41649928301093",
+    "longitude": "119.52699996496564",
+    "level": 2
+  },
+  {
+    "name": "临沂市",
+    "shortName": "临沂",
+    "province": "山东省",
+    "city": "临沂市",
+    "latitude": "35.10480043821297",
+    "longitude": "118.35699973710028",
+    "level": 2
+  },
+  {
+    "name": "德州市",
+    "shortName": "德州",
+    "province": "山东省",
+    "city": "德州市",
+    "latitude": "37.43549919455541",
+    "longitude": "116.35900048771923",
+    "level": 2
+  },
+  {
+    "name": "聊城市",
+    "shortName": "聊城",
+    "province": "山东省",
+    "city": "聊城市",
+    "latitude": "36.45709949440061",
+    "longitude": "115.98500023309673",
+    "level": 2
+  },
+  {
+    "name": "滨州市",
+    "shortName": "滨州",
+    "province": "山东省",
+    "city": "滨州市",
+    "latitude": "37.38189910796855",
+    "longitude": "117.97100056418518",
+    "level": 2
+  },
+  {
+    "name": "菏泽市",
+    "shortName": "菏泽",
+    "province": "山东省",
+    "city": "菏泽市",
+    "latitude": "35.23360056461363",
+    "longitude": "115.48099960889037",
+    "level": 2
+  },
+  {
+    "name": "河南省",
+    "shortName": "河南",
+    "province": "河南省",
+    "city": null,
+    "latitude": "34.76540077641399",
+    "longitude": "113.7529998723638",
+    "level": 1
+  },
+  {
+    "name": "郑州市",
+    "shortName": "郑州",
+    "province": "河南省",
+    "city": "郑州市",
+    "latitude": "34.747201058278289",
+    "longitude": "113.62499986751769",
+    "level": 2
+  },
+  {
+    "name": "开封市",
+    "shortName": "开封",
+    "province": "河南省",
+    "city": "开封市",
+    "latitude": "34.79719935370405",
+    "longitude": "114.30800053188925",
+    "level": 2
+  },
+  {
+    "name": "洛阳市",
+    "shortName": "洛阳",
+    "province": "河南省",
+    "city": "洛阳市",
+    "latitude": "34.617999194929009",
+    "longitude": "112.45300054069058",
+    "level": 2
+  },
+  {
+    "name": "平顶山市",
+    "shortName": "平顶山",
+    "province": "河南省",
+    "city": "平顶山市",
+    "latitude": "33.766100557779378",
+    "longitude": "113.19299977811123",
+    "level": 2
+  },
+  {
+    "name": "安阳市",
+    "shortName": "安阳",
+    "province": "河南省",
+    "city": "安阳市",
+    "latitude": "36.09999989831464",
+    "longitude": "114.39300002451978",
+    "level": 2
+  },
+  {
+    "name": "鹤壁市",
+    "shortName": "鹤壁",
+    "province": "河南省",
+    "city": "鹤壁市",
+    "latitude": "35.74670025080465",
+    "longitude": "114.29700014704673",
+    "level": 2
+  },
+  {
+    "name": "新乡市",
+    "shortName": "新乡",
+    "province": "河南省",
+    "city": "新乡市",
+    "latitude": "35.30390107726379",
+    "longitude": "113.92699975505087",
+    "level": 2
+  },
+  {
+    "name": "焦作市",
+    "shortName": "焦作",
+    "province": "河南省",
+    "city": "焦作市",
+    "latitude": "35.21509910725165",
+    "longitude": "113.24200012830079",
+    "level": 2
+  },
+  {
+    "name": "濮阳市",
+    "shortName": "濮阳",
+    "province": "河南省",
+    "city": "濮阳市",
+    "latitude": "35.76189920560248",
+    "longitude": "115.02900053714653",
+    "level": 2
+  },
+  {
+    "name": "许昌市",
+    "shortName": "许昌",
+    "province": "河南省",
+    "city": "许昌市",
+    "latitude": "34.035400485575539",
+    "longitude": "113.85199993212935",
+    "level": 2
+  },
+  {
+    "name": "漯河市",
+    "shortName": "漯河",
+    "province": "河南省",
+    "city": "漯河市",
+    "latitude": "33.581498967903197",
+    "longitude": "114.01700019279385",
+    "level": 2
+  },
+  {
+    "name": "三门峡市",
+    "shortName": "三门峡",
+    "province": "河南省",
+    "city": "三门峡市",
+    "latitude": "34.772499471448337",
+    "longitude": "111.20000016943573",
+    "level": 2
+  },
+  {
+    "name": "南阳市",
+    "shortName": "南阳",
+    "province": "河南省",
+    "city": "南阳市",
+    "latitude": "32.99060013747046",
+    "longitude": "112.5280000776409",
+    "level": 2
+  },
+  {
+    "name": "商丘市",
+    "shortName": "商丘",
+    "province": "河南省",
+    "city": "商丘市",
+    "latitude": "34.414100889133887",
+    "longitude": "115.65599968868917",
+    "level": 2
+  },
+  {
+    "name": "信阳市",
+    "shortName": "信阳",
+    "province": "河南省",
+    "city": "信阳市",
+    "latitude": "32.14700035195178",
+    "longitude": "114.09099989707743",
+    "level": 2
+  },
+  {
+    "name": "周口市",
+    "shortName": "周口",
+    "province": "河南省",
+    "city": "周口市",
+    "latitude": "33.62570036580123",
+    "longitude": "114.69699984343707",
+    "level": 2
+  },
+  {
+    "name": "驻马店市",
+    "shortName": "驻马店",
+    "province": "河南省",
+    "city": "驻马店市",
+    "latitude": "33.0116995759941",
+    "longitude": "114.0220000380597",
+    "level": 2
+  },
+  {
+    "name": "济源市",
+    "shortName": "济源",
+    "province": "河南省",
+    "city": "济源市",
+    "latitude": "35.06710106836037",
+    "longitude": "112.601999665911",
+    "level": 2
+  },
+  {
+    "name": "湖北省",
+    "shortName": "湖北",
+    "province": "湖北省",
+    "city": null,
+    "latitude": "30.545400793186876",
+    "longitude": "114.34199995370732",
+    "level": 1
+  },
+  {
+    "name": "武汉市",
+    "shortName": "武汉",
+    "province": "湖北省",
+    "city": "武汉市",
+    "latitude": "30.592799572081775",
+    "longitude": "114.30500043085044",
+    "level": 2
+  },
+  {
+    "name": "黄石市",
+    "shortName": "黄石",
+    "province": "湖北省",
+    "city": "黄石市",
+    "latitude": "30.19939960298911",
+    "longitude": "115.03900003417427",
+    "level": 2
+  },
+  {
+    "name": "十堰市",
+    "shortName": "十堰",
+    "province": "湖北省",
+    "city": "十堰市",
+    "latitude": "32.62920058683366",
+    "longitude": "110.79800000488888",
+    "level": 2
+  },
+  {
+    "name": "宜昌市",
+    "shortName": "宜昌",
+    "province": "湖北省",
+    "city": "宜昌市",
+    "latitude": "30.691700466182604",
+    "longitude": "111.28599985193078",
+    "level": 2
+  },
+  {
+    "name": "襄阳市",
+    "shortName": "襄阳",
+    "province": "湖北省",
+    "city": "襄阳市",
+    "latitude": "32.009000524722058",
+    "longitude": "112.12199980022902",
+    "level": 2
+  },
+  {
+    "name": "鄂州市",
+    "shortName": "鄂州",
+    "province": "湖北省",
+    "city": "鄂州市",
+    "latitude": "30.39090049796052",
+    "longitude": "114.89499986502291",
+    "level": 2
+  },
+  {
+    "name": "荆门市",
+    "shortName": "荆门",
+    "province": "湖北省",
+    "city": "荆门市",
+    "latitude": "31.03539989309392",
+    "longitude": "112.20000022843678",
+    "level": 2
+  },
+  {
+    "name": "孝感市",
+    "shortName": "孝感",
+    "province": "湖北省",
+    "city": "孝感市",
+    "latitude": "30.924800042860256",
+    "longitude": "113.91599992197745",
+    "level": 2
+  },
+  {
+    "name": "荆州市",
+    "shortName": "荆州",
+    "province": "湖北省",
+    "city": "荆州市",
+    "latitude": "30.335000380771655",
+    "longitude": "112.23899990799217",
+    "level": 2
+  },
+  {
+    "name": "黄冈市",
+    "shortName": "黄冈",
+    "province": "湖北省",
+    "city": "黄冈市",
+    "latitude": "30.453399755007639",
+    "longitude": "114.87200001364403",
+    "level": 2
+  },
+  {
+    "name": "咸宁市",
+    "shortName": "咸宁",
+    "province": "湖北省",
+    "city": "咸宁市",
+    "latitude": "29.84119963873858",
+    "longitude": "114.32200002764368",
+    "level": 2
+  },
+  {
+    "name": "随州市",
+    "shortName": "随州",
+    "province": "湖北省",
+    "city": "随州市",
+    "latitude": "31.6903005852804",
+    "longitude": "113.3829995762333",
+    "level": 2
+  },
+  {
+    "name": "恩施土家族苗族自治州",
+    "shortName": "恩施",
+    "province": "湖北省",
+    "city": "恩施土家族苗族自治州",
+    "latitude": "30.272200939162663",
+    "longitude": "109.48799971128556",
+    "level": 2
+  },
+  {
+    "name": "仙桃市",
+    "shortName": "仙桃",
+    "province": "湖北省",
+    "city": "仙桃市",
+    "latitude": "30.327808562395196",
+    "longitude": "113.4430708646827",
+    "level": 2
+  },
+  {
+    "name": "潜江市",
+    "shortName": "潜江",
+    "province": "湖北省",
+    "city": "潜江市",
+    "latitude": "30.402200427548597",
+    "longitude": "112.8989999792559",
+    "level": 2
+  },
+  {
+    "name": "天门市",
+    "shortName": "天门",
+    "province": "湖北省",
+    "city": "天门市",
+    "latitude": "30.663299439105466",
+    "longitude": "113.16600042745603",
+    "level": 2
+  },
+  {
+    "name": "神农架林区",
+    "shortName": "神农架",
+    "province": "湖北省",
+    "city": "神农架林区",
+    "latitude": "31.7446003104183",
+    "longitude": "110.67599978781955",
+    "level": 2
+  },
+  {
+    "name": "湖南省",
+    "shortName": "湖南",
+    "province": "湖南省",
+    "city": null,
+    "latitude": "28.112599689548924",
+    "longitude": "112.98300004510974",
+    "level": 1
+  },
+  {
+    "name": "长沙市",
+    "shortName": "长沙",
+    "province": "湖南省",
+    "city": "长沙市",
+    "latitude": "28.228699626769325",
+    "longitude": "112.93900004821824",
+    "level": 2
+  },
+  {
+    "name": "株洲市",
+    "shortName": "株洲",
+    "province": "湖南省",
+    "city": "株洲市",
+    "latitude": "27.82750047575812",
+    "longitude": "113.13399979807228",
+    "level": 2
+  },
+  {
+    "name": "湘潭市",
+    "shortName": "湘潭",
+    "province": "湖南省",
+    "city": "湘潭市",
+    "latitude": "27.829599374837135",
+    "longitude": "112.94400009976434",
+    "level": 2
+  },
+  {
+    "name": "衡阳市",
+    "shortName": "衡阳",
+    "province": "湖南省",
+    "city": "衡阳市",
+    "latitude": "26.89329934143655",
+    "longitude": "112.5719999235193",
+    "level": 2
+  },
+  {
+    "name": "邵阳市",
+    "shortName": "邵阳",
+    "province": "湖南省",
+    "city": "邵阳市",
+    "latitude": "27.239000608152979",
+    "longitude": "111.46799956964132",
+    "level": 2
+  },
+  {
+    "name": "岳阳市",
+    "shortName": "岳阳",
+    "province": "湖南省",
+    "city": "岳阳市",
+    "latitude": "29.35720017725295",
+    "longitude": "113.12899992387902",
+    "level": 2
+  },
+  {
+    "name": "常德市",
+    "shortName": "常德",
+    "province": "湖南省",
+    "city": "常德市",
+    "latitude": "29.031600722995614",
+    "longitude": "111.69899962977583",
+    "level": 2
+  },
+  {
+    "name": "张家界市",
+    "shortName": "张家界",
+    "province": "湖南省",
+    "city": "张家界市",
+    "latitude": "29.116999532136548",
+    "longitude": "110.47900000871023",
+    "level": 2
+  },
+  {
+    "name": "益阳市",
+    "shortName": "益阳",
+    "province": "湖南省",
+    "city": "益阳市",
+    "latitude": "28.553800282180246",
+    "longitude": "112.35499998286909",
+    "level": 2
+  },
+  {
+    "name": "郴州市",
+    "shortName": "郴州",
+    "province": "湖南省",
+    "city": "郴州市",
+    "latitude": "25.77060064349159",
+    "longitude": "113.01499984137354",
+    "level": 2
+  },
+  {
+    "name": "永州市",
+    "shortName": "永州",
+    "province": "湖南省",
+    "city": "永州市",
+    "latitude": "26.41959943082612",
+    "longitude": "111.61299998600936",
+    "level": 2
+  },
+  {
+    "name": "怀化市",
+    "shortName": "怀化",
+    "province": "湖南省",
+    "city": "怀化市",
+    "latitude": "27.56929976078225",
+    "longitude": "110.00200006282984",
+    "level": 2
+  },
+  {
+    "name": "娄底市",
+    "shortName": "娄底",
+    "province": "湖南省",
+    "city": "娄底市",
+    "latitude": "27.697300079133105",
+    "longitude": "111.9950000209612",
+    "level": 2
+  },
+  {
+    "name": "湘西土家族苗族自治州",
+    "shortName": "湘西",
+    "province": "湖南省",
+    "city": "湘西土家族苗族自治州",
+    "latitude": "28.31170011891081",
+    "longitude": "109.73900027094233",
+    "level": 2
+  },
+  {
+    "name": "广东省",
+    "shortName": "广东",
+    "province": "广东省",
+    "city": null,
+    "latitude": "23.131700866678533",
+    "longitude": "113.265999804043",
+    "level": 1
+  },
+  {
+    "name": "广州市",
+    "shortName": "广州",
+    "province": "广东省",
+    "city": "广州市",
+    "latitude": "23.129100899836734",
+    "longitude": "113.2649998160175",
+    "level": 2
+  },
+  {
+    "name": "韶关市",
+    "shortName": "韶关",
+    "province": "广东省",
+    "city": "韶关市",
+    "latitude": "24.810099633350469",
+    "longitude": "113.59700012721648",
+    "level": 2
+  },
+  {
+    "name": "深圳市",
+    "shortName": "深圳",
+    "province": "广东省",
+    "city": "深圳市",
+    "latitude": "22.542800115249017",
+    "longitude": "114.05800015327464",
+    "level": 2
+  },
+  {
+    "name": "珠海市",
+    "shortName": "珠海",
+    "province": "广东省",
+    "city": "珠海市",
+    "latitude": "22.270900160339538",
+    "longitude": "113.57599970605733",
+    "level": 2
+  },
+  {
+    "name": "汕头市",
+    "shortName": "汕头",
+    "province": "广东省",
+    "city": "汕头市",
+    "latitude": "23.353300378747844",
+    "longitude": "116.68199979030952",
+    "level": 2
+  },
+  {
+    "name": "佛山市",
+    "shortName": "佛山",
+    "province": "广东省",
+    "city": "佛山市",
+    "latitude": "23.021899841569178",
+    "longitude": "113.122000143886",
+    "level": 2
+  },
+  {
+    "name": "江门市",
+    "shortName": "江门",
+    "province": "广东省",
+    "city": "江门市",
+    "latitude": "22.57880085212426",
+    "longitude": "113.08199999623384",
+    "level": 2
+  },
+  {
+    "name": "湛江市",
+    "shortName": "湛江",
+    "province": "广东省",
+    "city": "湛江市",
+    "latitude": "21.270899182281775",
+    "longitude": "110.35900018733592",
+    "level": 2
+  },
+  {
+    "name": "茂名市",
+    "shortName": "茂名",
+    "province": "广东省",
+    "city": "茂名市",
+    "latitude": "21.66330047520327",
+    "longitude": "110.92499965874819",
+    "level": 2
+  },
+  {
+    "name": "肇庆市",
+    "shortName": "肇庆",
+    "province": "广东省",
+    "city": "肇庆市",
+    "latitude": "23.046799841103739",
+    "longitude": "112.46499995940113",
+    "level": 2
+  },
+  {
+    "name": "惠州市",
+    "shortName": "惠州",
+    "province": "广东省",
+    "city": "惠州市",
+    "latitude": "23.110700085310144",
+    "longitude": "114.41699962525166",
+    "level": 2
+  },
+  {
+    "name": "梅州市",
+    "shortName": "梅州",
+    "province": "广东省",
+    "city": "梅州市",
+    "latitude": "24.288299364013246",
+    "longitude": "116.12300003791734",
+    "level": 2
+  },
+  {
+    "name": "汕尾市",
+    "shortName": "汕尾",
+    "province": "广东省",
+    "city": "汕尾市",
+    "latitude": "22.785600315171807",
+    "longitude": "115.37500020983372",
+    "level": 2
+  },
+  {
+    "name": "河源市",
+    "shortName": "河源",
+    "province": "广东省",
+    "city": "河源市",
+    "latitude": "23.743500828942986",
+    "longitude": "114.70099966866097",
+    "level": 2
+  },
+  {
+    "name": "阳江市",
+    "shortName": "阳江",
+    "province": "广东省",
+    "city": "阳江市",
+    "latitude": "21.858199773107903",
+    "longitude": "111.98199991373645",
+    "level": 2
+  },
+  {
+    "name": "清远市",
+    "shortName": "清远",
+    "province": "广东省",
+    "city": "清远市",
+    "latitude": "23.681999638639316",
+    "longitude": "113.05600025532785",
+    "level": 2
+  },
+  {
+    "name": "东莞市",
+    "shortName": "东莞",
+    "province": "广东省",
+    "city": "东莞市",
+    "latitude": "23.021000531525336",
+    "longitude": "113.7519996985186",
+    "level": 2
+  },
+  {
+    "name": "中山市",
+    "shortName": "中山",
+    "province": "广东省",
+    "city": "中山市",
+    "latitude": "22.5160005219801",
+    "longitude": "113.39300011818777",
+    "level": 2
+  },
+  {
+    "name": "潮州市",
+    "shortName": "潮州",
+    "province": "广东省",
+    "city": "潮州市",
+    "latitude": "23.656400397968026",
+    "longitude": "116.62299976363066",
+    "level": 2
+  },
+  {
+    "name": "揭阳市",
+    "shortName": "揭阳",
+    "province": "广东省",
+    "city": "揭阳市",
+    "latitude": "23.549699807815526",
+    "longitude": "116.37200000914773",
+    "level": 2
+  },
+  {
+    "name": "云浮市",
+    "shortName": "云浮",
+    "province": "广东省",
+    "city": "云浮市",
+    "latitude": "22.91499980764361",
+    "longitude": "112.04500010984796",
+    "level": 2
+  },
+  {
+    "name": "广西壮族自治区",
+    "shortName": "广西",
+    "province": "广西壮族自治区",
+    "city": null,
+    "latitude": "22.81529965342563",
+    "longitude": "108.32800011848129",
+    "level": 1
+  },
+  {
+    "name": "南宁市",
+    "shortName": "南宁",
+    "province": "广西壮族自治区",
+    "city": "南宁市",
+    "latitude": "22.816299646108715",
+    "longitude": "108.36699983920386",
+    "level": 2
+  },
+  {
+    "name": "柳州市",
+    "shortName": "柳州",
+    "province": "广西壮族自治区",
+    "city": "柳州市",
+    "latitude": "24.325700833850449",
+    "longitude": "109.4279998991109",
+    "level": 2
+  },
+  {
+    "name": "桂林市",
+    "shortName": "桂林",
+    "province": "广西壮族自治区",
+    "city": "桂林市",
+    "latitude": "25.237000753283274",
+    "longitude": "110.19699983251457",
+    "level": 2
+  },
+  {
+    "name": "梧州市",
+    "shortName": "梧州",
+    "province": "广西壮族自治区",
+    "city": "梧州市",
+    "latitude": "23.476900275262449",
+    "longitude": "111.27899982439272",
+    "level": 2
+  },
+  {
+    "name": "北海市",
+    "shortName": "北海",
+    "province": "广西壮族自治区",
+    "city": "北海市",
+    "latitude": "21.48100049936838",
+    "longitude": "109.1200000349889",
+    "level": 2
+  },
+  {
+    "name": "防城港市",
+    "shortName": "防城港",
+    "province": "广西壮族自治区",
+    "city": "防城港市",
+    "latitude": "21.686700444395528",
+    "longitude": "108.35399999902495",
+    "level": 2
+  },
+  {
+    "name": "钦州市",
+    "shortName": "钦州",
+    "province": "广西壮族自治区",
+    "city": "钦州市",
+    "latitude": "21.980900473623036",
+    "longitude": "108.65400009568154",
+    "level": 2
+  },
+  {
+    "name": "贵港市",
+    "shortName": "贵港",
+    "province": "广西壮族自治区",
+    "city": "贵港市",
+    "latitude": "23.11160029237308",
+    "longitude": "109.59899980815509",
+    "level": 2
+  },
+  {
+    "name": "玉林市",
+    "shortName": "玉林",
+    "province": "广西壮族自治区",
+    "city": "玉林市",
+    "latitude": "22.6536992710651",
+    "longitude": "110.18200011555379",
+    "level": 2
+  },
+  {
+    "name": "百色市",
+    "shortName": "百色",
+    "province": "广西壮族自治区",
+    "city": "百色市",
+    "latitude": "23.90250017510398",
+    "longitude": "106.61800007235954",
+    "level": 2
+  },
+  {
+    "name": "贺州市",
+    "shortName": "贺州",
+    "province": "广西壮族自治区",
+    "city": "贺州市",
+    "latitude": "24.40349954935634",
+    "longitude": "111.56700007172056",
+    "level": 2
+  },
+  {
+    "name": "河池市",
+    "shortName": "河池",
+    "province": "广西壮族自治区",
+    "city": "河池市",
+    "latitude": "24.693000058338876",
+    "longitude": "108.08500004323645",
+    "level": 2
+  },
+  {
+    "name": "来宾市",
+    "shortName": "来宾",
+    "province": "广西壮族自治区",
+    "city": "来宾市",
+    "latitude": "23.750399386670869",
+    "longitude": "109.22099996542784",
+    "level": 2
+  },
+  {
+    "name": "崇左市",
+    "shortName": "崇左",
+    "province": "广西壮族自治区",
+    "city": "崇左市",
+    "latitude": "22.377199656222567",
+    "longitude": "107.36499995568983",
+    "level": 2
+  },
+  {
+    "name": "海南省",
+    "shortName": "海南",
+    "province": "海南省",
+    "city": null,
+    "latitude": "36.28639982119617",
+    "longitude": "100.61999977408205",
+    "level": 1
+  },
+  {
+    "name": "海口市",
+    "shortName": "海口",
+    "province": "海南省",
+    "city": "海口市",
+    "latitude": "20.038200448111753",
+    "longitude": "110.31900011475544",
+    "level": 2
+  },
+  {
+    "name": "三亚市",
+    "shortName": "三亚",
+    "province": "海南省",
+    "city": "三亚市",
+    "latitude": "18.25299947476423",
+    "longitude": "109.51200029423372",
+    "level": 2
+  },
+  {
+    "name": "三沙市",
+    "shortName": "三沙",
+    "province": "海南省",
+    "city": "三沙市",
+    "latitude": "30.310900286432365",
+    "longitude": "112.25499963696167",
+    "level": 2
+  },
+  {
+    "name": "儋州市",
+    "shortName": "儋州",
+    "province": "海南省",
+    "city": "儋州市",
+    "latitude": "19.63683325926042",
+    "longitude": "109.16749552045032",
+    "level": 2
+  },
+  {
+    "name": "五指山市",
+    "shortName": "五指山",
+    "province": "海南省",
+    "city": "五指山市",
+    "latitude": "18.76745889534683",
+    "longitude": "109.64884532016534",
+    "level": 2
+  },
+  {
+    "name": "琼海市",
+    "shortName": "琼海",
+    "province": "海南省",
+    "city": "琼海市",
+    "latitude": "19.258499483305625",
+    "longitude": "110.47399988218497",
+    "level": 2
+  },
+  {
+    "name": "文昌市",
+    "shortName": "文昌",
+    "province": "海南省",
+    "city": "文昌市",
+    "latitude": "19.58784200705239",
+    "longitude": "110.71175662588297",
+    "level": 2
+  },
+  {
+    "name": "万宁市",
+    "shortName": "万宁",
+    "province": "海南省",
+    "city": "万宁市",
+    "latitude": "18.727051046222795",
+    "longitude": "110.39632788502522",
+    "level": 2
+  },
+  {
+    "name": "东方市",
+    "shortName": "东方",
+    "province": "海南省",
+    "city": "东方市",
+    "latitude": "19.116675226483325",
+    "longitude": "108.82817324812067",
+    "level": 2
+  },
+  {
+    "name": "定安县",
+    "shortName": "定安",
+    "province": "海南省",
+    "city": "定安县",
+    "latitude": "19.681299572581488",
+    "longitude": "110.359000258872",
+    "level": 2
+  },
+  {
+    "name": "屯昌县",
+    "shortName": "屯昌",
+    "province": "海南省",
+    "city": "屯昌县",
+    "latitude": "19.35169982530583",
+    "longitude": "110.10199996598947",
+    "level": 2
+  },
+  {
+    "name": "澄迈县",
+    "shortName": "澄迈",
+    "province": "海南省",
+    "city": "澄迈县",
+    "latitude": "19.73839980713141",
+    "longitude": "110.00699998025853",
+    "level": 2
+  },
+  {
+    "name": "临高县",
+    "shortName": "临高",
+    "province": "海南省",
+    "city": "临高县",
+    "latitude": "19.913199449889257",
+    "longitude": "109.69099980715699",
+    "level": 2
+  },
+  {
+    "name": "白沙黎族自治县",
+    "shortName": "白沙",
+    "province": "海南省",
+    "city": "白沙黎族自治县",
+    "latitude": "19.225099719438007",
+    "longitude": "109.45099996365799",
+    "level": 2
+  },
+  {
+    "name": "昌江黎族自治县",
+    "shortName": "昌江",
+    "province": "海南省",
+    "city": "昌江黎族自治县",
+    "latitude": "19.297900545370447",
+    "longitude": "109.05599986623999",
+    "level": 2
+  },
+  {
+    "name": "乐东黎族自治县",
+    "shortName": "乐东",
+    "province": "海南省",
+    "city": "乐东黎族自治县",
+    "latitude": "18.749799879039626",
+    "longitude": "109.1739999959132",
+    "level": 2
+  },
+  {
+    "name": "陵水黎族自治县",
+    "shortName": "陵水",
+    "province": "海南省",
+    "city": "陵水黎族自治县",
+    "latitude": "18.50600009960098",
+    "longitude": "110.03799993559214",
+    "level": 2
+  },
+  {
+    "name": "保亭黎族苗族自治县",
+    "shortName": "保亭",
+    "province": "海南省",
+    "city": "保亭黎族苗族自治县",
+    "latitude": "18.640699785628418",
+    "longitude": "109.69700016266816",
+    "level": 2
+  },
+  {
+    "name": "琼中黎族苗族自治县",
+    "shortName": "琼中",
+    "province": "海南省",
+    "city": "琼中黎族苗族自治县",
+    "latitude": "19.033300153737064",
+    "longitude": "109.83799990738592",
+    "level": 2
+  },
+  {
+    "name": "重庆市",
+    "shortName": "重庆",
+    "province": "重庆市",
+    "city": null,
+    "latitude": "29.562700519072558",
+    "longitude": "106.5520000720104",
+    "level": 1
+  },
+  {
+    "name": "四川省",
+    "shortName": "四川",
+    "province": "四川省",
+    "city": null,
+    "latitude": "30.571499386692417",
+    "longitude": "104.06700017978646",
+    "level": 1
+  },
+  {
+    "name": "成都市",
+    "shortName": "成都",
+    "province": "四川省",
+    "city": "成都市",
+    "latitude": "30.6499003466628",
+    "longitude": "104.07499980912837",
+    "level": 2
+  },
+  {
+    "name": "自贡市",
+    "shortName": "自贡",
+    "province": "四川省",
+    "city": "自贡市",
+    "latitude": "29.339399362790084",
+    "longitude": "104.77800035469186",
+    "level": 2
+  },
+  {
+    "name": "攀枝花市",
+    "shortName": "攀枝花",
+    "province": "四川省",
+    "city": "攀枝花市",
+    "latitude": "26.582199359045537",
+    "longitude": "101.71899993827125",
+    "level": 2
+  },
+  {
+    "name": "泸州市",
+    "shortName": "泸州",
+    "province": "四川省",
+    "city": "泸州市",
+    "latitude": "28.871799630697486",
+    "longitude": "105.44200000509083",
+    "level": 2
+  },
+  {
+    "name": "德阳市",
+    "shortName": "德阳",
+    "province": "四川省",
+    "city": "德阳市",
+    "latitude": "31.126800097018728",
+    "longitude": "104.39800022046087",
+    "level": 2
+  },
+  {
+    "name": "绵阳市",
+    "shortName": "绵阳",
+    "province": "四川省",
+    "city": "绵阳市",
+    "latitude": "31.46780080945925",
+    "longitude": "104.67899972031",
+    "level": 2
+  },
+  {
+    "name": "广元市",
+    "shortName": "广元",
+    "province": "四川省",
+    "city": "广元市",
+    "latitude": "32.43529984083724",
+    "longitude": "105.84400014087456",
+    "level": 2
+  },
+  {
+    "name": "遂宁市",
+    "shortName": "遂宁",
+    "province": "四川省",
+    "city": "遂宁市",
+    "latitude": "30.532800437106486",
+    "longitude": "105.59300011646475",
+    "level": 2
+  },
+  {
+    "name": "内江市",
+    "shortName": "内江",
+    "province": "四川省",
+    "city": "内江市",
+    "latitude": "29.580200102199187",
+    "longitude": "105.05799961481157",
+    "level": 2
+  },
+  {
+    "name": "乐山市",
+    "shortName": "乐山",
+    "province": "四川省",
+    "city": "乐山市",
+    "latitude": "29.55199939056044",
+    "longitude": "103.76600020587428",
+    "level": 2
+  },
+  {
+    "name": "南充市",
+    "shortName": "南充",
+    "province": "四川省",
+    "city": "南充市",
+    "latitude": "30.837799858661506",
+    "longitude": "106.11099998535066",
+    "level": 2
+  },
+  {
+    "name": "眉山市",
+    "shortName": "眉山",
+    "province": "四川省",
+    "city": "眉山市",
+    "latitude": "30.076800680234404",
+    "longitude": "103.84999965007028",
+    "level": 2
+  },
+  {
+    "name": "宜宾市",
+    "shortName": "宜宾",
+    "province": "四川省",
+    "city": "宜宾市",
+    "latitude": "28.751699837170948",
+    "longitude": "104.64300030677828",
+    "level": 2
+  },
+  {
+    "name": "广安市",
+    "shortName": "广安",
+    "province": "四川省",
+    "city": "广安市",
+    "latitude": "30.45599940862996",
+    "longitude": "106.63300020236737",
+    "level": 2
+  },
+  {
+    "name": "达州市",
+    "shortName": "达州",
+    "province": "四川省",
+    "city": "达州市",
+    "latitude": "31.20859925640086",
+    "longitude": "107.4680004224395",
+    "level": 2
+  },
+  {
+    "name": "雅安市",
+    "shortName": "雅安",
+    "province": "四川省",
+    "city": "雅安市",
+    "latitude": "30.01089968855188",
+    "longitude": "103.04300026377212",
+    "level": 2
+  },
+  {
+    "name": "巴中市",
+    "shortName": "巴中",
+    "province": "四川省",
+    "city": "巴中市",
+    "latitude": "31.86719955516809",
+    "longitude": "106.74499983435436",
+    "level": 2
+  },
+  {
+    "name": "资阳市",
+    "shortName": "资阳",
+    "province": "四川省",
+    "city": "资阳市",
+    "latitude": "30.128700746625208",
+    "longitude": "104.6279995992719",
+    "level": 2
+  },
+  {
+    "name": "阿坝藏族羌族自治州",
+    "shortName": "阿坝",
+    "province": "四川省",
+    "city": "阿坝藏族羌族自治州",
+    "latitude": "32.90249948868039",
+    "longitude": "101.70700028960914",
+    "level": 2
+  },
+  {
+    "name": "甘孜藏族自治州",
+    "shortName": "甘孜",
+    "province": "四川省",
+    "city": "甘孜藏族自治州",
+    "latitude": "30.049399564578473",
+    "longitude": "101.96200006848773",
+    "level": 2
+  },
+  {
+    "name": "凉山彝族自治州",
+    "shortName": "凉山",
+    "province": "四川省",
+    "city": "凉山彝族自治州",
+    "latitude": "27.88170005284932",
+    "longitude": "102.26699999802917",
+    "level": 2
+  },
+  {
+    "name": "贵州省",
+    "shortName": "贵州",
+    "province": "贵州省",
+    "city": null,
+    "latitude": "26.59799959943655",
+    "longitude": "106.70800008924413",
+    "level": 1
+  },
+  {
+    "name": "贵阳市",
+    "shortName": "贵阳",
+    "province": "贵州省",
+    "city": "贵阳市",
+    "latitude": "26.647599395736298",
+    "longitude": "106.63000043202153",
+    "level": 2
+  },
+  {
+    "name": "六盘水市",
+    "shortName": "六盘水",
+    "province": "贵州省",
+    "city": "六盘水市",
+    "latitude": "26.59309943491386",
+    "longitude": "104.83099988649504",
+    "level": 2
+  },
+  {
+    "name": "遵义市",
+    "shortName": "遵义",
+    "province": "贵州省",
+    "city": "遵义市",
+    "latitude": "27.725399495115619",
+    "longitude": "106.92699981892187",
+    "level": 2
+  },
+  {
+    "name": "安顺市",
+    "shortName": "安顺",
+    "province": "贵州省",
+    "city": "安顺市",
+    "latitude": "26.253000791559488",
+    "longitude": "105.94799977215526",
+    "level": 2
+  },
+  {
+    "name": "毕节市",
+    "shortName": "毕节",
+    "province": "贵州省",
+    "city": "毕节市",
+    "latitude": "27.28450055457827",
+    "longitude": "105.29199962364794",
+    "level": 2
+  },
+  {
+    "name": "铜仁市",
+    "shortName": "铜仁",
+    "province": "贵州省",
+    "city": "铜仁市",
+    "latitude": "27.731500448936523",
+    "longitude": "109.1899995957287",
+    "level": 2
+  },
+  {
+    "name": "黔西南布依族苗族自治州",
+    "shortName": "黔西南",
+    "province": "贵州省",
+    "city": "黔西南布依族苗族自治州",
+    "latitude": "27.008599277083535",
+    "longitude": "106.03200040996048",
+    "level": 2
+  },
+  {
+    "name": "黔东南苗族侗族自治州",
+    "shortName": "黔东南",
+    "province": "贵州省",
+    "city": "黔东南苗族侗族自治州",
+    "latitude": "26.58350073282618",
+    "longitude": "107.98299999669088",
+    "level": 2
+  },
+  {
+    "name": "黔南布依族苗族自治州",
+    "shortName": "黔南",
+    "province": "贵州省",
+    "city": "黔南布依族苗族自治州",
+    "latitude": "26.254299835925804",
+    "longitude": "107.52199994296473",
+    "level": 2
+  },
+  {
+    "name": "云南省",
+    "shortName": "云南",
+    "province": "云南省",
+    "city": null,
+    "latitude": "25.04530070941238",
+    "longitude": "102.70999988792845",
+    "level": 1
+  },
+  {
+    "name": "昆明市",
+    "shortName": "昆明",
+    "province": "云南省",
+    "city": "昆明市",
+    "latitude": "24.867699781642455",
+    "longitude": "102.84600004616653",
+    "level": 2
+  },
+  {
+    "name": "曲靖市",
+    "shortName": "曲靖",
+    "province": "云南省",
+    "city": "曲靖市",
+    "latitude": "25.490100274531394",
+    "longitude": "103.79600022207906",
+    "level": 2
+  },
+  {
+    "name": "玉溪市",
+    "shortName": "玉溪",
+    "province": "云南省",
+    "city": "玉溪市",
+    "latitude": "24.351999743848649",
+    "longitude": "102.54700035561447",
+    "level": 2
+  },
+  {
+    "name": "保山市",
+    "shortName": "保山",
+    "province": "云南省",
+    "city": "保山市",
+    "latitude": "25.133300505111099",
+    "longitude": "99.17069960450238",
+    "level": 2
+  },
+  {
+    "name": "昭通市",
+    "shortName": "昭通",
+    "province": "云南省",
+    "city": "昭通市",
+    "latitude": "27.338200193492459",
+    "longitude": "103.71699996621919",
+    "level": 2
+  },
+  {
+    "name": "丽江市",
+    "shortName": "丽江",
+    "province": "云南省",
+    "city": "丽江市",
+    "latitude": "26.85459940050984",
+    "longitude": "100.22600017251976",
+    "level": 2
+  },
+  {
+    "name": "普洱市",
+    "shortName": "普洱",
+    "province": "云南省",
+    "city": "普洱市",
+    "latitude": "22.82520076398128",
+    "longitude": "100.96599992303897",
+    "level": 2
+  },
+  {
+    "name": "临沧市",
+    "shortName": "临沧",
+    "province": "云南省",
+    "city": "临沧市",
+    "latitude": "23.88419951624109",
+    "longitude": "100.08899985437245",
+    "level": 2
+  },
+  {
+    "name": "楚雄彝族自治州",
+    "shortName": "楚雄",
+    "province": "云南省",
+    "city": "楚雄彝族自治州",
+    "latitude": "25.045499422657735",
+    "longitude": "101.52800020517958",
+    "level": 2
+  },
+  {
+    "name": "红河哈尼族彝族自治州",
+    "shortName": "红河",
+    "province": "云南省",
+    "city": "红河哈尼族彝族自治州",
+    "latitude": "23.368799971686284",
+    "longitude": "102.42100001556234",
+    "level": 2
+  },
+  {
+    "name": "文山壮族苗族自治州",
+    "shortName": "文山",
+    "province": "云南省",
+    "city": "文山壮族苗族自治州",
+    "latitude": "23.400300343722369",
+    "longitude": "104.21600027825808",
+    "level": 2
+  },
+  {
+    "name": "西双版纳傣族自治州",
+    "shortName": "西双版纳",
+    "province": "云南省",
+    "city": "西双版纳傣族自治州",
+    "latitude": "22.007300140540257",
+    "longitude": "100.79700019239336",
+    "level": 2
+  },
+  {
+    "name": "大理白族自治州",
+    "shortName": "大理",
+    "province": "云南省",
+    "city": "大理白族自治州",
+    "latitude": "25.591600278890529",
+    "longitude": "100.22999991294033",
+    "level": 2
+  },
+  {
+    "name": "德宏傣族景颇族自治州",
+    "shortName": "德宏",
+    "province": "云南省",
+    "city": "德宏傣族景颇族自治州",
+    "latitude": "24.432299765650776",
+    "longitude": "98.58479983869555",
+    "level": 2
+  },
+  {
+    "name": "怒江傈僳族自治州",
+    "shortName": "怒江",
+    "province": "云南省",
+    "city": "怒江傈僳族自治州",
+    "latitude": "25.817600168104009",
+    "longitude": "98.85679985593697",
+    "level": 2
+  },
+  {
+    "name": "迪庆藏族自治州",
+    "shortName": "迪庆",
+    "province": "云南省",
+    "city": "迪庆藏族自治州",
+    "latitude": "27.81900084879461",
+    "longitude": "99.70309969241235",
+    "level": 2
+  },
+  {
+    "name": "西藏自治区",
+    "shortName": "西藏",
+    "province": "西藏自治区",
+    "city": null,
+    "latitude": null,
+    "longitude": null,
+    "level": 1
+  },
+  {
+    "name": "拉萨市",
+    "shortName": "拉萨",
+    "province": "西藏自治区",
+    "city": "拉萨市",
+    "latitude": "29.644100332901237",
+    "longitude": "91.11429995937992",
+    "level": 2
+  },
+  {
+    "name": "日喀则市",
+    "shortName": "日喀则",
+    "province": "西藏自治区",
+    "city": "日喀则市",
+    "latitude": "29.269699959610706",
+    "longitude": "88.88720001270976",
+    "level": 2
+  },
+  {
+    "name": "昌都市",
+    "shortName": "昌都",
+    "province": "西藏自治区",
+    "city": "昌都市",
+    "latitude": "31.141300115872235",
+    "longitude": "97.17309995425764",
+    "level": 2
+  },
+  {
+    "name": "林芝市",
+    "shortName": "林芝",
+    "province": "西藏自治区",
+    "city": "林芝市",
+    "latitude": "29.64820077857377",
+    "longitude": "94.36149988587239",
+    "level": 2
+  },
+  {
+    "name": "山南市",
+    "shortName": "山南",
+    "province": "西藏自治区",
+    "city": "山南市",
+    "latitude": "29.237000374674595",
+    "longitude": "91.77219993276747",
+    "level": 2
+  },
+  {
+    "name": "那曲市",
+    "shortName": "那曲",
+    "province": "西藏自治区",
+    "city": "那曲市",
+    "latitude": "31.476199417015729",
+    "longitude": "92.05090026600226",
+    "level": 2
+  },
+  {
+    "name": "阿里地区",
+    "shortName": "阿里",
+    "province": "西藏自治区",
+    "city": "阿里地区",
+    "latitude": "32.501099808235469",
+    "longitude": "80.10620025099823",
+    "level": 2
+  },
+  {
+    "name": "陕西省",
+    "shortName": "陕西",
+    "province": "陕西省",
+    "city": null,
+    "latitude": "34.26950065994274",
+    "longitude": "108.95400011929169",
+    "level": 1
+  },
+  {
+    "name": "西安市",
+    "shortName": "西安",
+    "province": "陕西省",
+    "city": "西安市",
+    "latitude": "34.34110052204467",
+    "longitude": "108.9399997854826",
+    "level": 2
+  },
+  {
+    "name": "铜川市",
+    "shortName": "铜川",
+    "province": "陕西省",
+    "city": "铜川市",
+    "latitude": "34.896401028351437",
+    "longitude": "108.9459996038455",
+    "level": 2
+  },
+  {
+    "name": "宝鸡市",
+    "shortName": "宝鸡",
+    "province": "陕西省",
+    "city": "宝鸡市",
+    "latitude": "34.36309895328232",
+    "longitude": "107.23800024803514",
+    "level": 2
+  },
+  {
+    "name": "咸阳市",
+    "shortName": "咸阳",
+    "province": "陕西省",
+    "city": "咸阳市",
+    "latitude": "34.32920063666311",
+    "longitude": "108.70899951658456",
+    "level": 2
+  },
+  {
+    "name": "渭南市",
+    "shortName": "渭南",
+    "province": "陕西省",
+    "city": "渭南市",
+    "latitude": "34.49999916889697",
+    "longitude": "109.50999993163839",
+    "level": 2
+  },
+  {
+    "name": "延安市",
+    "shortName": "延安",
+    "province": "陕西省",
+    "city": "延安市",
+    "latitude": "36.585400656232859",
+    "longitude": "109.48999996529331",
+    "level": 2
+  },
+  {
+    "name": "汉中市",
+    "shortName": "汉中",
+    "province": "陕西省",
+    "city": "汉中市",
+    "latitude": "33.06760111061081",
+    "longitude": "107.02299994652516",
+    "level": 2
+  },
+  {
+    "name": "榆林市",
+    "shortName": "榆林",
+    "province": "陕西省",
+    "city": "榆林市",
+    "latitude": "38.28520066860842",
+    "longitude": "109.73500013729891",
+    "level": 2
+  },
+  {
+    "name": "安康市",
+    "shortName": "安康",
+    "province": "陕西省",
+    "city": "安康市",
+    "latitude": "32.68479925413705",
+    "longitude": "109.02900006507707",
+    "level": 2
+  },
+  {
+    "name": "商洛市",
+    "shortName": "商洛",
+    "province": "陕西省",
+    "city": "商洛市",
+    "latitude": "33.87230022201467",
+    "longitude": "109.917999963893",
+    "level": 2
+  },
+  {
+    "name": "甘肃省",
+    "shortName": "甘肃",
+    "province": "甘肃省",
+    "city": null,
+    "latitude": "36.06040132456496",
+    "longitude": "103.82670136877765",
+    "level": 1
+  },
+  {
+    "name": "兰州市",
+    "shortName": "兰州",
+    "province": "甘肃省",
+    "city": "兰州市",
+    "latitude": "36.06130022042466",
+    "longitude": "103.83399980680083",
+    "level": 2
+  },
+  {
+    "name": "嘉峪关市",
+    "shortName": "嘉峪关",
+    "province": "甘肃省",
+    "city": "嘉峪关市",
+    "latitude": "39.77169946207442",
+    "longitude": "98.28980050977806",
+    "level": 2
+  },
+  {
+    "name": "金昌市",
+    "shortName": "金昌",
+    "province": "甘肃省",
+    "city": "金昌市",
+    "latitude": "38.520099524569548",
+    "longitude": "102.18800055549073",
+    "level": 2
+  },
+  {
+    "name": "白银市",
+    "shortName": "白银",
+    "province": "甘肃省",
+    "city": "白银市",
+    "latitude": "36.54470065097466",
+    "longitude": "104.1379998800393",
+    "level": 2
+  },
+  {
+    "name": "天水市",
+    "shortName": "天水",
+    "province": "甘肃省",
+    "city": "天水市",
+    "latitude": "34.58109955979923",
+    "longitude": "105.72499995126327",
+    "level": 2
+  },
+  {
+    "name": "武威市",
+    "shortName": "武威",
+    "province": "甘肃省",
+    "city": "武威市",
+    "latitude": "37.92850090346244",
+    "longitude": "102.63799979623882",
+    "level": 2
+  },
+  {
+    "name": "张掖市",
+    "shortName": "张掖",
+    "province": "甘肃省",
+    "city": "张掖市",
+    "latitude": "38.92579951773559",
+    "longitude": "100.45000044569736",
+    "level": 2
+  },
+  {
+    "name": "平凉市",
+    "shortName": "平凉",
+    "province": "甘肃省",
+    "city": "平凉市",
+    "latitude": "35.543000534188589",
+    "longitude": "106.66499972331411",
+    "level": 2
+  },
+  {
+    "name": "酒泉市",
+    "shortName": "酒泉",
+    "province": "甘肃省",
+    "city": "酒泉市",
+    "latitude": "39.732400301260707",
+    "longitude": "98.49419986078469",
+    "level": 2
+  },
+  {
+    "name": "庆阳市",
+    "shortName": "庆阳",
+    "province": "甘肃省",
+    "city": "庆阳市",
+    "latitude": "35.70889965605121",
+    "longitude": "107.64300041132339",
+    "level": 2
+  },
+  {
+    "name": "定西市",
+    "shortName": "定西",
+    "province": "甘肃省",
+    "city": "定西市",
+    "latitude": "35.580600831495939",
+    "longitude": "104.6259999338927",
+    "level": 2
+  },
+  {
+    "name": "陇南市",
+    "shortName": "陇南",
+    "province": "甘肃省",
+    "city": "陇南市",
+    "latitude": "33.40080109025541",
+    "longitude": "104.92199956931246",
+    "level": 2
+  },
+  {
+    "name": "临夏回族自治州",
+    "shortName": "临夏",
+    "province": "甘肃省",
+    "city": "临夏回族自治州",
+    "latitude": "35.60410050102682",
+    "longitude": "103.2429996958142",
+    "level": 2
+  },
+  {
+    "name": "甘南藏族自治州",
+    "shortName": "甘南",
+    "province": "甘肃省",
+    "city": "甘南藏族自治州",
+    "latitude": "34.98339914074007",
+    "longitude": "102.91100002340152",
+    "level": 2
+  },
+  {
+    "name": "青海省",
+    "shortName": "青海",
+    "province": "青海省",
+    "city": null,
+    "latitude": "36.623177300236708",
+    "longitude": "101.77891611814123",
+    "level": 1
+  },
+  {
+    "name": "西宁市",
+    "shortName": "西宁",
+    "province": "青海省",
+    "city": "西宁市",
+    "latitude": "36.6171992352723",
+    "longitude": "101.77800011073819",
+    "level": 2
+  },
+  {
+    "name": "海东市",
+    "shortName": "海东",
+    "province": "青海省",
+    "city": "海东市",
+    "latitude": "36.50230056404953",
+    "longitude": "102.10399970495821",
+    "level": 2
+  },
+  {
+    "name": "海北藏族自治州",
+    "shortName": "海北",
+    "province": "青海省",
+    "city": "海北藏族自治州",
+    "latitude": "36.95450073156098",
+    "longitude": "100.90099956218715",
+    "level": 2
+  },
+  {
+    "name": "黄南藏族自治州",
+    "shortName": "黄南",
+    "province": "青海省",
+    "city": "黄南藏族自治州",
+    "latitude": "35.51959901508992",
+    "longitude": "102.0160000701814",
+    "level": 2
+  },
+  {
+    "name": "海南藏族自治州",
+    "shortName": "海南",
+    "province": "青海省",
+    "city": "海南藏族自治州",
+    "latitude": "36.28639982119617",
+    "longitude": "100.61999977408205",
+    "level": 2
+  },
+  {
+    "name": "果洛藏族自治州",
+    "shortName": "果洛",
+    "province": "青海省",
+    "city": "果洛藏族自治州",
+    "latitude": "34.471401049024148",
+    "longitude": "100.24499962673184",
+    "level": 2
+  },
+  {
+    "name": "玉树藏族自治州",
+    "shortName": "玉树",
+    "province": "青海省",
+    "city": "玉树藏族自治州",
+    "latitude": "33.005200996639917",
+    "longitude": "97.00659998477933",
+    "level": 2
+  },
+  {
+    "name": "海西蒙古族藏族自治州",
+    "shortName": "海西",
+    "province": "青海省",
+    "city": "海西蒙古族藏族自治州",
+    "latitude": "37.37700067270552",
+    "longitude": "97.36969944154554",
+    "level": 2
+  },
+  {
+    "name": "宁夏回族自治区",
+    "shortName": "宁夏",
+    "province": "宁夏回族自治区",
+    "city": null,
+    "latitude": "38.47120006656507",
+    "longitude": "106.25899966184596",
+    "level": 1
+  },
+  {
+    "name": "银川市",
+    "shortName": "银川",
+    "province": "宁夏回族自治区",
+    "city": "银川市",
+    "latitude": "38.48649995759617",
+    "longitude": "106.23200003909884",
+    "level": 2
+  },
+  {
+    "name": "石嘴山市",
+    "shortName": "石嘴山",
+    "province": "宁夏回族自治区",
+    "city": "石嘴山市",
+    "latitude": "38.98399985425316",
+    "longitude": "106.38400032124622",
+    "level": 2
+  },
+  {
+    "name": "吴忠市",
+    "shortName": "吴忠",
+    "province": "宁夏回族自治区",
+    "city": "吴忠市",
+    "latitude": "37.99740026361034",
+    "longitude": "106.19900012673706",
+    "level": 2
+  },
+  {
+    "name": "固原市",
+    "shortName": "固原",
+    "province": "宁夏回族自治区",
+    "city": "固原市",
+    "latitude": "36.01580095959203",
+    "longitude": "106.24199974445318",
+    "level": 2
+  },
+  {
+    "name": "中卫市",
+    "shortName": "中卫",
+    "province": "宁夏回族自治区",
+    "city": "中卫市",
+    "latitude": "37.499899009817649",
+    "longitude": "105.19700013324894",
+    "level": 2
+  },
+  {
+    "name": "新疆维吾尔自治区",
+    "shortName": "新疆",
+    "province": "新疆维吾尔自治区",
+    "city": null,
+    "latitude": "43.79319971322935",
+    "longitude": "87.62700014265193",
+    "level": 1
+  },
+  {
+    "name": "乌鲁木齐市",
+    "shortName": "乌鲁木齐",
+    "province": "新疆维吾尔自治区",
+    "city": "乌鲁木齐市",
+    "latitude": "43.8245994219783",
+    "longitude": "87.61800032897038",
+    "level": 2
+  },
+  {
+    "name": "克拉玛依市",
+    "shortName": "克拉玛依",
+    "province": "新疆维吾尔自治区",
+    "city": "克拉玛依市",
+    "latitude": "45.579899954896017",
+    "longitude": "84.88929973061004",
+    "level": 2
+  },
+  {
+    "name": "吐鲁番市",
+    "shortName": "吐鲁番",
+    "province": "新疆维吾尔自治区",
+    "city": "吐鲁番市",
+    "latitude": "42.950999960589559",
+    "longitude": "89.19080006218691",
+    "level": 2
+  },
+  {
+    "name": "哈密市",
+    "shortName": "哈密",
+    "province": "新疆维吾尔自治区",
+    "city": "哈密市",
+    "latitude": "42.819900183145147",
+    "longitude": "93.51469997528115",
+    "level": 2
+  },
+  {
+    "name": "昌吉回族自治州",
+    "shortName": "昌吉",
+    "province": "新疆维吾尔自治区",
+    "city": "昌吉回族自治州",
+    "latitude": "44.01109955391505",
+    "longitude": "87.30840029972191",
+    "level": 2
+  },
+  {
+    "name": "博尔塔拉蒙古自治州",
+    "shortName": "博尔塔拉",
+    "province": "新疆维吾尔自治区",
+    "city": "博尔塔拉蒙古自治州",
+    "latitude": "44.906000506760189",
+    "longitude": "82.0664996090521",
+    "level": 2
+  },
+  {
+    "name": "巴音郭楞蒙古自治州",
+    "shortName": "巴音郭楞",
+    "province": "新疆维吾尔自治区",
+    "city": "巴音郭楞蒙古自治州",
+    "latitude": "41.76410061175738",
+    "longitude": "86.1452994409739",
+    "level": 2
+  },
+  {
+    "name": "阿克苏地区",
+    "shortName": "阿克苏",
+    "province": "新疆维吾尔自治区",
+    "city": "阿克苏地区",
+    "latitude": "41.16890050346461",
+    "longitude": "80.26049960124337",
+    "level": 2
+  },
+  {
+    "name": "克孜勒苏柯尔克孜自治州",
+    "shortName": "克孜勒苏",
+    "province": "新疆维吾尔自治区",
+    "city": "克孜勒苏柯尔克孜自治州",
+    "latitude": "39.714500004879329",
+    "longitude": "76.16780009834624",
+    "level": 2
+  },
+  {
+    "name": "喀什地区",
+    "shortName": "喀什",
+    "province": "新疆维吾尔自治区",
+    "city": "喀什地区",
+    "latitude": "39.4701000111745",
+    "longitude": "75.98990003127757",
+    "level": 2
+  },
+  {
+    "name": "和田地区",
+    "shortName": "和田",
+    "province": "新疆维吾尔自治区",
+    "city": "和田地区",
+    "latitude": "37.11419982323794",
+    "longitude": "79.92210014210173",
+    "level": 2
+  },
+  {
+    "name": "伊犁哈萨克自治州",
+    "shortName": "伊犁",
+    "province": "新疆维吾尔自治区",
+    "city": "伊犁哈萨克自治州",
+    "latitude": "43.91679969283624",
+    "longitude": "81.32400028676794",
+    "level": 2
+  },
+  {
+    "name": "塔城地区",
+    "shortName": "塔城",
+    "province": "新疆维吾尔自治区",
+    "city": "塔城地区",
+    "latitude": "46.745199526696598",
+    "longitude": "82.98059985156108",
+    "level": 2
+  },
+  {
+    "name": "阿勒泰地区",
+    "shortName": "阿勒泰",
+    "province": "新疆维吾尔自治区",
+    "city": "阿勒泰地区",
+    "latitude": "47.84500073735244",
+    "longitude": "88.14129998103143",
+    "level": 2
+  },
+  {
+    "name": "石河子市",
+    "shortName": "石河子",
+    "province": "新疆维吾尔自治区",
+    "city": "石河子市",
+    "latitude": "44.30610113760374",
+    "longitude": "86.08029951253268",
+    "level": 2
+  },
+  {
+    "name": "阿拉尔市",
+    "shortName": "阿拉尔",
+    "province": "新疆维吾尔自治区",
+    "city": "阿拉尔市",
+    "latitude": "40.54740065812658",
+    "longitude": "81.28079982455795",
+    "level": 2
+  },
+  {
+    "name": "图木舒克市",
+    "shortName": "图木舒克",
+    "province": "新疆维吾尔自治区",
+    "city": "图木舒克市",
+    "latitude": "39.86500063345239",
+    "longitude": "79.06919968306495",
+    "level": 2
+  },
+  {
+    "name": "五家渠市",
+    "shortName": "五家渠",
+    "province": "新疆维吾尔自治区",
+    "city": "五家渠市",
+    "latitude": "44.16669992615674",
+    "longitude": "87.5433003602959",
+    "level": 2
+  },
+  {
+    "name": "北屯市",
+    "shortName": "北屯",
+    "province": "新疆维吾尔自治区",
+    "city": "北屯市",
+    "latitude": "47.33260089263652",
+    "longitude": "87.8371000865403",
+    "level": 2
+  },
+  {
+    "name": "铁门关市",
+    "shortName": "铁门关",
+    "province": "新疆维吾尔自治区",
+    "city": "铁门关市",
+    "latitude": "41.85739978586309",
+    "longitude": "85.68049993053654",
+    "level": 2
+  },
+  {
+    "name": "双河市",
+    "shortName": "双河",
+    "province": "新疆维吾尔自治区",
+    "city": "双河市",
+    "latitude": "44.84719340944436",
+    "longitude": "82.37177670424917",
+    "level": 2
+  },
+  {
+    "name": "可克达拉市",
+    "shortName": "可克达拉",
+    "province": "新疆维吾尔自治区",
+    "city": "可克达拉市",
+    "latitude": "43.931199531053369",
+    "longitude": "81.02090024615946",
+    "level": 2
+  },
+  {
+    "name": "昆玉市",
+    "shortName": "昆玉",
+    "province": "新疆维吾尔自治区",
+    "city": "昆玉市",
+    "latitude": "37.51120809297297",
+    "longitude": "78.98869290321629",
+    "level": 2
+  },
+  {
+    "name": "胡杨河市",
+    "shortName": "胡杨河市",
+    "province": "新疆维吾尔自治区",
+    "city": "胡杨河市",
+    "latitude": "43.79319971322935",
+    "longitude": "87.62700014265193",
+    "level": 2
+  },
+  {
+    "name": "台湾省",
+    "shortName": "台湾",
+    "province": "台湾省",
+    "city": null,
+    "latitude": null,
+    "longitude": null,
+    "level": 1
+  },
+  {
+    "name": "香港特别行政区",
+    "shortName": "香港",
+    "province": "香港特别行政区",
+    "city": null,
+    "latitude": null,
+    "longitude": null,
+    "level": 1
+  },
+  {
+    "name": "澳门特别行政区",
+    "shortName": "澳门",
+    "province": "澳门特别行政区",
+    "city": null,
+    "latitude": "22.53049490681424",
+    "longitude": "114.06229899436019",
+    "level": 1
+  }
+]

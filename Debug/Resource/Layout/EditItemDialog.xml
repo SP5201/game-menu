@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,608,336" windowType="modalWindow" windowStyle="20" center="true" minSize="520,360" maxWindow="false">
+	<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="fill" padding="10,0,10,0">
+		<layoutEleUI rect="0,0,100,38" layout.width="fill" layout.height="36" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+			<layoutEleUI rect="0,0,100,36" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+				<shapePicture name="pic_edititem_dialog_logo" rect="0,0,20,20" layout.width="20" layout.height="20" expandT="false" />
+				<shapeText name="txt_edititem_title" rect="0,0,100,28" layout.width=":1" layout.height="fill" content="编辑" />
+			</layoutEleUI>
+			<buttonUI name="btn_edititem_close" rect="0,0,60,25" layout.width="20" layout.height="20" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="158,40,100,100" layout.width="fill" layout.height=":1" layout.horizon="true" layout.space="10" layout.alignV="center">
+			<layoutEleUI rect="159,13,100,100" layout.width="168" layout.height="fill" layout.horizon="false" layout.space="8">
+				<layoutEleUI name="rect_edititem_icon_border" rect="64,17,100,100" layout.width="168" layout.height="168" layout.alignV="center" layout.alignH="center" layout.spaceRow="6" layout.alignBaseline="auto" expandT="false">
+					<shapePicture rect="45,66,100,100" layout.width="120" layout.height="120" name="pic_edititem_icon" />
+					<buttonUI name="btn_edititem_change_icon" rect="63,126,74,25" content="更改图标" />
+				</layoutEleUI>
+				<layoutEleUI rect="208,198,100,100" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" expandT="false">
+					<shapeText name="txt_edititem_label_show_cmd" rect="0,0,70,50" layout.width="auto" layout.height="fill" content="启动窗口" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					<comboBoxUI name="combo_item_show_cmd" rect="0,0,70,32" layout.width=":1" layout.height="fill" comboBox.dropHeight="90" />
+				</layoutEleUI>
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,100" layout.width=":1" layout.height="fill" layout.spaceRow="10" layout.align="center">
+				<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="4">
+					<layoutEleUI rect="0,0,100,20" layout.width="80" layout.height="fill" layout.alignV="center" layout.horizon="true" layout.alignH="right">
+						<buttonUI name="btn_edititem_path_hint_icon" rect="27,30,100,100" layout.width="18" layout.height="18" />
+						<shapeText name="txt_edititem_label_path" rect="0,0,100,20" layout.width="auto" layout.height="fill" content="所在路径" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<editUI name="edit_item_path" rect="0,0,100,34" layout.width=":1" layout.height="34" edit.readOnly="true" contentTips="只读" />
+				</layoutEleUI>
+				<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+					<layoutEleUI rect="0,0,100,20" layout.width="80" layout.height="fill" layout.alignV="center" expandT="false">
+						<shapeText name="txt_edititem_label_title" rect="0,0,100,20" layout.width="fill" layout.height="fill" content="名称" textAlign="DT_RIGHT,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<editUI name="edit_item_title" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="请输入名称" />
+				</layoutEleUI>
+				<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+					<layoutEleUI rect="0,0,100,20" layout.width="80" layout.height="fill" layout.alignV="center" expandT="false">
+						<shapeText name="txt_edititem_label_params" rect="0,0,100,20" layout.width="fill" layout.height="fill" content="启动参数" textAlign="DT_RIGHT,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<editUI name="edit_item_params" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="可选" />
+				</layoutEleUI>
+				<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+					<layoutEleUI rect="0,0,100,20" layout.width="80" layout.height="fill" layout.alignV="center" expandT="false">
+						<shapeText name="txt_edititem_label_workdir" rect="0,0,100,20" layout.width="fill" layout.height="fill" content="工作目录" textAlign="DT_RIGHT,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<editUI name="edit_item_workdir" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="可选，留空则使用文件所在目录" />
+				</layoutEleUI>
+				<layoutEleUI rect="269,214,100,100" layout.height="34" layout.width="fill" layout.horizon="true" layout.space="4" layout.alignV="center">
+					<layoutEleUI rect="0,0,100,20" layout.width="80" layout.height="fill" layout.alignV="center" expandT="false">
+						<shapeText name="txt_edititem_label_hotkey" rect="178,23,72,50" layout.width="fill" layout.height="fill" content="快捷键" textAlign="DT_RIGHT,DT_VCENTER,DT_SINGLELINE" />
+					</layoutEleUI>
+					<editUI name="edit_item_hotkey" rect="264,21,100,20" layout.height="34" layout.width=":1" contentTips="可选" />
+				</layoutEleUI>
+			</layoutEleUI>
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" />
+		<layoutEleUI rect="0,0,100,48" layout.width="fill" layout.height="48" layout.horizon="true" layout.alignH="right" layout.space="10" layout.alignV="center" padding="0,5,0,0">
+			<layoutEleUI rect="79,35,100,100" layout.width="fill" layout.height="fill" layout.horizon="true">
+				<layoutEleUI rect="68,27,100,100" layout.width=":1" layout.height="fill" layout.alignV="center" expandT="false">
+					<buttonUI name="btn_edititem_run_as_admin" rect="34,22,161,21" content="管理员权限打开" buttonType="check" style="check" layout.width="auto" layout.height="25" />
+				</layoutEleUI>
+				<layoutEleUI rect="159,27,100,100" layout.width="200" layout.height="fill" layout.alignH="right" layout.space="10" layout.alignV="center">
+					<buttonUI name="btn_edititem_cancel" rect="0,0,96,34" layout.width="90" layout.height="30" content="取消" />
+					<buttonUI name="btn_edititem_ok" rect="0,0,96,34" layout.width="90" layout.height="30" content="保存" />
+				</layoutEleUI>
+			</layoutEleUI>
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>
