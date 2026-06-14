@@ -920,7 +920,7 @@ begin
   FCurrentB := ABlue;
   FAlpha := AAlpha / 255;
 
-  dlg := TColorPickerDialogUI.LoadLayout('Resource\Layout\ColorPickerDialog.xml', 0, 0);
+  dlg := TColorPickerDialogUI.LoadLayout('Resource\Layout\ColorPickerDialog.xml', hParent, hwndAttach);
   if dlg = nil then
     Exit(False);
 

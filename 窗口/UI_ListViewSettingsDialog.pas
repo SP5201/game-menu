@@ -45,7 +45,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TListViewSettingsDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TListViewSettingsDialogUI; reintroduce;
     class function ShowDialog(const hParent: XCGUI.HWINDOW; AListView: NativeInt; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
@@ -229,11 +229,11 @@ begin
   end;
 end;
 
-class function TListViewSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TListViewSettingsDialogUI;
+class function TListViewSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TListViewSettingsDialogUI;
 var
   hLoaded: HXCGUI;
 begin
-  hLoaded := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  hLoaded := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if hLoaded = 0 then
     Exit(nil);
   Result := TListViewSettingsDialogUI.FromHandle(hLoaded);
@@ -284,7 +284,7 @@ var
   dlg: TListViewSettingsDialogUI;
   modalResult: Integer;
 begin
-  dlg := TListViewSettingsDialogUI.LoadLayout('Resource\Layout\ListViewSettingsDialog.xml', 0, 0);
+  dlg := TListViewSettingsDialogUI.LoadLayout('Resource\Layout\ListViewSettingsDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit(False);
   dlg.FTargetListView := AListView;

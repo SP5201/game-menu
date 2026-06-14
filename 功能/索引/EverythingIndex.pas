@@ -463,9 +463,7 @@ begin
       totalDelete := totalDelete + stats.DeleteCount;
       totalRename := totalRename + stats.RenameCount;
       totalModify := totalModify + stats.ModifyCount;
-      if stats.ForceVerifyMode then
-        verifyTag := ' [检查点修复]'
-      else if stats.AlreadyCurrent then
+      if stats.AlreadyCurrent then
         verifyTag := ' [已同步]'
       else
         verifyTag := '';

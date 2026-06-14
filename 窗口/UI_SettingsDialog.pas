@@ -52,7 +52,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TSettingsDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TSettingsDialogUI; reintroduce;
     class function ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
@@ -129,11 +129,11 @@ begin
     TSliderBarUI.Redraw(hEle);
 end;
 
-class function TSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TSettingsDialogUI;
+class function TSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TSettingsDialogUI;
 var
   hLoaded: HXCGUI;
 begin
-  hLoaded := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  hLoaded := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if hLoaded = 0 then
     Exit(nil);
   Result := TSettingsDialogUI.FromHandle(hLoaded);
@@ -548,7 +548,7 @@ var
   dlg: TSettingsDialogUI;
   modalResult: Integer;
 begin
-  dlg := TSettingsDialogUI.LoadLayout('Resource\Layout\SettingsDialog.xml', 0, 0);
+  dlg := TSettingsDialogUI.LoadLayout('Resource\Layout\SettingsDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit(False);
   modalResult := XModalWnd_DoModal(dlg.Handle);

@@ -50,7 +50,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TQrCodeDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI; reintroduce;
     class procedure ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0);
   end;
 
@@ -81,11 +81,11 @@ const
   ID_BTN_FG_COLOR     = 'btn_qrcode_fgcolor';
   ID_TXT_LABEL_FG_COLOR = 'txt_qrcode_label_fgcolor';
 
-class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TQrCodeDialogUI;
+class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := TQrCodeDialogUI.FromHandle(h);
@@ -640,7 +640,7 @@ begin
   FFgR := 0;   FFgG := 0;   FFgB := 0;   FFgA := 255;
   FLiquify := False;
 
-  dlg := TQrCodeDialogUI.LoadLayout('Resource\Layout\QrCodeDialog.xml', 0, 0);
+  dlg := TQrCodeDialogUI.LoadLayout('Resource\Layout\QrCodeDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit;
 

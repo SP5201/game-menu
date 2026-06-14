@@ -28,7 +28,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TCategoryDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TCategoryDialogUI; reintroduce;
     class function EditCategory(var AName, AIconFile: string; const ATitle, AConfirmText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
@@ -118,11 +118,11 @@ begin
     FSelectedIconFile := iconPath;
 end;
 
-class function TCategoryDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TCategoryDialogUI;
+class function TCategoryDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TCategoryDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -281,7 +281,7 @@ var
   dlg: TCategoryDialogUI;
   titleText, confirmText: string;
 begin
-  dlg := TCategoryDialogUI.LoadLayout('Resource\Layout\CategoryDialog.xml', 0, 0);
+  dlg := TCategoryDialogUI.LoadLayout('Resource\Layout\CategoryDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit(False);
   titleText := Trim(ATitle);

@@ -46,7 +46,7 @@ type
 function UsnQueryCurrentCheckpoint(const ADriveLetter: Char; out ACheckpoint: TUsnCheckpoint): Boolean;
 function UsnCatchUpDrive(const ADriveLetter: Char; ADriveIndex: Byte;
   var ACheckpoint: TUsnCheckpoint; const AOnRecords: TUsnRecordsProc;
-  AVerifySinceFileTime: Int64; out AStats: TUsnCatchUpStats): TUsnCatchUpResult;
+  out AStats: TUsnCatchUpStats): TUsnCatchUpResult;
 procedure UsnMonitorStart(var AThreads: TObjectList; const ADriveLetters: TDriveLetterMap;
   const AOnRecords: TUsnRecordsProc; const AInitialCheckpoints: TUsnCheckpointArray);
 procedure UsnMonitorStop(var AThreads: TObjectList);
@@ -240,7 +240,7 @@ end;
 
 function UsnCatchUpDrive(const ADriveLetter: Char; ADriveIndex: Byte;
   var ACheckpoint: TUsnCheckpoint; const AOnRecords: TUsnRecordsProc;
-  AVerifySinceFileTime: Int64; out AStats: TUsnCatchUpStats): TUsnCatchUpResult;
+  out AStats: TUsnCatchUpStats): TUsnCatchUpResult;
 var
   hVol: THandle;
   journal: TUsnJournalData;

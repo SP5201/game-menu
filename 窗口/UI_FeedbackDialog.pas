@@ -17,7 +17,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TFeedbackDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TFeedbackDialogUI; reintroduce;
     class procedure ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0);
   end;
 
@@ -33,11 +33,11 @@ const
   ID_EDIT_CONTENT     = 'edit_feedback_content';
   ID_TXT_DIALOG_TITLE = 'txt_feedback_title';
 
-class function TFeedbackDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TFeedbackDialogUI;
+class function TFeedbackDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TFeedbackDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -101,7 +101,7 @@ class procedure TFeedbackDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; hAtta
 var
   dlg: TFeedbackDialogUI;
 begin
-  dlg := TFeedbackDialogUI.LoadLayout('Resource\Layout\FeedbackDialog.xml', 0, 0);
+  dlg := TFeedbackDialogUI.LoadLayout('Resource\Layout\FeedbackDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit;
   if FEdtContent <> nil then

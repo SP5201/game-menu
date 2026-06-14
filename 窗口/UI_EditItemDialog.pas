@@ -33,7 +33,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TEditItemDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TEditItemDialogUI; reintroduce;
     class function EditItem(const AFilePath: string; const AIcon: HIMAGE; var ATitle, AParams, AWorkingDir: string;
       var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: XCGUI.HWINDOW): Boolean;
   end;
@@ -66,11 +66,11 @@ begin
   Result := 0;
 end;
 
-class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TEditItemDialogUI;
+class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TEditItemDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -263,7 +263,7 @@ var
 begin
   AIconChanged := False;
   hIcon := ResolveEditItemPreviewIcon(AIcon, AIconPath, AFilePath);
-  dlg := TEditItemDialogUI.LoadLayout('Resource\Layout\EditItemDialog.xml', 0, 0);
+  dlg := TEditItemDialogUI.LoadLayout('Resource\Layout\EditItemDialog.xml', hParent);
   if XC_GetObjectType(hIcon) = XC_IMAGE then
   begin
     XImage_AddRef(hIcon);

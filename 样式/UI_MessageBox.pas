@@ -17,17 +17,17 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TMessageBoxUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TMessageBoxUI; reintroduce;
     class function Confirm(const ATitle, AText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
 implementation
 
-class function TMessageBoxUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TMessageBoxUI;
+class function TMessageBoxUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TMessageBoxUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -116,7 +116,7 @@ var
   szText: TSize;
   rcDlg: TRect;
 begin
-  dlg := TMessageBoxUI.LoadLayout('Resource\Layout\MessageBox.xml', 0, 0);
+  dlg := TMessageBoxUI.LoadLayout('Resource\Layout\MessageBox.xml', hParent);
   dlg.SetDialogText(ATitle, AText);
   CModalResult := IDCANCEL;
   XC_GetTextShowSize(PWideChar(AText), -1, XC_GetDefaultFont, szText);
