@@ -58,8 +58,8 @@ type
   protected
     procedure Init; override;                                                                      
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TColorPickerDialogUI; reintroduce;
-    class function PickColor(const hParent: XCGUI.HWINDOW; hwndAttach: Windows.HWND; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TColorPickerDialogUI; reintroduce;
+    class function PickColor(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
   end;
 
 implementation
@@ -90,11 +90,11 @@ const
   ID_EDIT_HEX         = 'edit_colorpicker_hex';
   ID_BTN_SCREEN       = 'btn_colorpicker_screen';
 
-class function TColorPickerDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TColorPickerDialogUI;
+class function TColorPickerDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TColorPickerDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
+  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -909,7 +909,7 @@ begin
   XEle_Redraw(FPreviewEle);
 end;
 
-class function TColorPickerDialogUI.PickColor(const hParent: XCGUI.HWINDOW; hwndAttach: Windows.HWND; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
+class function TColorPickerDialogUI.PickColor(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
 var
   dlg: TColorPickerDialogUI;
 begin
@@ -920,7 +920,7 @@ begin
   FCurrentB := ABlue;
   FAlpha := AAlpha / 255;
 
-  dlg := TColorPickerDialogUI.LoadLayout('Resource\Layout\ColorPickerDialog.xml', hParent, hwndAttach);
+  dlg := TColorPickerDialogUI.LoadLayout('Resource\Layout\ColorPickerDialog.xml', hParent, hAttachWnd);
   if dlg = nil then
     Exit(False);
 

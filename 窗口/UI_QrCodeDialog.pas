@@ -441,7 +441,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   r := FBgR; g := FBgG; b := FBgB; a := FBgA;
-  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), XWidget_GetHWND(hEle), r, g, b, a) then
+  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), 0, r, g, b, a) then
   begin
     FBgR := r; FBgG := g; FBgB := b; FBgA := a;
     RedrawPreview;
@@ -457,7 +457,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   r := FFgR; g := FFgG; b := FFgB; a := FFgA;
-  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), XWidget_GetHWND(hEle), r, g, b, a) then
+  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), 0, r, g, b, a) then
   begin
     FFgR := r; FFgG := g; FFgB := b; FFgA := a;
     RedrawPreview;

@@ -465,7 +465,7 @@ begin
     Exit;
   end;
   nameOnly := ExtractFileName(Trim(AIconFile));
-  Result := AppDataDirectory + 'CategoryIcons\' + nameOnly;
+  Result := IncludeTrailingPathDelimiter(AppExeDirectory) + 'Resource\CategoryIcons\' + nameOnly;
   if FileExists(Result) then
     Exit;
   Result := 'Resource\category\default.svg';

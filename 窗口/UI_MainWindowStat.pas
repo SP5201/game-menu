@@ -179,6 +179,10 @@ begin
   GpuPreloadHintData;
   NetPreloadHintData;
   TMainWindowStat.PostStatHintReady;
+  MemEnrichStaticInfo;
+  CpuPreloadSensors;
+  GpuPreloadSensors;
+  TMainWindowStat.PostStatHintReady;
 end;
 
 function StatIpWeatherHintBridge: string;

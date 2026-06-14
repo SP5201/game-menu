@@ -34,7 +34,7 @@ procedure PawnIoClientShutdown;
 implementation
 
 uses
-  SysUtils, Classes, Math, AppPaths, PawnIoDriver, CpuIdHelper;
+  SysUtils, Classes, Math, AppPaths, PawnIoDriver, CpuIdHelper, SyncObjs;
 
 const
   cPawnIoFnNameLen = 32;
@@ -62,6 +62,7 @@ var
   GLastLoadStage: string;
   GLastModuleName: string;
   GLastDevicePath: string;
+  GPawnIoLock: TCriticalSection;
 
 function PawnIoVendorId: string;
 var
@@ -277,33 +278,38 @@ begin
   if (AHandle = INVALID_HANDLE_VALUE) or (AOutCount <= 0) then
     Exit;
 
-  FillChar(fnName, SizeOf(fnName), 0);
-  if Length(AName) > 0 then
-    Move(PAnsiChar(AName)^, fnName[0], Min(Length(AName), cPawnIoFnNameLen - 1));
+  GPawnIoLock.Enter;
+  try
+    FillChar(fnName, SizeOf(fnName), 0);
+    if Length(AName) > 0 then
+      Move(PAnsiChar(AName)^, fnName[0], Min(Length(AName), cPawnIoFnNameLen - 1));
 
-  inSize := cPawnIoFnNameLen + Length(AInputs) * SizeOf(UInt64);
-  SetLength(inBuf, inSize);
-  Move(fnName[0], inBuf[0], cPawnIoFnNameLen);
-  for i := 0 to Length(AInputs) - 1 do
-    Move(AInputs[i], inBuf[cPawnIoFnNameLen + i * SizeOf(UInt64)], SizeOf(UInt64));
+    inSize := cPawnIoFnNameLen + Length(AInputs) * SizeOf(UInt64);
+    SetLength(inBuf, inSize);
+    Move(fnName[0], inBuf[0], cPawnIoFnNameLen);
+    for i := 0 to Length(AInputs) - 1 do
+      Move(AInputs[i], inBuf[cPawnIoFnNameLen + i * SizeOf(UInt64)], SizeOf(UInt64));
 
-  outSize := AOutCount * SizeOf(UInt64);
-  SetLength(outBuf, outSize);
-  FillChar(outBuf[0], outSize, 0);
+    outSize := AOutCount * SizeOf(UInt64);
+    SetLength(outBuf, outSize);
+    FillChar(outBuf[0], outSize, 0);
 
-  Result := DeviceIoControl(
-    AHandle,
-    IOCTL_PIO_EXECUTE_FN,
-    @inBuf[0],
-    inSize,
-    @outBuf[0],
-    outSize,
-    returned,
-    nil);
-  if Result and (returned >= SizeOf(UInt64)) then
-    Move(outBuf[0], AOutput, SizeOf(UInt64))
-  else
-    Result := False;
+    Result := DeviceIoControl(
+      AHandle,
+      IOCTL_PIO_EXECUTE_FN,
+      @inBuf[0],
+      inSize,
+      @outBuf[0],
+      outSize,
+      returned,
+      nil);
+    if Result and (returned >= SizeOf(UInt64)) then
+      Move(outBuf[0], AOutput, SizeOf(UInt64))
+    else
+      Result := False;
+  finally
+    GPawnIoLock.Leave;
+  end;
 end;
 
 function PawnIoHandleExecuteNoOut(AHandle: THandle; const AName: AnsiString;
@@ -318,25 +324,30 @@ begin
   if AHandle = INVALID_HANDLE_VALUE then
     Exit;
 
-  FillChar(fnName, SizeOf(fnName), 0);
-  if Length(AName) > 0 then
-    Move(PAnsiChar(AName)^, fnName[0], Min(Length(AName), cPawnIoFnNameLen - 1));
+  GPawnIoLock.Enter;
+  try
+    FillChar(fnName, SizeOf(fnName), 0);
+    if Length(AName) > 0 then
+      Move(PAnsiChar(AName)^, fnName[0], Min(Length(AName), cPawnIoFnNameLen - 1));
 
-  inSize := cPawnIoFnNameLen + Length(AInputs) * SizeOf(UInt64);
-  SetLength(inBuf, inSize);
-  Move(fnName[0], inBuf[0], cPawnIoFnNameLen);
-  for i := 0 to Length(AInputs) - 1 do
-    Move(AInputs[i], inBuf[cPawnIoFnNameLen + i * SizeOf(UInt64)], SizeOf(UInt64));
+    inSize := cPawnIoFnNameLen + Length(AInputs) * SizeOf(UInt64);
+    SetLength(inBuf, inSize);
+    Move(fnName[0], inBuf[0], cPawnIoFnNameLen);
+    for i := 0 to Length(AInputs) - 1 do
+      Move(AInputs[i], inBuf[cPawnIoFnNameLen + i * SizeOf(UInt64)], SizeOf(UInt64));
 
-  Result := DeviceIoControl(
-    AHandle,
-    IOCTL_PIO_EXECUTE_FN,
-    @inBuf[0],
-    inSize,
-    nil,
-    0,
-    returned,
-    nil);
+    Result := DeviceIoControl(
+      AHandle,
+      IOCTL_PIO_EXECUTE_FN,
+      @inBuf[0],
+      inSize,
+      nil,
+      0,
+      returned,
+      nil);
+  finally
+    GPawnIoLock.Leave;
+  end;
 end;
 
 function PawnIoExecuteOne(const AName: AnsiString; AInput: UInt64;
@@ -367,15 +378,20 @@ begin
   finally
     stream.Free;
   end;
-  Result := DeviceIoControl(
-    AHandle,
-    IOCTL_PIO_LOAD_BINARY,
-    @blob[0],
-    Length(blob),
-    nil,
-    0,
-    returned,
-    nil);
+  GPawnIoLock.Enter;
+  try
+    Result := DeviceIoControl(
+      AHandle,
+      IOCTL_PIO_LOAD_BINARY,
+      @blob[0],
+      Length(blob),
+      nil,
+      0,
+      returned,
+      nil);
+  finally
+    GPawnIoLock.Leave;
+  end;
   if not Result then
     PawnIoSetLoadFailure('加载模块', 0);
 end;
@@ -643,5 +659,10 @@ end;
 initialization
   GMsrHandle := INVALID_HANDLE_VALUE;
   GLpcHandle := INVALID_HANDLE_VALUE;
+  GPawnIoLock := TCriticalSection.Create;
+
+finalization
+  PawnIoClientShutdown;
+  FreeAndNil(GPawnIoLock);
 
 end.

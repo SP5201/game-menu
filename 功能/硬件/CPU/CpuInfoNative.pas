@@ -13,6 +13,7 @@ uses
 
 function CpuNativeQueryStaticInfo: TCpuStaticInfo;
 function CpuNativeQueryCurrentSpeedMhz: DWORD;
+function CpuNativePeekCurrentSpeedMhz: DWORD;
 function CpuNativeFormatModelName(const ARawBrand: string): string;
 
 implementation
@@ -775,6 +776,11 @@ end;
 function CpuNativeQueryCurrentSpeedMhz: DWORD;
 begin
   Result := CpuQueryCurrentSpeedMhz;
+end;
+
+function CpuNativePeekCurrentSpeedMhz: DWORD;
+begin
+  Result := GLastCurrentSpeedMhz;
 end;
 
 function CpuIsPlausibleSpeedMhz(AMhz: DWORD): Boolean;

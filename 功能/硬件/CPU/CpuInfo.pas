@@ -52,6 +52,7 @@ function CpuFormatSensorFanSpeedText(const AInfo: TCpuSensorInfo): string;
 function CpuQueryStaticInfo: TCpuStaticInfo;
 function CpuPeekStaticInfo(out ALoaded: Boolean): TCpuStaticInfo;
 procedure CpuPreloadHintData;
+procedure CpuPreloadSensors;
 function CpuFormatTooltip(const AUsageText: string): string;
 
 implementation
@@ -157,6 +158,16 @@ begin
   end;
 end;
 
+function CpuPeekSensorInfo: TCpuSensorInfo;
+begin
+  EnterCriticalSection(GSensorsLock);
+  try
+    Result := GSensorsInfo;
+  finally
+    LeaveCriticalSection(GSensorsLock);
+  end;
+end;
+
 procedure CpuLoadStaticInfo;
 begin
   if GStaticLoaded then
@@ -182,7 +193,12 @@ end;
 procedure CpuPreloadHintData;
 begin
   CpuLoadStaticInfo;
+end;
+
+procedure CpuPreloadSensors;
+begin
   CpuRefreshSensorsIfStale;
+  CpuNativeQueryCurrentSpeedMhz;
 end;
 
 function CpuQueryStaticInfo: TCpuStaticInfo;
@@ -370,6 +386,7 @@ var
   sensors: TCpuSensorInfo;
   vendorLine, brandLine, usageText, coreThreadText, steppingLine, virtLine: string;
   staticLoaded: Boolean;
+  speedMhz: DWORD;
 begin
   info := CpuPeekStaticInfo(staticLoaded);
   if not staticLoaded then
@@ -380,8 +397,11 @@ begin
       usageText := cCpuDash;
     Exit('使用率：' + usageText + sLineBreak + '（详细信息加载中…）');
   end;
-  info.CurrentSpeedMhz := CpuNativeQueryCurrentSpeedMhz;
-  sensors := CpuQuerySensorInfo;
+  speedMhz := info.CurrentSpeedMhz;
+  if speedMhz = 0 then
+    speedMhz := CpuNativePeekCurrentSpeedMhz;
+  info.CurrentSpeedMhz := speedMhz;
+  sensors := CpuPeekSensorInfo;
 
   vendorLine := CpuVendorTooltipValue(info.Vendor);
   brandLine := info.Brand;

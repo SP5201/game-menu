@@ -58,6 +58,7 @@ function GpuFormatFanSpeedText(const AInfo: TGpuSensorInfo): string;
 function GpuFormatMemoryText(const AInfo: TGpuSensorInfo): string;
 
 procedure GpuPreloadHintData;
+procedure GpuPreloadSensors;
 function GpuPeekStaticInfo(out ALoaded: Boolean): TGpuStaticInfo;
 function GpuFormatTooltip(const AUsageText: string): string;
 
@@ -201,6 +202,10 @@ end;
 procedure GpuPreloadHintData;
 begin
   GpuLoadStaticInfo;
+end;
+
+procedure GpuPreloadSensors;
+begin
   GpuRefreshSensorsIfStale;
 end;
 

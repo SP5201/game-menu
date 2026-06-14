@@ -19,6 +19,7 @@ implementation
 {$IFDEF WIN64}
 procedure CpuIdLeafEx(const AFunc, ASubFunc: Cardinal; out ARegs: TCpuIdRegs); assembler;
 asm
+        push    rbx
         mov     eax, ecx
         mov     ecx, edx
         cpuid
@@ -26,6 +27,7 @@ asm
         mov     [r8 + 4], ebx
         mov     [r8 + 8], ecx
         mov     [r8 + 12], edx
+        pop     rbx
 end;
 {$ELSE}
 procedure CpuIdLeafEx(const AFunc, ASubFunc: Cardinal; out ARegs: TCpuIdRegs); assembler;

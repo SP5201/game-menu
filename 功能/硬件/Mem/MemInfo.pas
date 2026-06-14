@@ -73,6 +73,7 @@ procedure MemFreeStaticInfo(var AInfo: TMemStaticInfo);
 function MemFormatBytes(const ABytes: UInt64): string;
 
 procedure MemPreloadHintData;
+procedure MemEnrichStaticInfo;
 function MemFormatTooltip(const AUsagePctText: string): string;
 
 implementation
@@ -85,6 +86,7 @@ var
   GStaticInfo: TMemStaticInfo;
   GStaticLoadLock: TRTLCriticalSection;
   GStaticLoading: Boolean;
+  GSpdEnriched: Boolean;
 
 function MemGuessSlotCount(APhysTotal: UInt64): Integer;
 begin
@@ -575,16 +577,14 @@ begin
       nativeInfo := MemNativeQueryStaticInfo;
       if (nativeInfo.PhysTotal > 0) or (nativeInfo.UsagePct >= 0) or
         (nativeInfo.SlotCount > 0) or (Length(nativeInfo.Modules) > 0) then
-      begin
-        MemTakeStaticInfo(nativeInfo);
-        GStaticLoaded := True;
-      end
+        MemTakeStaticInfo(nativeInfo)
       else
       begin
         MemFreeStaticInfo(nativeInfo);
         MemFreeStaticInfo(GStaticInfo);
         MemInitStaticInfo(GStaticInfo);
       end;
+      GStaticLoaded := True;
     finally
       GStaticLoading := False;
     end;
@@ -596,6 +596,24 @@ end;
 procedure MemPreloadHintData;
 begin
   MemLoadStaticInfo;
+end;
+
+procedure MemEnrichStaticInfo;
+begin
+  if GSpdEnriched then
+    Exit;
+  MemLoadStaticInfo;
+  if not GStaticLoaded then
+    Exit;
+  EnterCriticalSection(GStaticLoadLock);
+  try
+    if GSpdEnriched then
+      Exit;
+    MemNativeEnrichSpdInfo(GStaticInfo);
+    GSpdEnriched := True;
+  finally
+    LeaveCriticalSection(GStaticLoadLock);
+  end;
 end;
 
 function MemFormatTooltip(const AUsagePctText: string): string;

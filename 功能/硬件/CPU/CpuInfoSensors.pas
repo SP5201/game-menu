@@ -221,6 +221,14 @@ begin
   Result := Integer((AEax and cIntelThermDeltaMask) shr 16);
 end;
 
+function CpuSensorsAffinityMask(AIndex: Integer): ULONG_PTR;
+begin
+  if (AIndex < 0) or (AIndex >= SizeOf(ULONG_PTR) * 8) then
+    Result := 0
+  else
+    Result := ULONG_PTR(UInt64(1) shl AIndex);
+end;
+
 function CpuSensorsIntelTjMaxForCore(ACoreIndex: Integer): Integer;
 var
   mask: ULONG_PTR;
@@ -228,7 +236,9 @@ var
   tjMax: Integer;
 begin
   Result := 100;
-  mask := ULONG_PTR(1) shl ACoreIndex;
+  mask := CpuSensorsAffinityMask(ACoreIndex);
+  if mask = 0 then
+    Exit;
   if PawnIoReadMsrTx(cMsrIa32TemperatureTarget, mask, eax, edx) then
   begin
     tjMax := (eax shr 16) and $FF;
@@ -244,7 +254,7 @@ begin
   Result := 0;
   for idx := 0 to 31 do
   begin
-    if AMask = (ULONG_PTR(1) shl idx) then
+    if AMask = CpuSensorsAffinityMask(idx) then
     begin
       Result := idx;
       Break;
@@ -285,7 +295,9 @@ begin
   maxTemp := -1;
   for i := 0 to sysInfo.dwNumberOfProcessors - 1 do
   begin
-    mask := ULONG_PTR(1) shl i;
+    mask := CpuSensorsAffinityMask(i);
+    if mask = 0 then
+      Break;
     if not PawnIoReadMsrTx(cMsrIa32ThermStatus, mask, eax, edx) then
       Continue;
     if not CpuSensorsIntelThermReadingValid(eax) then
@@ -382,7 +394,9 @@ begin
   GetSystemInfo(sysInfo);
   for i := 0 to sysInfo.dwNumberOfProcessors - 1 do
   begin
-    mask := ULONG_PTR(1) shl i;
+    mask := CpuSensorsAffinityMask(i);
+    if mask = 0 then
+      Break;
     if not PawnIoReadMsrTx(cMsrIa32PerfStatus, mask, eax, edx) then
       Continue;
     vid := edx and $FFFF;

@@ -10,6 +10,7 @@ uses
   MemInfo;
 
 function MemNativeQueryStaticInfo: TMemStaticInfo;
+procedure MemNativeEnrichSpdInfo(var AInfo: TMemStaticInfo);
 
 implementation
 
@@ -652,11 +653,7 @@ end;
 function MemNativeQueryStaticInfo: TMemStaticInfo;
 var
   memStatus: TMemoryStatusEx;
-  spdDiag: TStringList;
-  startTime: TDateTime;
-  elapsedMs: Cardinal;
 begin
-  startTime := Now;
   MemInitStaticInfo(Result);
   memStatus.dwLength := SizeOf(memStatus);
   if GlobalMemoryStatusEx(memStatus) then
@@ -669,12 +666,22 @@ begin
       Result.UsagePct := memStatus.dwMemoryLoad;
   end;
   MemSmbLoadFromFirmware(Result);
+  MemApplyDramSpecToModules(Result);
+end;
+
+procedure MemNativeEnrichSpdInfo(var AInfo: TMemStaticInfo);
+var
+  spdDiag: TStringList;
+  startTime: TDateTime;
+  elapsedMs: Cardinal;
+begin
+  startTime := Now;
   spdDiag := TStringList.Create;
   try
-    MemSpdTryEnrich(Result, spdDiag);
-    MemApplyDramSpecToModules(Result);
+    MemSpdTryEnrich(AInfo, spdDiag);
+    MemApplyDramSpecToModules(AInfo);
     elapsedMs := Cardinal(MilliSecondsBetween(Now, startTime));
-    MemNativeLogTimingFailures(Result, spdDiag, startTime, elapsedMs);
+    MemNativeLogTimingFailures(AInfo, spdDiag, startTime, elapsedMs);
   finally
     spdDiag.Free;
   end;

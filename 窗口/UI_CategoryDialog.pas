@@ -51,7 +51,7 @@ const
 
 class function TCategoryDialogUI.ResolveCategoryIconDir(const AEnsureExists: Boolean): string;
 begin
-  Result := AppDataDirectory + 'CategoryIcons';
+  Result := IncludeTrailingPathDelimiter(AppExeDirectory) + 'Resource\CategoryIcons';
   if DirectoryExists(Result) then
     Exit;
   if AEnsureExists then
