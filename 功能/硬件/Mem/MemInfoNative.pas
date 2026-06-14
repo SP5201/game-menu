@@ -572,10 +572,10 @@ begin
       Exit;
     if size < 8 then
       Exit;
-    tableLen := PDWORD(Pointer(LongWord(buf) + 4))^;
+    tableLen := PDWORD(Pointer(NativeUInt(buf) + 4))^;
     if (tableLen = 0) or (8 + tableLen > size) then
       Exit;
-    MemSmbApplyTables(Pointer(LongWord(buf) + 8), tableLen, AInfo);
+    MemSmbApplyTables(Pointer(NativeUInt(buf) + 8), tableLen, AInfo);
   finally
     FreeMem(buf);
   end;

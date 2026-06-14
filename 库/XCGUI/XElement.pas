@@ -1,4 +1,4 @@
-﻿unit XElement;
+unit XElement;
 
 interface
 
@@ -11,12 +11,12 @@ type
   protected
     procedure CreateHandle(x, y, cx, cy: Integer; hParent: TXWidget); virtual;
     procedure Init; override;
-    class function OnEleDestroy(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEleDestroy(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
   public
     destructor Destroy; override;
     class function FromXmlName(const Name: string): Pointer; virtual;
-    class function FromXmlID(const hWindow: Integer; const ID: Integer): Pointer; virtual;
-   class function FromHandle(const Handle: Integer): Pointer;      virtual;
+    class function FromXmlID(const hWindow: XCGUI.HWINDOW; const ID: Integer): Pointer; virtual;
+   class function FromHandle(const Handle: HXCGUI): Pointer;      virtual;
     constructor Create(x: Integer; y: Integer; cx: Integer; cy: Integer; hParent: TXWidget); overload;
     function GetObjectHandleByName(const Name: string): Integer;
     function GetWidth: Integer;
@@ -111,8 +111,8 @@ type
     function GetBkManagerEx: HBKM;
     procedure SetBkManager(hBkInfoM: HBKM);
     function GetStateFlags: Integer;
-    function DrawFocus(hDraw: HDRAW; XRect: TRect): Boolean;
-    procedure DrawEle(hDraw: HDRAW);
+    function DrawFocus(hDraw: XCGUI.HDRAW; XRect: TRect): Boolean;
+    procedure DrawEle(hDraw: XCGUI.HDRAW);
     procedure GetContentSize(bHorizon: Boolean; cx, cy: Integer; out pSize: TSize);
     procedure SetCapture(b: Boolean);
     procedure EnableTransparentChannel(bEnable: Boolean);
@@ -155,21 +155,21 @@ end;
 
 class function TXEle.FromXmlName(const Name: string): Pointer;
 var
-  Handle: Integer;
+  Handle: HXCGUI;
 begin
   Handle := XC_GetObjectByName(PWideChar(Name));
   Result := FromHandle(Handle);
 end;
 
-class function TXEle.FromXmlID(const hWindow: Integer; const ID: Integer): Pointer;
+class function TXEle.FromXmlID(const hWindow: XCGUI.HWINDOW; const ID: Integer): Pointer;
 var
-  Handle: Integer;
+  Handle: HXCGUI;
 begin
   Handle := XC_GetObjectByID(hWindow, ID);
   Result := FromHandle(Handle);
 end;
 
-class function TXEle.FromHandle(const Handle: Integer): Pointer;
+class function TXEle.FromHandle(const Handle: HXCGUI): Pointer;
 begin
   Result:= inherited FromHandle(Handle);
 end;
@@ -630,12 +630,12 @@ begin
   Result := XEle_GetStateFlags(Handle);
 end;
 
-function TXEle.DrawFocus(hDraw: hDraw; XRect: TRect): Boolean;
+function TXEle.DrawFocus(hDraw: XCGUI.HDRAW; XRect: TRect): Boolean;
 begin
   Result := XEle_DrawFocus(Handle, hDraw, XRect);
 end;
 
-procedure TXEle.DrawEle(hDraw: hDraw);
+procedure TXEle.DrawEle(hDraw: XCGUI.HDRAW);
 begin
   XEle_DrawEle(Handle, hDraw);
 end;
@@ -712,7 +712,7 @@ begin
   RegEvent(XE_DESTROY, @TXEle.OnEleDestroy);
 end;
 
-class function TXEle.OnEleDestroy(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TXEle.OnEleDestroy(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   pObj: Pointer;
 begin

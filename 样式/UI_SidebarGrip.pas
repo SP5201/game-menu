@@ -18,12 +18,12 @@ type
       CMinSidebarW: Integer;
       CMaxSidebarW: Integer;
       CMinMainContentW: Integer;
-    class function OnLDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnLUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnMouseStay(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPaint(hEle: HELE; hDraw: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnLDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnLUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnMouseStay(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
   public
     procedure Attach(const ASidebar: HELE; const AHostWnd: HWINDOW;
       const AMinSidebarW: Integer = 120; const AMaxSidebarW: Integer = 560; const AMinMainContentW: Integer = 240);
@@ -55,7 +55,7 @@ begin
   RegEvent(XE_MOUSELEAVE, @TSidebarGripUI.OnMouseLeave);
 end;
 
-class function TSidebarGripUI.OnLDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnLDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   ptWnd: TPoint;
 begin
@@ -70,7 +70,7 @@ begin
   XEle_SetCapture(hEle, True);
 end;
 
-class function TSidebarGripUI.OnLUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnLUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if CSizing then
@@ -81,7 +81,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TSidebarGripUI.OnMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   ptWnd: TPoint;
   rc: TRect;
@@ -101,7 +101,7 @@ begin
     pbHandled^ := True;
 end;
 
-class function TSidebarGripUI.OnMouseStay(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnMouseStay(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   CHovered := True;
@@ -109,7 +109,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TSidebarGripUI.OnMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   CHovered := False;
@@ -117,7 +117,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TSidebarGripUI.OnPaint(hEle: HELE; hDraw: Integer; pbHandled: PBOOL): Integer;
+class function TSidebarGripUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   nH, nLineW, xLine: Integer;

@@ -14,7 +14,7 @@ type
 
 implementation
 
-function OnProgressBarPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall;
+function OnProgressBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc, rcFill: TRect;
   range, pos, fillW, barW, barH, r, capR, minFillW: Integer;

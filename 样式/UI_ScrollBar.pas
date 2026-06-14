@@ -11,32 +11,30 @@ type
   /// </summary>
   TScrollBarUI = class
   private
-    FHost: Integer;       // 宿主滚动视图句柄
-    FScrollBar: Integer;  // 垂直滚动条句柄
-    FSlider: Integer;     // 滚动条滑块句柄
+    FHost: XCGUI.HELE;       // 宿主滚动视图句柄
+    FScrollBar: XCGUI.HELE;  // 垂直滚动条句柄
+    FSlider: XCGUI.HELE;     // 滚动条滑块句柄
     FIsVertical: Boolean; // 是否为垂直滚动条
   public
-    constructor Create(AHost: Integer);
-    /// <summary>针对横向滚动条的构造函数。</summary>
-    constructor CreateH(AHost: Integer);
+    constructor Create(AHost: XCGUI.HELE; AIsVertical: Boolean = True);
     /// <summary>为当前宿主应用默认滚动条样式。</summary>
     procedure ApplyDefaultStyle(MinLength: Integer = 36; AScrollBarSize: Integer = 7; AThumbRadius: Integer = 3);
     /// <summary>快捷方法：一次性为指定宿主应用默认样式。</summary>
-    class procedure ApplyDefault(Hele: Integer; MinLength: Integer = 36; AScrollBarSize: Integer = 7;
+    class procedure ApplyDefault(Hele: XCGUI.HELE; MinLength: Integer = 36; AScrollBarSize: Integer = 7;
       AThumbRadius: Integer = 3); static;
     /// <summary>快捷方法：一次性为指定宿主应用横向滚动条默认样式。</summary>
-    class procedure ApplyDefaultH(Hele: Integer; MinLength: Integer = 36; AScrollBarSize: Integer = 7;
+    class procedure ApplyDefaultH(Hele: XCGUI.HELE; MinLength: Integer = 36; AScrollBarSize: Integer = 7;
       AThumbRadius: Integer = 3); static;
     /// <summary>递归为窗口/元素树内所有滚动视图应用默认滚动条样式。</summary>
-    class procedure ApplyDefaultRecursive(hRoot: Integer); static;
-    property Host: Integer read FHost;
-    property ScrollBar: Integer read FScrollBar;
-    property Slider: Integer read FSlider;
+    class procedure ApplyDefaultRecursive(hRoot: XCGUI.HXCGUI); static;
+    property Host: XCGUI.HELE read FHost;
+    property ScrollBar: XCGUI.HELE read FScrollBar;
+    property Slider: XCGUI.HELE read FSlider;
   end;
 
 implementation
 
-function OnSliderPAINT(hSlider, hDraw: Integer; pbHandle: PBoolean): Integer; stdcall;
+function OnSliderPAINT(hSlider: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandle: PBOOL): Integer; stdcall;
 var
   RC: TRect;
   thumbRadius: Integer;
@@ -61,21 +59,15 @@ end;
 
 { TScrollBarUI }
 
-constructor TScrollBarUI.Create(AHost: Integer);
+constructor TScrollBarUI.Create(AHost: XCGUI.HELE; AIsVertical: Boolean);
 begin
   inherited Create;
   FHost := AHost;
-  FScrollBar := XSView_GetScrollBarV(FHost);
-  FIsVertical := True;
-  FSlider := XSBar_GetButtonSlider(FScrollBar);
-end;
-
-constructor TScrollBarUI.CreateH(AHost: Integer);
-begin
-  inherited Create;
-  FHost := AHost;
-  FScrollBar := XSView_GetScrollBarH(FHost);
-  FIsVertical := False;
+  FIsVertical := AIsVertical;
+  if FIsVertical then
+    FScrollBar := XSView_GetScrollBarV(FHost)
+  else
+    FScrollBar := XSView_GetScrollBarH(FHost);
   FSlider := XSBar_GetButtonSlider(FScrollBar);
 end;
 
@@ -92,10 +84,10 @@ begin
   XSBar_SetSliderMinLength(FScrollBar, MinLength);
   XEle_SetCursor(FSlider, LoadCursor(0, IDC_HAND));
   XEle_SetUserData(FSlider, AThumbRadius);
-  XEle_RegEventC1(FSlider, XE_PAINT, Integer(@OnSliderPAINT));
+  XEle_RegEventC1(FSlider, XE_PAINT, NativeInt(@OnSliderPAINT));
 end;
 
-class procedure TScrollBarUI.ApplyDefault(Hele: Integer; MinLength: Integer; AScrollBarSize: Integer;
+class procedure TScrollBarUI.ApplyDefault(Hele: XCGUI.HELE; MinLength: Integer; AScrollBarSize: Integer;
   AThumbRadius: Integer);
 var
   SB: TScrollBarUI;
@@ -108,12 +100,12 @@ begin
   end;
 end;
 
-class procedure TScrollBarUI.ApplyDefaultH(Hele: Integer; MinLength: Integer; AScrollBarSize: Integer;
+class procedure TScrollBarUI.ApplyDefaultH(Hele: XCGUI.HELE; MinLength: Integer; AScrollBarSize: Integer;
   AThumbRadius: Integer);
 var
   SB: TScrollBarUI;
 begin
-  SB := TScrollBarUI.CreateH(Hele);
+  SB := TScrollBarUI.Create(Hele, False);
   try
     SB.ApplyDefaultStyle(MinLength, AScrollBarSize, AThumbRadius);
   finally
@@ -121,10 +113,10 @@ begin
   end;
 end;
 
-class procedure TScrollBarUI.ApplyDefaultRecursive(hRoot: Integer);
+class procedure TScrollBarUI.ApplyDefaultRecursive(hRoot: XCGUI.HXCGUI);
 var
   i, n: Integer;
-  hChild: Integer;
+  hChild: XCGUI.HXCGUI;
 begin
   if XC_IsSViewExtend(hRoot) then
     ApplyDefault(hRoot);

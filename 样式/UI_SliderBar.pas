@@ -58,7 +58,7 @@ begin
   Result := IntToStr(value) + LookupValueSuffix(ASlider);
 end;
 
-function OnSliderBtnLButtonDown(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   trackEle: Integer;
 begin
@@ -70,7 +70,7 @@ begin
   TSliderValuePopupUI.ShowForSlider(trackEle, FormatSliderValueText(trackEle));
 end;
 
-function OnSliderBtnMouseStay(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnMouseStay(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   trackEle: Integer;
 begin
@@ -83,7 +83,7 @@ begin
   TSliderValuePopupUI.ShowForSlider(trackEle, FormatSliderValueText(trackEle));
 end;
 
-function OnSliderBtnMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if GDraggingSlider <> 0 then
@@ -91,14 +91,14 @@ begin
   TSliderValuePopupUI.Hide;
 end;
 
-function OnSliderBtnLButtonUp(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   GDraggingSlider := 0;
   TSliderValuePopupUI.Hide;
 end;
 
-function OnSliderBtnMouseMove(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnMouseMove(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   trackEle: Integer;
 begin
@@ -109,7 +109,7 @@ begin
   TSliderValuePopupUI.UpdateForSlider(trackEle, FormatSliderValueText(trackEle));
 end;
 
-function OnSliderBarLButtonDown(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBarLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if not XC_IsHELE(hEle) then
@@ -118,7 +118,7 @@ begin
   TSliderValuePopupUI.ShowForSlider(hEle, FormatSliderValueText(hEle));
 end;
 
-function OnSliderBarChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBarChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if GDraggingSlider <> hEle then
@@ -126,7 +126,7 @@ begin
   TSliderValuePopupUI.UpdateForSlider(hEle, FormatSliderValueText(hEle));
 end;
 
-function OnSliderBarMouseMove(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBarMouseMove(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if (GDraggingSlider <> hEle) or ((nFlags and MK_LBUTTON) = 0) then
@@ -134,7 +134,7 @@ begin
   TSliderValuePopupUI.UpdateForSlider(hEle, FormatSliderValueText(hEle));
 end;
 
-function OnSliderBarLButtonUp(hEle: HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBarLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if GDraggingSlider = hEle then
@@ -212,7 +212,7 @@ begin
   Result := ARcTrack.Left + fillW;
 end;
 
-function OnSliderBarPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc, rcTrack, rcFill: TRect;
   sliderRange, sliderPos, fillRight, capR, btnW: Integer;
@@ -250,7 +250,7 @@ begin
   end;
 end;
 
-function OnSliderBtnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall;
+function OnSliderBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin

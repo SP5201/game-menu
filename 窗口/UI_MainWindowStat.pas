@@ -308,8 +308,8 @@ var
   hLabelGpu: HXCGUI;
   hSepWeatherNet: HXCGUI;
   hSepStatusTop: HXCGUI;
-  hSvgNetDown: Integer;
-  hSvgNetUp: Integer;
+  hSvgNetDown: HSVG;
+  hSvgNetUp: HSVG;
 begin
   FMainFormHWINDOW := AMainWindow;
   FMainUiThreadId := AUiThreadId;

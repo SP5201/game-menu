@@ -37,16 +37,16 @@ type
     class procedure SaveWorkingToConfig; static;
     class function SliderPosToValue(hSlider: HELE; APos: Integer): Integer; static;
     class procedure InitSlider(hSlider: HELE; AMin, AMax, APos: Integer); static;
-    class function OnSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnClose(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnReset(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnOk(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TListViewSettingsDialogUI; reintroduce;
-    class function ShowDialog(const hParent: HWND; AListView: NativeInt; hAttachWnd: Integer = 0): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TListViewSettingsDialogUI; reintroduce;
+    class function ShowDialog(const hParent: XCGUI.HWINDOW; AListView: NativeInt; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
 implementation
@@ -168,7 +168,7 @@ begin
   XEle_RegEvent(hSlider, XE_SLIDERBAR_CHANGE, @TListViewSettingsDialogUI.OnSliderChange);
 end;
 
-class function TListViewSettingsDialogUI.OnSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewSettingsDialogUI.OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   ReadWorkingFromUi;
@@ -177,7 +177,7 @@ begin
   RedrawDialog;
 end;
 
-class function TListViewSettingsDialogUI.OnBtnClose(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewSettingsDialogUI.OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -186,7 +186,7 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TListViewSettingsDialogUI.OnBtnReset(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewSettingsDialogUI.OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -197,7 +197,7 @@ begin
   ApplyWorkingToListView;
 end;
 
-class function TListViewSettingsDialogUI.OnBtnOk(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewSettingsDialogUI.OnBtnOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -207,7 +207,7 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TListViewSettingsDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewSettingsDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   case wParam of
@@ -229,7 +229,7 @@ begin
   end;
 end;
 
-class function TListViewSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: Integer): TListViewSettingsDialogUI;
+class function TListViewSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TListViewSettingsDialogUI;
 var
   hLoaded: HXCGUI;
 begin
@@ -279,7 +279,7 @@ begin
     RegEvent(WM_KEYDOWN, @TListViewSettingsDialogUI.OnWndKeyDown);
 end;
 
-class function TListViewSettingsDialogUI.ShowDialog(const hParent: HWND; AListView: NativeInt; hAttachWnd: Integer): Boolean;
+class function TListViewSettingsDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; AListView: NativeInt; hAttachWnd: XCGUI.HWINDOW): Boolean;
 var
   dlg: TListViewSettingsDialogUI;
   modalResult: Integer;

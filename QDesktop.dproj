@@ -3,8 +3,8 @@
 			<ProjectGuid>{74E4EE94-21EA-403B-AC39-85FF38C900C0}</ProjectGuid>
 			<MainSource>QDesktop.dpr</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">Debug</Config>
-			<TargetedPlatforms>1</TargetedPlatforms>
+			<Config Condition="'$(Config)'==''">Release</Config>
+			<TargetedPlatforms>3</TargetedPlatforms>
 			<AppType>Application</AppType>
 			<FrameworkType>None</FrameworkType>
 			<ProjectVersion>16.1</ProjectVersion>
@@ -12,6 +12,11 @@
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+			<Base_Win64>true</Base_Win64>
+			<CfgParent>Base</CfgParent>
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
@@ -24,6 +29,12 @@
 			<CfgParent>Base</CfgParent>
 			<Base>true</Base>
 		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+			<Cfg_1_Win64>true</Cfg_1_Win64>
+			<CfgParent>Cfg_1</CfgParent>
+			<Cfg_1>true</Cfg_1>
+			<Base>true</Base>
+		</PropertyGroup>
 		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
 			<Cfg_1_Win32>true</Cfg_1_Win32>
 			<CfgParent>Cfg_1</CfgParent>
@@ -33,6 +44,12 @@
 		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
 			<Cfg_2>true</Cfg_2>
 			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+			<Cfg_2_Win64>true</Cfg_2_Win64>
+			<CfgParent>Cfg_2</CfgParent>
+			<Cfg_2>true</Cfg_2>
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
@@ -49,15 +66,33 @@
 			<VerInfo_Locale>2052</VerInfo_Locale>
 			<DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
 		</PropertyGroup>
-		<PropertyGroup Condition="'$(Base_Win32)'!=''">
-			<DCC_DcuOutput>Dcu</DCC_DcuOutput>
+		<PropertyGroup Condition="'$(Base_Win64)'!=''">
+			<DCC_DcuOutput>Dcu\Win64</DCC_DcuOutput>
 			<DCC_CodePage>65001</DCC_CodePage>
 			<DCC_UnitSearchPath>库\SQLite3;库\libcurl;库\XCGUI;库\ZXingQRCode;功能\Shell;功能\索引;功能;功能\硬件;功能\硬件\CPU;功能\硬件\Mem;功能\硬件\GPU;功能\硬件\Net;功能\天气IP;功能\网络;功能\日志;功能\数据库;功能\配置;样式;窗口;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_IncludePath>样式;$(DCC_IncludePath)</DCC_IncludePath>
 			<DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
 		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win32)'!=''">
+			<DCC_DcuOutput>Dcu\Win32</DCC_DcuOutput>
+			<DCC_CodePage>65001</DCC_CodePage>
+			<DCC_UnitSearchPath>库\SQLite3;库\libcurl;库\XCGUI;库\ZXingQRCode;功能\Shell;功能\索引;功能;功能\硬件;功能\硬件\CPU;功能\硬件\Mem;功能\硬件\GPU;功能\硬件\Net;功能\天气IP;功能\网络;功能\日志;功能\数据库;功能\配置;样式;窗口;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_IncludePath>样式;$(DCC_IncludePath)</DCC_IncludePath>
+			<DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+			<DCC_ExeOutput>Debug\Win64</DCC_ExeOutput>
+		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-			<DCC_ExeOutput>Debug</DCC_ExeOutput>
+			<DCC_ExeOutput>Debug\Win32</DCC_ExeOutput>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+			<Icon_MainIcon>QDesktop.ico</Icon_MainIcon>
+			<VerInfo_Build>2</VerInfo_Build>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+			<VerInfo_Release>1</VerInfo_Release>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.1.2;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
+			<DCC_ExeOutput>Debug\Win64</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
 			<Icon_MainIcon>QDesktop.ico</Icon_MainIcon>
@@ -65,7 +100,7 @@
 			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
 			<VerInfo_Release>1</VerInfo_Release>
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.1.2;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
-			<DCC_ExeOutput>Debug</DCC_ExeOutput>
+			<DCC_ExeOutput>Debug\Win32</DCC_ExeOutput>
 		</PropertyGroup>
 		<ItemGroup>
 			<DelphiCompile Include="$(MainSource)">
@@ -90,6 +125,7 @@
 			<None Include="功能\硬件\Net\NetTrafficMonitor.pas"/>
 			<None Include="功能\硬件\Net\NetInfo.pas"/>
 			<None Include="功能\硬件\PawnIo.pas"/>
+			<None Include="功能\硬件\CPU\CpuIdHelper.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfoNative.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfoPawnIo.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfoFan.pas"/>
@@ -153,10 +189,10 @@
 			<None Include="库\XCGUI\XSliderBar.pas"/>
 			<None Include="库\XCGUI\XTextLink.pas"/>
 			<None Include="库\libcurl\libcurl.pas"/>
-			<None Include="Debug\Bin\libcurl.dll"/>
-			<None Include="Debug\Bin\libcrypto-1_1.dll"/>
-			<None Include="Debug\Bin\libssl-1_1.dll"/>
-			<None Include="Debug\Bin\libssh2.dll"/>
+			<None Include="Debug\Win32\Bin\libcurl.dll"/>
+			<None Include="Debug\Win32\Bin\libcrypto-1_1.dll"/>
+			<None Include="Debug\Win32\Bin\libssl-1_1.dll"/>
+			<None Include="Debug\Win32\Bin\libssh2.dll"/>
 			<None Include="库\ZXingQRCode\DelphiZXingQRCode.pas"/>
 			<None Include="窗口\UI_MainWindow.pas"/>
 			<None Include="窗口\UI_MainWindowTools.pas"/>
@@ -172,21 +208,21 @@
 			<None Include="窗口\UI_ListViewSettingsDialog.pas"/>
 			<None Include="窗口\UI_SafeLogWindow.pas"/>
 			<None Include="窗口\UI_SliderValuePopup.pas"/>
-			<None Include="Debug\Resource\Layout\MainWindow.xml"/>
-			<None Include="Debug\Resource\Layout\EditItemDialog.xml"/>
-			<None Include="Debug\Resource\Layout\MessageBox.xml"/>
-			<None Include="Debug\Resource\Layout\ListBox_Item.xml"/>
-			<None Include="Debug\Resource\Layout\ListView_Item.xml"/>
-			<None Include="Debug\Resource\Layout\ComboBox_Item.xml"/>
-			<None Include="Debug\Resource\Layout\CategoryDialog.xml"/>
-			<None Include="Debug\Resource\Layout\QrCodeDialog.xml"/>
-			<None Include="Debug\Resource\Layout\FeedbackDialog.xml"/>
-			<None Include="Debug\Resource\Layout\IconListView_Item.xml"/>
-			<None Include="Debug\Resource\Layout\SettingsDialog.xml"/>
-			<None Include="Debug\Resource\Layout\ColorPickerDialog.xml"/>
-			<None Include="Debug\Resource\Layout\ListViewSettingsDialog.xml"/>
-			<None Include="Debug\Resource\Layout\SafeLogWindow.xml"/>
-			<None Include="Debug\Resource\Layout\SafeLogList_Item.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\MainWindow.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\EditItemDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\MessageBox.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\ListBox_Item.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\ListView_Item.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\ComboBox_Item.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\CategoryDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\QrCodeDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\FeedbackDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\IconListView_Item.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\SettingsDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\ColorPickerDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\ListViewSettingsDialog.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\SafeLogWindow.xml"/>
+			<None Include="Debug\Win32\Resource\Layout\SafeLogList_Item.xml"/>
 			<RcItem Include="QDesktop.ico">
 				<ResourceType>ICON</ResourceType>
 				<ResourceId>Icon</ResourceId>
@@ -205,7 +241,7 @@
 		</ItemGroup>
 		<Target Name="BeforeBuild">
 			<ItemGroup>
-				<DcuFilesToDelete Include="$(MSBuildProjectDirectory)\Dcu\*.dcu"/>
+				<DcuFilesToDelete Include="$(MSBuildProjectDirectory)\Dcu\$(Platform)\*.dcu"/>
 			</ItemGroup>
 			<Delete Files="@(DcuFilesToDelete)"/>
 		</Target>
@@ -256,55 +292,89 @@
 					</Excluded_Packages>
 				</Delphi.Personality>
 				<Platforms>
+					<Platform value="Win64">True</Platform>
 					<Platform value="Win32">True</Platform>
 				</Platforms>
 				<Deployment>
-					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QDesktop.exe">
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\Win32\QDesktop.exe">
 						<Platform Name="Win32"/>
 					</DeployFile>
-					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QDesktop.rsm">
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\Win32\QDesktop.rsm">
 						<Platform Name="Win32">
 							<RemoteName>QDesktop.rsm</RemoteName>
 						</Platform>
 					</DeployFile>
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\Win64\QDesktop.rsm">
+						<Platform Name="Win64">
+							<RemoteName>QDesktop.rsm</RemoteName>
+						</Platform>
+					</DeployFile>
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\Win64\QDesktop.exe">
+						<Platform Name="Win64"/>
+					</DeployFile>
 					<DeployClass Name="DependencyPackage" Required="true">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+							<Extensions>.bpl</Extensions>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 							<Extensions>.bpl</Extensions>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="DependencyModule">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+							<Extensions>.dll;.bpl</Extensions>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 							<Extensions>.dll;.bpl</Extensions>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="ProjectOutput" Required="true">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="DebugSymbols">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="DependencyFramework">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="File">
+						<Platform Name="Win64">
+							<Operation>0</Operation>
+						</Platform>
 						<Platform Name="Win32">
 							<Operation>0</Operation>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="AdditionalDebugSymbols">
+						<Platform Name="Win64">
+							<RemoteDir>Contents\MacOS</RemoteDir>
+							<Operation>0</Operation>
+						</Platform>
 						<Platform Name="Win32">
 							<RemoteDir>Contents\MacOS</RemoteDir>
 							<Operation>0</Operation>
 						</Platform>
 					</DeployClass>
+					<ProjectRoot Name="$(PROJECTNAME)" Platform="Win64"/>
 					<ProjectRoot Name="$(PROJECTNAME)" Platform="Win32"/>
 				</Deployment>
 			</BorlandProject>

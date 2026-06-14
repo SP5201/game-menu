@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--炫彩界面库-窗口布局文件-->
-<head>
-	<bindJsFile value="" />
-</head>
-<windowUI rect="100,100,300,200"  showT="true">
-	<buttonUI bkInfoM="@ID_bkInfo_3" content="Button" font="@ID_FONT_1" rect="71,132,141,52" textColor="#FF00FF00" showT="true" expandT="true" />
-	<buttonUI buttonType="close" content="Close" rect="197,51,60,25" showT="true" expandT="true" />
-</windowUI>

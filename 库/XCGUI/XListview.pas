@@ -212,8 +212,11 @@ begin
 end;
 
 function TXListView.GetSelectAll(pArray: Pointer; nArraySize: Integer): Integer;
+var
+  arr: vint;
 begin
-  Result := XListView_GetSelectAll(Handle, Integer(pArray), nArraySize);
+  arr := NativeInt(pArray);
+  Result := XListView_GetSelectAll(Handle, arr, nArraySize);
 end;
 
 function TXListView.GetSelectItem(out piGroup, piItem: Integer): Boolean;

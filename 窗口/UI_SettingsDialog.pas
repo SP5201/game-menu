@@ -38,22 +38,22 @@ type
     class procedure UpdateNavPageVisible; static;
     class procedure SwitchNavPage(const APageIndex: Integer); static;
     class procedure ApplyShapeTextTheme(const AName: string); static;
-    class function OnNavDrawItem(hList: HELE; hDraw: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnNavSelect(hList: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnNavButtonDown(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnChkChanged(hEle: HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnProxyModeChanged(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPaintFreqSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnClose(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnReset(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnApply(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnOk(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnNavDrawItem(hList: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnNavSelect(hList: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnNavButtonDown(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnChkChanged(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnProxyModeChanged(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaintFreqSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnApply(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TSettingsDialogUI; reintroduce;
-    class function ShowDialog(const hParent: HWINDOW = 0; hAttachWnd: Integer = 0): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd:HXCGUI = 0): TSettingsDialogUI; reintroduce;
+    class function ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
 implementation
@@ -121,7 +121,7 @@ begin
   XShape_Redraw(FLabelPaintFreqValue);
 end;
 
-class function TSettingsDialogUI.OnPaintFreqSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TSettingsDialogUI.OnPaintFreqSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   UpdatePaintFrequencyValue(nPos);
@@ -129,7 +129,7 @@ begin
     TSliderBarUI.Redraw(hEle);
 end;
 
-class function TSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: Integer): TSettingsDialogUI;
+class function TSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: HXCGUI): TSettingsDialogUI;
 var
   hLoaded: HXCGUI;
 begin
@@ -285,7 +285,7 @@ end;
 class procedure TSettingsDialogUI.UpdateNavPageVisible;
 var
   hPaneGeneral, hPaneDataUpdate, hPaneProxy: HELE;
-  hModalWnd: Integer;
+  hModalWnd: XCGUI.HWINDOW;
   showGeneral, showData, showProxy: BOOL;
 begin
   hPaneGeneral := XC_GetObjectByName(ID_PANE_GENERAL);
@@ -327,7 +327,7 @@ begin
   UpdateNavPageVisible;
 end;
 
-class function TSettingsDialogUI.OnNavDrawItem(hList: HELE; hDraw: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnNavDrawItem(hList: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   rcBg, rcText: TRect;
 begin
@@ -358,13 +358,13 @@ begin
   pbHandled^ := True;
 end;
 
-class function TSettingsDialogUI.OnNavSelect(hList: HELE; iItem: Integer; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnNavSelect(hList: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   SwitchNavPage(iItem);
 end;
 
-class function TSettingsDialogUI.OnNavButtonDown(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnNavButtonDown(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   itemIndex: Integer;
 begin
@@ -380,26 +380,26 @@ begin
     XEle_Redraw(hList);
 end;
 
-class function TSettingsDialogUI.OnChkChanged(hEle: HELE; bCheck: BOOL; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnChkChanged(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
 end;
 
-class function TSettingsDialogUI.OnProxyModeChanged(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TSettingsDialogUI.OnProxyModeChanged(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   UpdateProxyInputState;
 end;
 
-class function TSettingsDialogUI.OnBtnClose(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TSettingsDialogUI.OnBtnReset(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -413,14 +413,14 @@ begin
   ApplyWorkingToUi;
 end;
 
-class function TSettingsDialogUI.OnBtnApply(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnBtnApply(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   TrySaveWorking;
 end;
 
-class function TSettingsDialogUI.OnBtnOk(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnBtnOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -428,7 +428,7 @@ begin
     XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TSettingsDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer;
+class function TSettingsDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if (lParam and $40000000) <> 0 then
@@ -543,7 +543,7 @@ begin
     RegEvent(WM_KEYDOWN, @TSettingsDialogUI.OnWndKeyDown);
 end;
 
-class function TSettingsDialogUI.ShowDialog(const hParent: HWINDOW; hAttachWnd: Integer): Boolean;
+class function TSettingsDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW): Boolean;
 var
   dlg: TSettingsDialogUI;
   modalResult: Integer;

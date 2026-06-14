@@ -56,7 +56,7 @@ type
     function GetSelectRowCount: Integer;
     function AddSelectRow(iRow: Integer): BOOL;
     procedure SetSelectAll;
-    function GetSelectAll(out pArray: Integer; nArraySize: Integer): Integer; // Modified pArray type
+    function GetSelectAll(pArray: vint; nArraySize: Integer): Integer;
     procedure VisibleRow(iRow: Integer);
     function CancelSelectRow(iRow: Integer): BOOL;
     procedure CancelSelectAll;
@@ -274,7 +274,7 @@ begin
   XList_SetSelectAll(Handle);
 end;
 
-function TXList.GetSelectAll(out pArray: Integer; nArraySize: Integer): Integer; // Modified pArray type
+function TXList.GetSelectAll(pArray: vint; nArraySize: Integer): Integer;
 begin
   Result := XList_GetSelectAll(Handle, pArray, nArraySize);
 end;

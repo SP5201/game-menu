@@ -22,7 +22,7 @@ function QrCalcPaintLayout(AQr: TDelphiZXingQRCode; const Bounds: TRect; out Lay
 function QrIsInFinderPattern(Row, Col: Integer; const Layout: TQrPaintLayout): Boolean;
 function ColorIntToGp(Color: Integer): Cardinal;
 
-procedure QrPaintMatrixXDraw(hDraw: hDraw; AQr: TDelphiZXingQRCode; const Layout: TQrPaintLayout;
+procedure QrPaintMatrixXDraw(hDraw: XCGUI.HDRAW; AQr: TDelphiZXingQRCode; const Layout: TQrPaintLayout;
   FgColor: Integer; Liquify: Boolean; ModuleRadius: Integer);
 
 procedure QrPaintMatrixGp(G: TGPGraphics; AQr: TDelphiZXingQRCode; const Layout: TQrPaintLayout;
@@ -193,7 +193,7 @@ begin
   end;
 end;
 
-procedure QrDrawFinderPatternXDraw(hDraw: hDraw; px, py, ms, radius: Integer; FgColor: Integer);
+procedure QrDrawFinderPatternXDraw(hDraw: XCGUI.HDRAW; px, py, ms, radius: Integer; FgColor: Integer);
 var
   rcOuter, rcInner: TRect;
   rrOuter, rrInner: Integer;
@@ -226,7 +226,7 @@ begin
   GpFillRoundRect(G, rcInner, rrInner, FgColor);
 end;
 
-procedure QrPaintMatrixXDraw(hDraw: hDraw; AQr: TDelphiZXingQRCode; const Layout: TQrPaintLayout;
+procedure QrPaintMatrixXDraw(hDraw: XCGUI.HDRAW; AQr: TDelphiZXingQRCode; const Layout: TQrPaintLayout;
   FgColor: Integer; Liquify: Boolean; ModuleRadius: Integer);
 var
   r, c, startC: Integer;

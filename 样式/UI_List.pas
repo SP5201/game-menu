@@ -35,18 +35,18 @@ const
 type
   TListUI = class
   private
-    class function OnDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: Tlist_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHeaderDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHeaderTempCreateEnd(hEle: HELE; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListSelect(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnSize(hEle: HELE; nFlags: Integer; nAdjustNo: UINT; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: Tlist_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHeaderDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHeaderTempCreateEnd(hEle: XCGUI.HELE; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListSelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSize(hEle: XCGUI.HELE; nFlags: Integer; nAdjustNo: UINT; pbHandled: PBOOL): Integer; stdcall; static;
   public
-    class procedure ApplyTheme(const AListEle: HELE); static;
+    class procedure ApplyTheme(const AListEle: XCGUI.HELE); static;
   end;
 
 implementation
 
-function ListRowDrawState(const AListEle: HELE; ARow: Integer; ACellState: Integer): Integer;
+function ListRowDrawState(const AListEle: XCGUI.HELE; ARow: Integer; ACellState: Integer): Integer;
 begin
   if XList_GetSelectRow(AListEle) = ARow then
     Result := list_item_state_select
@@ -56,7 +56,7 @@ begin
     Result := list_item_state_leave;
 end;
 
-procedure DrawListRowBk(const AHDraw: HDRAW; const ARc: TRect; AState: Integer);
+procedure DrawListRowBk(const AHDraw: XCGUI.HDRAW; const ARc: TRect; AState: Integer);
 var
   rc: TRect;
 begin
@@ -73,7 +73,7 @@ end;
 const
   cStatusDotDiameter = 8;
 
-procedure DrawStatusDot(const AHDraw: HDRAW; const ARcItem: TRect; ASuccess: Boolean);
+procedure DrawStatusDot(const AHDraw: XCGUI.HDRAW; const ARcItem: TRect; ASuccess: Boolean);
 var
   cx, cy, half: Integer;
   rcDot: TRect;
@@ -94,7 +94,7 @@ begin
   Result := (AText <> nil) and SameText(string(AText), '成功');
 end;
 
-class function TListUI.OnDrawItem(hEle: hEle; hDraw: hDraw; var pItem: Tlist_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TListUI.OnDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: Tlist_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   pText: PWideChar;
   rcText: TRect;
@@ -124,7 +124,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TListUI.OnHeaderDrawItem(hEle: hEle; hDraw: hDraw; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TListUI.OnHeaderDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   RC: TRect;
 begin
@@ -135,9 +135,9 @@ begin
   XDraw_FillRect(hDraw, RC);
 end;
 
-class function TListUI.OnHeaderTempCreateEnd(hEle: hEle; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TListUI.OnHeaderTempCreateEnd(hEle: XCGUI.HELE; var pItem: Tlist_header_item_; pbHandled: PBOOL): Integer; stdcall;
 var
-  hShapeText: HXCGUI;
+  hShapeText: XCGUI.HXCGUI;
   I: Integer;
 begin
   Result := 0;
@@ -149,17 +149,17 @@ begin
   end;
 end;
 
-class function TListUI.OnListSelect(hEle: hEle; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TListUI.OnListSelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
 end;
 
-class function TListUI.OnSize(hEle: hEle; nFlags: Integer; nAdjustNo: UINT; pbHandled: PBOOL): Integer; stdcall;
+class function TListUI.OnSize(hEle: XCGUI.HELE; nFlags: Integer; nAdjustNo: UINT; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
 end;
 
-class procedure TListUI.ApplyTheme(const AListEle: hEle);
+class procedure TListUI.ApplyTheme(const AListEle: XCGUI.HELE);
 begin
   if not XC_IsHELE(AListEle) then
     Exit;
@@ -181,4 +181,3 @@ begin
 end;
 
 end.
-

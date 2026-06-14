@@ -1,4 +1,4 @@
-﻿unit UI_MainWindow;
+unit UI_MainWindow;
 
 interface
 
@@ -49,7 +49,7 @@ type
     class procedure RequestDiskSearch(const ANeedle: string; AEnableLog: Boolean = False);
     class procedure PerformDiskSearchFromBox(AEnableLog: Boolean = True);
     class procedure ScheduleDebouncedDiskSearch;
-    class function OnSearchDebounceTimer(hWindow: HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSearchDebounceTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure ApplyIndexHitChanges(const AData: PIndexHitChangesMsg);
     class procedure RefreshSearchIndexStatusLabel;
     class procedure StartSearchIndexStatusTimer;
@@ -71,25 +71,25 @@ type
     { 拖放前若尚无分类则补一条默认分类并选中 }
     class procedure SyncCategoriesForDrop;
     { 左侧分类切换：保存宽度、加载对应分组条目 }
-    class function OnCategorySelect(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnCategorySelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     { 分类列表右键菜单：增删改分类、设置项等 }
-    class function OnCategoryMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnCategoryMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     { 主内容列表右键菜单：打开、编辑、删除、添加文件/夹等 }
-    class function OnContentMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnContentMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     { 窗口 WM_DROPFILES：批量拖入文件到当前分组 }
-    class function OnWndDropFiles(hWindow: HWINDOW; hDrop: HDROP; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndDropFiles(hWindow: XCGUI.HWINDOW; hDrop: XCGUI.HDROP; pbHandled: PBOOL): Integer; stdcall; static;
     { 主窗口附加消息（WM_QD_STAT_*、关闭前释放模态栈等） }
-    class function OnWinProc(hWindow: HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     { 批量插入数据库并刷新列表中已成功的项 }
     class procedure InsertBatchItemsToUI(const AGroupIndex: Integer; const AUIItems: array of TListViewFileItem; const ADBItems: TLibraryItemArray); static;
     { 排序按钮：弹出排序方式菜单 }
-    class function OnListSortButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListSortButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     { 列表布局按钮：打开间距/圆角/滚动条设置对话框 }
-    class function OnListLayoutButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListLayoutButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     { 安全日志按钮：打开 SafeLog 窗口 }
-    class function OnSafeLogButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSafeLogButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     { 排序菜单选择：写回数据库或仅重排当前搜索结果 }
-    class function OnListSortMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListSortMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     { 搜索按钮：按编辑框关键字全库搜索；空则显示全部索引文件 }
     class function OnMainSearchButtonClick(Sender: HELE; pbHandled: PBOOL): Integer; stdcall; static;
     { TLibraryListSortKind → TListViewUI.SortItems }
@@ -136,7 +136,7 @@ uses
   Math, StrUtils, ShellAPI, AppConfig, AppPaths, ShellHelper, ShellOpenWith, WeatherFetcher,
   UI_MainWindowTools, UI_MainWindowStat, UI_Theme,
   UI_ListViewSettingsDialog, NetHttpWorker, UI_SafeLogWindow, SafeLog, UI_HintPopup, UI_ScrollBar,
-  ShlObj, ActiveX, PawnIo;
+  ShlObj, ActiveX, PawnIoClient;
 
 const
   ID_LISTVIEW_MENU_OPEN = 101;
@@ -717,7 +717,7 @@ begin
   end;
 end;
 
-class function TMainFormUI.OnListFilterButtonClick(hSender: HELE; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnListFilterButtonClick(hSender: HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   i: Integer;
   hBtn: HELE;
@@ -789,7 +789,7 @@ end;
 class procedure TMainFormUI.ShowDiskSearchError(const AError: TDiskSearchError);
 var
   msg: string;
-  ownerWnd: Windows.HWND;
+  ownerWnd: XCGUI.HWINDOW;
 begin
   case AError of
     dseIndexMissing:
@@ -801,9 +801,9 @@ begin
   end;
   ownerWnd := 0;
   if XC_GetObjectType(CMainHWINDOW) = XC_WINDOW then
-    ownerWnd := XWnd_GetHWND(CMainHWINDOW);
-  if (ownerWnd = 0) and (CListViewUI <> nil) then
-    ownerWnd := CListViewUI.HWND;
+    ownerWnd := CMainHWINDOW
+  else if (CListViewUI <> nil) and XC_IsHWINDOW(CListViewUI.HWINDOW) then
+    ownerWnd := CListViewUI.HWINDOW;
   TMessageBoxUI.Confirm('全盘搜索', msg, ownerWnd);
 end;
 
@@ -1071,14 +1071,14 @@ begin
     LoadListViewFromStore(iItem);
 end;
 
-class function TMainFormUI.OnCategorySelect(hEle: hEle; iItem: Integer; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnCategorySelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   DiskSearchStopAndWait;
   ReloadListForCategoryIndex(iItem);
 end;
 
-class function TMainFormUI.OnCategoryMenuSelect(hEle: hEle; nItem: Integer; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnCategoryMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   sel, groupIndex, deleteGroupIndex: Integer;
   oldName, newName, oldIconFile, iconFile: string;
@@ -1175,13 +1175,13 @@ begin
   end;
 end;
 
-class function TMainFormUI.OnContentMenuSelect(hEle: hEle; nItem: Integer; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnContentMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   itm: Integer;
   data: TListViewFileItem;
   groupIndex: Integer;
   fileName: string;
-  hOwnerWnd: Integer;
+  hOwnerWnd: XCGUI.HWINDOW;
   newTitle, newParams, newWorkDir, iconPath, oldIconPath: string;
   newShowCmd: Integer;
   iconChanged: Boolean;
@@ -1358,7 +1358,7 @@ end;
 
 
 
-class function TMainFormUI.OnWndDropFiles(hWindow: hWindow; hDrop: hDrop; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnWndDropFiles(hWindow: XCGUI.HWINDOW; hDrop: XCGUI.HDROP; pbHandled: PBOOL): Integer; stdcall;
 var
   cnt, nChars: UINT;
   cntInt, i: Integer;
@@ -1466,7 +1466,7 @@ begin
   XWnd_SetTimer(CMainHWINDOW, cMainIndexStatusTimerId, cMainIndexStatusTimerMs);
 end;
 
-class function TMainFormUI.OnSearchDebounceTimer(hWindow: HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnSearchDebounceTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if nIDEvent = cMainSearchDebounceTimerId then
@@ -1494,7 +1494,7 @@ begin
   RequestDiskSearch(needle, AEnableLog);
 end;
 
-class function TMainFormUI.OnMainSearchButtonClick(Sender: HELE; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnMainSearchButtonClick(Sender: HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -1503,7 +1503,7 @@ begin
   PerformDiskSearchFromBox(True);
 end;
 
-class function TMainFormUI.OnWinProc(hWindow: HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TMainFormUI.OnWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 var
   searchData: PDiskSearchResult;
   errorData: PDiskSearchErrorMsg;
@@ -1584,21 +1584,21 @@ begin
   DrainPendingDiskSearchMessages;
 end;
 
-class function TMainFormUI.OnSafeLogButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnSafeLogButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   TSafeLogWindow.ShowWindow;
   pbHandled^ := True;
 end;
 
-class function TMainFormUI.OnListLayoutButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnListLayoutButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
-  TListViewSettingsDialogUI.ShowDialog(CListViewUI.HWND, NativeInt(CListViewUI), 0);
+  TListViewSettingsDialogUI.ShowDialog(CMainHWINDOW, NativeInt(CListViewUI), 0);
 end;
 
-class function TMainFormUI.OnListSortButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnListSortButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
   pt: TPoint;
@@ -1652,7 +1652,7 @@ begin
   end;
 end;
 
-class function TMainFormUI.OnListSortMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer;
+class function TMainFormUI.OnListSortMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   grp: Integer;
   listSortKind: TLibraryListSortKind;
@@ -1941,7 +1941,7 @@ end;
 procedure ApplyDefaultStyles(hXCGUI: hXCGUI);
 var
   i, n: Integer;
-  hChild: Integer;
+  hChild: XCGUI.HXCGUI;
 begin
   if XC_IsSViewExtend(hXCGUI) then
     TScrollBarUI.ApplyDefault(hXCGUI);

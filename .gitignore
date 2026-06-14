@@ -10,12 +10,13 @@
 *.groupproj.local
 
 # Build output
-Debug/xcgui_debug.txt
-Debug/Data/_ip2tmp/
-Debug/Data/IconCache/
-Debug/Data/FileTypeIcons/
-Debug/Data/games.db
-Debug/Data/Everything.db
+Debug/**/xcgui_debug.txt
+Debug/**/Data/_ip2tmp/
+Debug/**/Data/IconCache/
+Debug/**/Data/FileTypeIcons/
+Debug/**/Data/games.db
+Debug/**/Data/Everything.db
+Debug/**/Bin/Everything.db
 Dcu/
 *.dcu
 *.ddp
@@ -29,6 +30,8 @@ Dcu/
 *.exe.map
 *.tds
 *.map
+*.drc
+*.rsm
 
 # OS / editor
 Thumbs.db

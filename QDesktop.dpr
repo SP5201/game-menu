@@ -16,6 +16,7 @@ uses
   AppConfig,
   XCGUI,
   SafeLog,
+  PawnIoClient,
   UI_MainWindow;
 
 const
@@ -77,6 +78,7 @@ begin
       FormUI.Show;
       XRunXCGUI();
     finally
+      PawnIoClientShutdown;
       XExitXCGUI();
       if hMutex <> THandle(0) then
         CloseHandle(hMutex);

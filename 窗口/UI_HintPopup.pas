@@ -1,4 +1,4 @@
-﻿unit UI_HintPopup;
+unit UI_HintPopup;
 
 interface
 
@@ -15,33 +15,33 @@ type
     class var
       FInstance: THintPopupUI;
     class var
-      FOwnerHwnd: HWND;
+      FOwnerHwnd: Windows.HWND;
       FTextShape: HXCGUI;
       FHoverHintMap: TStringList;
       FHoverStyleMap: TStringList;
       FIsVisible: Boolean;
-      FLastTargetHandle: Integer;
+      FLastTargetHandle: HXCGUI;
       FLastText: string;
       FLastStyle: THintPopupStyle;
       FCurrentStyle: THintPopupStyle;
       FArrowEdge: TTooltipArrowEdge;
       FTriangleCenterX: Integer;
       FBubbleLayout: TTooltipBubbleLayout;
-    class function OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnTargetMouseMove(hEle: HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnTargetMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function EnsureInstance(const ATargetComponentHandle: Integer): THintPopupUI; static;
-    class function GetHoverStyle(const ATargetComponentHandle: Integer): THintPopupStyle; static;
+    class function OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnTargetMouseMove(hEle: XCGUI.HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnTargetMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function EnsureInstance(const ATargetComponentHandle: HXCGUI): THintPopupUI; static;
+    class function GetHoverStyle(const ATargetComponentHandle: HXCGUI): THintPopupStyle; static;
     procedure SetTextAndResize(const AText: string);
   protected
     procedure Init; override;
   public
     class procedure ShowTextNearCursor(const AText: string; const AAutoCloseMs: Integer;
       const AStyle: THintPopupStyle = hpsNormal); static;
-    class procedure ShowTextForTarget(const ATargetComponentHandle: Integer; const AText: string;
+    class procedure ShowTextForTarget(const ATargetComponentHandle: HXCGUI; const AText: string;
       const AAutoCloseMs: Integer; const APopupAbove: Boolean = False; const AOffsetY: Integer = 0;
       const AStyle: THintPopupStyle = hpsNormal); static;
-    class procedure BindHoverHint(const ATargetComponentHandle: Integer; const AText: string;
+    class procedure BindHoverHint(const ATargetComponentHandle: HXCGUI; const AText: string;
       const AStyle: THintPopupStyle = hpsNormal); static;
     class procedure Hide; static;
   end;
@@ -66,7 +66,7 @@ begin
   RegEvent(WM_PAINT, @THintPopupUI.OnWndPaint);
 end;
 
-class function THintPopupUI.OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function THintPopupUI.OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -86,7 +86,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function THintPopupUI.GetHoverStyle(const ATargetComponentHandle: Integer): THintPopupStyle;
+class function THintPopupUI.GetHoverStyle(const ATargetComponentHandle: HXCGUI): THintPopupStyle;
 var
   styleIndex: Integer;
   styleKey: string;
@@ -100,7 +100,7 @@ begin
     Result := THintPopupStyle(StrToIntDef(FHoverStyleMap.ValueFromIndex[styleIndex], Ord(hpsNormal)));
 end;
 
-class function THintPopupUI.OnTargetMouseMove(hEle: HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+class function THintPopupUI.OnTargetMouseMove(hEle: XCGUI.HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   tipText: string;
   hintIndex: Integer;
@@ -123,23 +123,23 @@ begin
   end;
 end;
 
-class function THintPopupUI.OnTargetMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function THintPopupUI.OnTargetMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   Hide;
 end;
 
-class function THintPopupUI.EnsureInstance(const ATargetComponentHandle: Integer): THintPopupUI;
+class function THintPopupUI.EnsureInstance(const ATargetComponentHandle: HXCGUI): THintPopupUI;
 const
   WS_EX_NOACTIVATE = $08000000;
 var
   exStyle: DWORD;
   style: DWORD;
-  ownerHwnd: Integer;
+  ownerHwnd: Windows.HWND;
 begin
   ownerHwnd := 0;
   if ATargetComponentHandle <> 0 then
-    ownerHwnd := XWidget_GetHWND(ATargetComponentHandle);
+    ownerHwnd := Windows.HWND(XWidget_GetHWND(ATargetComponentHandle));
 
   if Assigned(FInstance) and FInstance.IsHWINDOW and (NativeUInt(FOwnerHwnd) = NativeUInt(ownerHwnd)) then
     Exit(FInstance);
@@ -246,14 +246,14 @@ begin
   FLastStyle := AStyle;
 end;
 
-class procedure THintPopupUI.ShowTextForTarget(const ATargetComponentHandle: Integer; const AText: string;
+class procedure THintPopupUI.ShowTextForTarget(const ATargetComponentHandle: HXCGUI; const AText: string;
   const AAutoCloseMs: Integer; const APopupAbove: Boolean; const AOffsetY: Integer;
   const AStyle: THintPopupStyle);
 var
   dlg: THintPopupUI;
   pt: TPoint;
   ptAnchor: TPoint;
-  hTargetWindow: Integer;
+  hTargetWindow: XCGUI.HWINDOW;
   rcTarget: TRect;
   rcPopup: TRect;
   popupW, popupH, targetW: Integer;
@@ -327,7 +327,7 @@ begin
   FLastStyle := AStyle;
 end;
 
-class procedure THintPopupUI.BindHoverHint(const ATargetComponentHandle: Integer; const AText: string;
+class procedure THintPopupUI.BindHoverHint(const ATargetComponentHandle: HXCGUI; const AText: string;
   const AStyle: THintPopupStyle);
 var
   hintIndex: Integer;

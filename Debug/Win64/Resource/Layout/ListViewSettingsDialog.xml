@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,600,384" windowType="modalWindow" windowStyle="20" center="true" minSize="440,260" maxWindow="false">
+	<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="fill" padding="12,8,12,4" layout.spaceRow="10">
+		<layoutEleUI rect="0,0,100,36" layout.width="fill" layout.height="36" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+			<layoutEleUI rect="0,0,100,36" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+				<shapePicture name="pic_listview_settings_dialog_logo" rect="0,0,20,20" layout.width="20" layout.height="20" expandT="false" />
+				<shapeText name="txt_listview_settings_title" rect="0,0,200,28" layout.width=":1" layout.height="fill" content="列表布局" />
+			</layoutEleUI>
+			<buttonUI name="btn_listview_settings_close" rect="0,0,60,25" layout.width="20" layout.height="20" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height=":1" layout.spaceRow="12" padding="4,0,4,0">
+			<layoutEleUI rect="0,0,100,52" layout.width="fill" layout.height="52" layout.horizon="false" layout.space="6" expandT="false">
+				<layoutEleUI rect="0,0,100,20" layout.width="fill" layout.height="20" layout.horizon="true" layout.alignV="center" expandT="false">
+					<shapeText name="txt_listview_settings_label_col_space" rect="0,0,72,20" layout.width="auto" layout.height="fill" content="横向间隔" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_listview_settings_col_space_value" rect="0,0,32,20" layout.width="auto" layout.height="fill" content="8" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+				</layoutEleUI>
+				<sliderBarUI name="slider_listview_settings_col_space" rect="0,0,100,24" layout.width="fill" layout.height="24" />
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,52" layout.width="fill" layout.height="52" layout.horizon="false" layout.space="6" expandT="false">
+				<layoutEleUI rect="0,0,100,20" layout.width="fill" layout.height="20" layout.horizon="true" layout.alignV="center" expandT="false">
+					<shapeText name="txt_listview_settings_label_row_space" rect="0,0,72,20" layout.width="auto" layout.height="fill" content="纵向间隔" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_listview_settings_row_space_value" rect="0,0,32,20" layout.width="auto" layout.height="fill" content="8" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+				</layoutEleUI>
+				<sliderBarUI name="slider_listview_settings_row_space" rect="0,0,100,24" layout.width="fill" layout.height="24" />
+			</layoutEleUI>
+			<layoutEleUI rect="0,0,100,52" layout.width="fill" layout.height="52" layout.horizon="false" layout.space="6" expandT="false">
+				<layoutEleUI rect="0,0,100,20" layout.width="fill" layout.height="20" layout.horizon="true" layout.alignV="center" expandT="false">
+					<shapeText name="txt_listview_settings_label_corner" rect="0,0,72,20" layout.width="auto" layout.height="fill" content="绘制圆角" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_listview_settings_corner_value" rect="0,0,32,20" layout.width="auto" layout.height="fill" content="6" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+				</layoutEleUI>
+				<sliderBarUI name="slider_listview_settings_corner" rect="0,0,100,24" layout.width="fill" layout.height="24" />
+			</layoutEleUI>
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" expandT="false" />
+		<layoutEleUI rect="0,0,100,44" layout.width="fill" layout.height="44" layout.horizon="true" layout.alignV="center" expandT="false">
+			<buttonUI name="btn_listview_settings_reset" rect="0,0,120,32" layout.width="120" layout.height="32" content="重置为默认" />
+			<layoutEleUI rect="0,0,100,32" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignH="right" layout.alignV="center">
+				<buttonUI name="btn_listview_settings_ok" rect="0,0,90,32" layout.width="90" layout.height="32" content="确定" />
+			</layoutEleUI>
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

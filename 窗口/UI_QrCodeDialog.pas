@@ -1,4 +1,4 @@
-﻿unit UI_QrCodeDialog;
+unit UI_QrCodeDialog;
 
 interface
 
@@ -25,33 +25,33 @@ type
       FFgR, FFgG, FFgB: Integer;
       FFgA: Byte;
       FLiquify: Boolean;
-    class function OnBtnLiquify(hEle: HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnSave(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnBrowse(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnEditTextChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnComboLevelChanged(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnLiquify(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnSave(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnBrowse(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEditTextChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnComboLevelChanged(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure DoGenerateQRCode(ForceECIndex: Integer = -1); static;
     class procedure RedrawPreview; static;
-    class function DoSaveQRCode(hOwnerWnd: Windows.HWND): Boolean; static;
+    class function DoSaveQRCode(hModalParent: XCGUI.HWINDOW): Boolean; static;
     class function RenderQRCodeToFile(const AFilePath, AExt: string): Boolean; static;
-    class function OnSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnSliderPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnSliderBtnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPreviewPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnBgColor(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnBgColorPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnFgColor(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnFgColorPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSliderPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnSliderBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnBgColor(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnBgColorPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnFgColor(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnFgColorPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     procedure InitPreviewArea;
     procedure InitSliderBar;
     procedure UpdateRadiusLabel;
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TQrCodeDialogUI; reintroduce;
-    class procedure ShowDialog(const hParent: HWND = 0; hAttachWnd: Integer = 0);
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI; reintroduce;
+    class procedure ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0);
   end;
 
 implementation
@@ -81,7 +81,7 @@ const
   ID_BTN_FG_COLOR     = 'btn_qrcode_fgcolor';
   ID_TXT_LABEL_FG_COLOR = 'txt_qrcode_label_fgcolor';
 
-class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TQrCodeDialogUI;
+class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI;
 var
   h: HXCGUI;
 begin
@@ -239,14 +239,14 @@ begin
   DoGenerateQRCode;
 end;
 
-class function TQrCodeDialogUI.OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TQrCodeDialogUI.OnBtnBrowse(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnBrowse(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   folderPath: string;
 begin
@@ -255,11 +255,11 @@ begin
   if FEdtPath = nil then
     Exit;
 
-  if BrowseForFolderPath('选择保存文件夹', XWidget_GetHWINDOW(hEle), folderPath) then
+  if BrowseForFolderPath('选择保存文件夹', Windows.HWND(XWidget_GetHWND(hEle)), folderPath) then
     FEdtPath.Text := folderPath;
 end;
 
-class function TQrCodeDialogUI.OnBtnSave(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnSave(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -324,20 +324,20 @@ begin
   end;
 end;
 
-class function TQrCodeDialogUI.OnComboLevelChanged(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnComboLevelChanged(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   DoGenerateQRCode(iItem);
 end;
 
-class function TQrCodeDialogUI.OnEditTextChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnEditTextChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   DoGenerateQRCode;
 end;
 
-class function TQrCodeDialogUI.OnSliderChange(hEle: HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
 
@@ -351,7 +351,7 @@ begin
   RedrawPreview;
 end;
 
-class function TQrCodeDialogUI.OnSliderPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnSliderPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -366,7 +366,7 @@ begin
   XDraw_FillRect(hDraw, rc);
 end;
 
-class function TQrCodeDialogUI.OnSliderBtnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnSliderBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -378,7 +378,7 @@ begin
   XDraw_FillEllipse(hDraw, rc);
 end;
 
-class function TQrCodeDialogUI.OnPreviewPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   qr: TDelphiZXingQRCode;
@@ -406,7 +406,7 @@ begin
   QrPaintMatrixXDraw(hDraw, qr, layout, fgColor, FLiquify, FQRModuleRadius);
 end;
 
-class function TQrCodeDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if wParam = VK_RETURN then
@@ -422,14 +422,14 @@ begin
   end;
 end;
 
-class function TQrCodeDialogUI.OnBtnLiquify(hEle: HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnLiquify(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   FLiquify := bCheck;
   RedrawPreview;
 end;
 
-class function TQrCodeDialogUI.OnBtnBgColor(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnBgColor(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   r, g, b: Integer;
   a: Byte;
@@ -445,7 +445,7 @@ begin
   end;
 end;
 
-class function TQrCodeDialogUI.OnBtnFgColor(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnFgColor(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   r, g, b: Integer;
   a: Byte;
@@ -461,7 +461,7 @@ begin
   end;
 end;
 
-class function TQrCodeDialogUI.OnBtnFgColorPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnFgColorPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   rr: Integer;
@@ -482,7 +482,7 @@ begin
   XDraw_DrawRoundRect(hDraw, rc, rr, rr);
 end;
 
-class function TQrCodeDialogUI.OnBtnBgColorPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TQrCodeDialogUI.OnBtnBgColorPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   rr: Integer;
@@ -558,18 +558,20 @@ begin
     FBgR, FBgG, FBgB, FBgA, FFgR, FFgG, FFgB, FFgA, FLiquify, FQRModuleRadius);
 end;
 
-class function TQrCodeDialogUI.DoSaveQRCode(hOwnerWnd: Windows.HWND): Boolean;
+class function TQrCodeDialogUI.DoSaveQRCode(hModalParent: XCGUI.HWINDOW): Boolean;
 var
   qrText, saveFolder, baseName, ext, savePath: string;
   pText: PWideChar;
   formatIndex: Integer;
+  hwndShell: Windows.HWND;
 begin
   Result := False;
   DoGenerateQRCode;
+  hwndShell := XWnd_GetHWND(hModalParent);
 
   if (FQRCode = nil) or (FQRCode.Rows <= 0) then
   begin
-    TMessageBoxUI.Confirm('保存失败', '请先输入要生成二维码的文本内容。', hOwnerWnd);
+    TMessageBoxUI.Confirm('保存失败', '请先输入要生成二维码的文本内容。', hModalParent);
     Exit;
   end;
 
@@ -579,7 +581,7 @@ begin
   saveFolder := Trim(FEdtPath.Text);
   if saveFolder = '' then
   begin
-    TMessageBoxUI.Confirm('保存失败', '请先选择保存路径。', hOwnerWnd);
+    TMessageBoxUI.Confirm('保存失败', '请先选择保存路径。', hModalParent);
     Exit;
   end;
 
@@ -597,29 +599,29 @@ begin
   ext := FormatExtByIndex(formatIndex);
   if (FBgA = 0) and (SameText(ext, 'jpg') or SameText(ext, 'jpeg')) then
   begin
-    TMessageBoxUI.Confirm('保存提示', '背景透明度为 0 时 JPG 会铺白底，建议使用 PNG 格式。', hOwnerWnd);
+    TMessageBoxUI.Confirm('保存提示', '背景透明度为 0 时 JPG 会铺白底，建议使用 PNG 格式。', hModalParent);
     ext := 'png';
   end;
   baseName := SanitizeQrFileName(qrText);
 
   if not ForceDirectories(saveFolder) then
   begin
-    TMessageBoxUI.Confirm('保存失败', '无法创建保存目录：' + saveFolder, hOwnerWnd);
+    TMessageBoxUI.Confirm('保存失败', '无法创建保存目录：' + saveFolder, hModalParent);
     Exit;
   end;
 
   savePath := UniqueFilePath(saveFolder, baseName, ext);
   if not RenderQRCodeToFile(savePath, ext) then
   begin
-    TMessageBoxUI.Confirm('保存失败', '写入文件失败：' + savePath, hOwnerWnd);
+    TMessageBoxUI.Confirm('保存失败', '写入文件失败：' + savePath, hModalParent);
     Exit;
   end;
 
-  ShellOpenFolderAndSelectPath(hOwnerWnd, savePath);
+  ShellOpenFolderAndSelectPath(hwndShell, savePath);
   Result := True;
 end;
 
-class procedure TQrCodeDialogUI.ShowDialog(const hParent: HWND = 0; hAttachWnd: Integer = 0);
+class procedure TQrCodeDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW);
 var
   dlg: TQrCodeDialogUI;
 begin

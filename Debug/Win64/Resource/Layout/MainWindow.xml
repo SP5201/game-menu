@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,832,627" windowStyle="60" minSize="920,600">
+	<layoutEleUI rect="256,143,100,100" layout.width="fill" layout.height="fill" layout.horizon="false" bkInfoM="{99:1.9.9;98:16();}">
+		<layoutEleUI rect="159,429,100,100" layout.width="fill" layout.height=":1">
+			<layoutEleUI name="layout_main_sidebar" rect="285,218,100,100" layout.width="200" layout.height="fill" layout.horizon="true" event_XE_PAINT_END="true">
+				<layoutEleUI rect="75,366,100,100" layout.width=":1" layout.height="fill" layout.horizon="false" expandT="false">
+					<layoutEleUI rect="50,425,100,100" layout.width="fill" layout.height="50" layout.horizon="true" layout.alignH="center" layout.alignV="center" expandT="false">
+						<shapePicture name="pic_main_logo" rect="0,0,50,50" layout.width="50" layout.height="50" expandT="false" />
+					</layoutEleUI>
+					<listBoxUI name="list_main_category" rect="134,85,100,100" layout.width="fill" layout.height=":1" />
+				</layoutEleUI>
+				<elementUI name="layout_main_sidebar_grip" rect="0,0,6,100" layout.width="6" layout.height="fill" transparent="true" drawBorder="false" drawFocus="false" expandT="false" />
+			</layoutEleUI>
+			<layoutEleUI rect="287,120,100,100" layout.width=":1" layout.height="fill">
+				<layoutEleUI rect="249,78,100,100" layout.width="fill" layout.height="50" layout.alignV="center" name="layout_main_header_bar">
+					<layoutEleUI name="layout_main_search_row" rect="0,0,100,100" layout.width=":1" layout.height="fill" layout.alignV="center" layout.horizon="true" layout.space="8">
+						<shapeText name="txt_main_search_index_status" content="" layout.width="auto" rect="0,0,120,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_RIGHT,DT_VCENTER,DT_SINGLELINE" textColor="@Resource:\ID_COLOR_PRIMARY" expandT="false" />
+						<layoutEleUI name="layout_main_search_box" rect="0,0,260,32" layout.width="300" layout.height="32" layout.alignV="center">
+							<editUI name="edit_main_search" rect="0,0,260,30" layout.width="fill" layout.height="32" contentTips="搜索全盘文件，留空显示全部" layout.margin="0,0,40,0" layoutControl="true" layout.float="true" />
+						</layoutEleUI>
+					</layoutEleUI>
+					<layoutEleUI rect="302,21,100,100" layout.width="150" layout.height="fill" layout.alignV="center" layout.space="16" layout.alignH="right" padding="0,0,8,0" expandT="false">
+						<buttonUI name="btn_main_settings" rect="42,20,60,25" layout.width="20" layout.height="20" />
+						<buttonUI name="btn_main_min" buttonType="min" rect="42,20,60,25" layout.width="20" layout.height="20" />
+						<buttonUI name="btn_main_max" buttonType="max" rect="42,20,60,25" layout.width="20" layout.height="20" />
+						<buttonUI name="btn_main_close" buttonType="close" rect="572,36,60,25" layout.width="20" layout.height="20" />
+					</layoutEleUI>
+				</layoutEleUI>
+				<layoutEleUI rect="238,165,100,100" layout.width="fill" layout.height=":1" layout.horizon="false">
+					<layoutEleUI name="layout_main_list_toolbar" rect="188,46,100,100" layout.horizon="true" layout.alignV="center" layout.width="fill" layout.height="30" layout.alignH="space" padding="0,0,8,0" layout.space="10" id="111">
+						<layoutEleUI name="layout_main_list_filter" rect="0,0,100,30" layout.horizon="true" layout.alignV="center" layout.width="auto" layout.height="fill" layout.alignH="left" layout.space="4" expandT="false">
+							<buttonUI name="btn_main_filter_all" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="全部" />
+							<buttonUI name="btn_main_filter_app" rect="0,0,64,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="应用程序" />
+							<buttonUI name="btn_main_filter_doc" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="文档" />
+							<buttonUI name="btn_main_filter_image" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="图片" />
+							<buttonUI name="btn_main_filter_video" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="视频" />
+							<buttonUI name="btn_main_filter_audio" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="音频" />
+							<buttonUI name="btn_main_filter_folder" rect="0,0,56,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="文件夹" />
+							<buttonUI name="btn_main_filter_archive" rect="0,0,56,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="压缩包" />
+							<buttonUI name="btn_main_filter_other" rect="0,0,48,24" layout.width="auto" layout.height="24" layout.margin="8,0,8,0" content="其他" />
+						</layoutEleUI>
+						<layoutEleUI rect="267,15,100,100" layout.width=":1" layout.height="fill" />
+						<layoutEleUI name="layout_main_list_tools" rect="0,0,100,30" layout.horizon="true" layout.alignV="center" layout.width="auto" layout.height="fill" layout.alignH="right" layout.space="10" expandT="false">
+							<buttonUI name="btn_main_list_layout" rect="549,15,60,25" layout.width="20" layout.height="20" expandT="false" />
+							<buttonUI name="btn_main_list_sort" rect="0,0,60,25" layout.width="20" layout.height="20" expandT="false" />
+						</layoutEleUI>
+					</layoutEleUI>
+					<listViewUI name="list_main_content" rect="0,0,100,100" layout.width="fill" layout.height=":1" transparent="true" />
+				</layoutEleUI>
+			</layoutEleUI>
+		</layoutEleUI>
+		<shapeRect name="sep_main_status_bar_top" rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#1CFFFFFF" enableBorder="false" expandT="false" />
+		<layoutEleUI name="layout_main_status_bar" rect="122,301,100,100" layout.width="fill" layout.height="28" layout.horizon="true" layout.alignV="center" id="11" padding="0,3,0,0" expandT="false">
+			<layoutEleUI rect="129,436,100,100" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignV="center" id="1001" layout.space="2">
+				<layoutEleUI name="layout_main_stat_ext_ip" rect="0,0,100,100" layout.horizon="true" layout.alignV="center" layout.width="auto" layout.height="fill" layout.space="2" transparent="true" mouseThrough="false" drawFocus="false" expandT="false">
+					<shapeText name="txt_main_stat_label_ext_ip" content="IP" layout.width="auto" rect="0,0,24,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_main_stat_ext_ip" content="--" layout.width="auto" rect="0,0,160,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+					<buttonUI name="btn_main_stat_weather" rect="0,0,16,16" layout.width="16" layout.height="16" layout.margin="2,0,0,0" mouseThrough="true" />
+					<shapeText name="txt_main_stat_weather" content="--" layout.width="auto" rect="0,0,72,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" expandT="false" />
+				</layoutEleUI>
+				<shapeRect name="sep_main_stat_weather_net_up" rect="0,0,1,12" layout.width="1" layout.height="12" fill="true" fillColor="#1CFFFFFF" enableBorder="false" layout.margin="4,0,4,0" expandT="false" />
+				<layoutEleUI name="layout_main_stat_net" rect="0,0,100,100" layout.horizon="true" layout.alignV="center" layout.width="auto" layout.height="fill" layout.alignH="left" layout.space="2" transparent="true" mouseThrough="false" drawFocus="false" expandT="false">
+					<shapePicture name="pic_main_stat_net_up" rect="102,14,100,100" layout.width="16" layout.height="16" />
+					<shapeText name="txt_main_stat_net_up" content="1024KB/s" layout.width="58" rect="0,0,72,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" expandT="false" />
+					<shapePicture name="pic_main_stat_net_down" rect="12,17,100,100" layout.width="16" layout.height="16" />
+					<shapeText name="txt_main_stat_net_down" content="1024KB/s" layout.width="58" rect="0,0,72,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" expandT="false" />
+				</layoutEleUI>
+				<shapeRect name="sep_main_stat_net_down_cpu" rect="0,0,1,12" layout.width="1" layout.height="12" fill="true" fillColor="#1CFFFFFF" enableBorder="false" expandT="false" />
+				<layoutEleUI name="layout_main_stat_cpu" rect="0,0,100,100" layout.width="auto" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="2" transparent="true" mouseThrough="false" drawFocus="false" expandT="false">
+					<shapeText name="txt_main_stat_label_cpu" content="CPU" layout.width="auto" rect="16,13,100,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_main_stat_cpu" layout.width="31" rect="52,18,42,26" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" content="100%" />
+					<progressBarUI name="prog_main_stat_cpu" rect="0,0,50,7" layout.width="50" layout.height="7" progressBar.range="100" progressBar.pos="0" mouseThrough="true" />
+				</layoutEleUI>
+				<shapeRect name="sep_main_stat_cpu_ram" rect="0,0,1,12" layout.width="1" layout.height="12" fill="true" fillColor="#1CFFFFFF" enableBorder="false" expandT="false" />
+				<layoutEleUI name="layout_main_stat_ram" rect="313,7,100,100" layout.width="auto" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="2" transparent="true" mouseThrough="false" drawFocus="false" expandT="false">
+					<shapeText name="txt_main_stat_label_ram" content="RAM" layout.width="auto" rect="16,13,100,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_main_stat_mem" layout.width="31" rect="52,18,42,26" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" content="100%" />
+					<progressBarUI name="prog_main_stat_ram" rect="0,0,50,7" layout.width="50" layout.height="7" progressBar.range="100" progressBar.pos="0" mouseThrough="true" />
+				</layoutEleUI>
+				<shapeRect name="sep_main_stat_ram_gpu" rect="0,0,1,12" layout.width="1" layout.height="12" fill="true" fillColor="#1CFFFFFF" enableBorder="false" expandT="false" />
+				<layoutEleUI name="layout_main_stat_gpu" rect="313,7,100,100" layout.width="auto" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="2" transparent="true" mouseThrough="false" drawFocus="false" expandT="false">
+					<shapeText name="txt_main_stat_label_gpu" content="GPU" layout.width="auto" rect="16,13,100,20" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+					<shapeText name="txt_main_stat_gpu" layout.width="31" rect="52,18,42,26" layout.height="fill" font="@Resource:\Inter_Medium" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" content="100%" />
+					<progressBarUI name="prog_main_stat_gpu" rect="0,0,50,7" layout.width="50" layout.height="7" progressBar.range="100" progressBar.pos="0" mouseThrough="true" />
+				</layoutEleUI>
+			</layoutEleUI>
+			<layoutEleUI rect="499,12,100,100" layout.height="fill" layout.width="80" layout.alignV="center" layout.alignH="right" layout.horizon="true" layout.space="10" expandT="false">
+				<buttonUI name="btn_main_commonTools" rect="0,13,60,25" layout.width="18" layout.height="18" />
+				<buttonUI name="btn_main_sysTools" rect="0,13,60,25" layout.width="18" layout.height="18" />
+				<buttonUI name="btn_main_notify" rect="0,13,60,25" layout.width="18" layout.height="18" />
+			</layoutEleUI>
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

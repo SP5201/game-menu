@@ -809,7 +809,11 @@ const
 implementation
 
 const
+{$IFDEF WIN64}
+  Sqlite3Dll='sqlite3_x64.dll';
+{$ELSE}
   Sqlite3Dll='sqlite3.dll';
+{$ENDIF}
 
 function sqlite3_libversion; external Sqlite3Dll {$IF DEFINED(DELAYED_DLL_LOAD)} delayed {$IFEND};
 function sqlite3_sourceid; external Sqlite3Dll {$IF DEFINED(DELAYED_DLL_LOAD)} delayed {$IFEND};

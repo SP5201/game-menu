@@ -19,20 +19,23 @@ type
     class function ResolveCategoryIconDir(const AEnsureExists: Boolean): string; static;
     class function ApplyPreviewSvg(const ASvgPath: string): Boolean; static;
     procedure InitCategoryIconList;
-    class function OnCategoryIconSelect(hEle: HELE; iGroup, iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnOK(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnOpenIconDir(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnCategoryIconSelect(hEle: XCGUI.HELE; iGroup, iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnOpenIconDir(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetDialogText(const AName, AIconFile, ATitle, AConfirmText: string);
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TCategoryDialogUI; reintroduce;
-    class function EditCategory(var AName, AIconFile: string; const ATitle, AConfirmText: string; const hParent: HWND = 0; hAttachWnd: Integer = 0): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TCategoryDialogUI; reintroduce;
+    class function EditCategory(var AName, AIconFile: string; const ATitle, AConfirmText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
 implementation
+
+uses
+  AppPaths;
 
 const
   ID_BTN_DIALOG_CLOSE = 'btn_category_dialog_close';
@@ -48,19 +51,16 @@ const
 
 class function TCategoryDialogUI.ResolveCategoryIconDir(const AEnsureExists: Boolean): string;
 begin
-  Result := 'Data\CategoryIcons';
+  Result := AppDataDirectory + 'CategoryIcons';
   if DirectoryExists(Result) then
     Exit;
-
-  if DirectoryExists('Debug\Data\CategoryIcons') then
-    Result := 'Debug\Data\CategoryIcons'
-  else if AEnsureExists then
+  if AEnsureExists then
     ForceDirectories(Result);
 end;
 
 class function TCategoryDialogUI.ApplyPreviewSvg(const ASvgPath: string): Boolean;
 var
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   hImg: HIMAGE;
 begin
   Result := False;
@@ -98,7 +98,7 @@ begin
     FListCategoryIcons.AddSvgIconItem('Resource\category\default.svg', UITheme_InputText);
 end;
 
-class function TCategoryDialogUI.OnCategoryIconSelect(hEle: hEle; iGroup, iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TCategoryDialogUI.OnCategoryIconSelect(hEle: XCGUI.HELE; iGroup, iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TIconListViewUI;
   iconPath: string;
@@ -118,7 +118,7 @@ begin
     FSelectedIconFile := iconPath;
 end;
 
-class function TCategoryDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TCategoryDialogUI;
+class function TCategoryDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TCategoryDialogUI;
 var
   h: HXCGUI;
 begin
@@ -128,7 +128,7 @@ begin
   Result := FromHandle(h);
 end;
 
-class function TCategoryDialogUI.OnOpenIconDir(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TCategoryDialogUI.OnOpenIconDir(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   iconDir: string;
 begin
@@ -221,7 +221,7 @@ begin
   end;
 end;
 
-class function TCategoryDialogUI.OnBtnOK(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TCategoryDialogUI.OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   newName: string;
 begin
@@ -239,14 +239,14 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TCategoryDialogUI.OnBtnCancel(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TCategoryDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TCategoryDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TCategoryDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 var
   newName: string;
 begin
@@ -276,7 +276,7 @@ begin
 end;
 
 class function TCategoryDialogUI.EditCategory(var AName, AIconFile: string; const ATitle,
-  AConfirmText: string; const hParent: HWND = 0; hAttachWnd: Integer = 0): Boolean;
+  AConfirmText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
 var
   dlg: TCategoryDialogUI;
   titleText, confirmText: string;

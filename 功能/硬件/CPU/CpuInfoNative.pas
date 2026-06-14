@@ -17,12 +17,11 @@ function CpuNativeFormatModelName(const ARawBrand: string): string;
 
 implementation
 
-type
-  TCpuIdRegs = record
-    Eax, Ebx, Ecx, Edx: Cardinal;
-  end;
+uses
+  CpuIdHelper;
 
-  { Win32 SYSTEM_LOGICAL_PROCESSOR_INFORMATION = 24 字节；仅解析 Relationship 字段 }
+type
+  { SYSTEM_LOGICAL_PROCESSOR_INFORMATION：Win32=24 字节，Win64=32 字节；仅解析 Relationship/Cache 字段 }
   SYSTEM_LOGICAL_PROCESSOR_INFORMATION = record
     ProcessorMask: ULONG_PTR;
     Relationship: DWORD;
@@ -33,10 +32,17 @@ type
 const
   RelationProcessorCore = 0;
   RelationCache = 2;
+{$IFDEF WIN64}
+  CLogProcInfoSize = 32;
+  CLogProcCacheLevelOff = 16;
+  CLogProcCacheSizeOff = 20;
+  CLogProcCacheTypeOff = 24;
+{$ELSE}
   CLogProcInfoSize = 24;
   CLogProcCacheLevelOff = 8;
   CLogProcCacheSizeOff = 12;
   CLogProcCacheTypeOff = 16;
+{$ENDIF}
   CLogProcL1TypeSlots = 16;
   { ntexapi.h：Hits(8) + PercentFrequency(1) + 对齐填充 = 16，不可用 packed 9 字节 }
   CLogProcHitCountSize = 16;
@@ -327,32 +333,32 @@ begin
   totalFreq := 0;
   for procIdx := 0 to Integer(curDist^.ProcessorCount) - 1 do
   begin
-    curOff := PULONG(LongWord(ACurBuf) + SizeOf(ULONG) + LongWord(procIdx) * SizeOf(ULONG))^;
-    savedOff := PULONG(LongWord(ASavedBuf) + SizeOf(ULONG) + LongWord(procIdx) * SizeOf(ULONG))^;
-    curState := PSYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION(LongWord(ACurBuf) + curOff);
-    savedState := PSYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION(LongWord(ASavedBuf) + savedOff);
+    curOff := PULONG(NativeUInt(ACurBuf) + SizeOf(ULONG) + NativeUInt(procIdx) * SizeOf(ULONG))^;
+    savedOff := PULONG(NativeUInt(ASavedBuf) + SizeOf(ULONG) + NativeUInt(procIdx) * SizeOf(ULONG))^;
+    curState := PSYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION(NativeUInt(ACurBuf) + curOff);
+    savedState := PSYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION(NativeUInt(ASavedBuf) + savedOff);
     if curState^.StateCount <> savedState^.StateCount then
       Continue;
     stateCount := curState^.StateCount;
     maxMhz := PPROCESSOR_POWER_INFORMATION(
-      Pointer(LongWord(APower) + LongWord(procIdx) * SizeOf(PROCESSOR_POWER_INFORMATION)))^.MaxMhz;
+      Pointer(NativeUInt(APower) + NativeUInt(procIdx) * SizeOf(PROCESSOR_POWER_INFORMATION)))^.MaxMhz;
     if maxMhz = 0 then
       maxMhz := APower^.MaxMhz;
     for stateIdx := 0 to Integer(stateCount) - 1 do
     begin
       hitsDelta := PSYSTEM_PROCESSOR_PERFORMANCE_HITCOUNT(
-        LongWord(curState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
-        LongWord(stateIdx) * CLogProcHitCountSize)^.Hits -
+        NativeUInt(curState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
+        NativeUInt(stateIdx) * CLogProcHitCountSize)^.Hits -
         PSYSTEM_PROCESSOR_PERFORMANCE_HITCOUNT(
-        LongWord(savedState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
-        LongWord(stateIdx) * CLogProcHitCountSize)^.Hits;
+        NativeUInt(savedState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
+        NativeUInt(stateIdx) * CLogProcHitCountSize)^.Hits;
       if hitsDelta > 0 then
       begin
         Inc(totalHits, hitsDelta);
         Inc(totalFreq, hitsDelta *
           PSYSTEM_PROCESSOR_PERFORMANCE_HITCOUNT(
-            LongWord(curState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
-            LongWord(stateIdx) * CLogProcHitCountSize)^.PercentFrequency * maxMhz);
+            NativeUInt(curState) + SizeOf(SYSTEM_PROCESSOR_PERFORMANCE_STATE_DISTRIBUTION) +
+            NativeUInt(stateIdx) * CLogProcHitCountSize)^.PercentFrequency * maxMhz);
       end;
     end;
   end;
@@ -375,7 +381,7 @@ begin
   entrySize := SizeOf(PROCESSOR_POWER_INFORMATION);
   for i := 0 to ACpuCount - 1 do
   begin
-    entry := PPROCESSOR_POWER_INFORMATION(Pointer(LongWord(APower) + LongWord(i) * entrySize));
+    entry := PPROCESSOR_POWER_INFORMATION(Pointer(NativeUInt(APower) + NativeUInt(i) * entrySize));
     if entry^.CurrentMhz > 0 then
     begin
       Inc(sum, entry^.CurrentMhz);
@@ -388,20 +394,6 @@ begin
     Result := maxCur
   else if cnt > 0 then
     Result := DWORD(sum div cnt);
-end;
-
-procedure CpuIdLeaf(const AFunc: Cardinal; out ARegs: TCpuIdRegs); assembler;
-asm
-  push ebx
-  push edi
-  mov edi, edx
-  cpuid
-  mov dword ptr [edi], eax
-  mov dword ptr [edi + 4], ebx
-  mov dword ptr [edi + 8], ecx
-  mov dword ptr [edi + 12], edx
-  pop edi
-  pop ebx
 end;
 
 function CpuIdBrandString: string;
@@ -510,18 +502,7 @@ begin
     CpuIdAppendInstruction(Result, 'AVX');
   if maxLeaf >= 7 then
   begin
-    asm
-      push ebx
-      mov eax, 7
-      xor ecx, ecx
-      lea edi, r7
-      cpuid
-      mov [edi], eax
-      mov [edi + 4], ebx
-      mov [edi + 8], ecx
-      mov [edi + 12], edx
-      pop ebx
-    end;
+    CpuIdLeafEx(7, 0, r7);
     if (r7.Ebx and (1 shl 5)) <> 0 then
       CpuIdAppendInstruction(Result, 'AVX2');
     if (r7.Ebx and (1 shl 16)) <> 0 then
@@ -620,17 +601,17 @@ end;
 
 function LogProcInfoCacheLevel(const AEntry: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION): Byte;
 begin
-  Result := PByte(LongWord(AEntry) + CLogProcCacheLevelOff)^;
+  Result := PByte(NativeUInt(AEntry) + CLogProcCacheLevelOff)^;
 end;
 
 function LogProcInfoCacheSize(const AEntry: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION): DWORD;
 begin
-  Result := PDWORD(LongWord(AEntry) + CLogProcCacheSizeOff)^;
+  Result := PDWORD(NativeUInt(AEntry) + CLogProcCacheSizeOff)^;
 end;
 
 function LogProcInfoCacheType(const AEntry: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION): Word;
 begin
-  Result := PWord(LongWord(AEntry) + CLogProcCacheTypeOff)^;
+  Result := PWord(NativeUInt(AEntry) + CLogProcCacheTypeOff)^;
 end;
 
 function CpuQueryCurrentSpeedMhz: DWORD;
@@ -748,7 +729,7 @@ begin
         end;
       end;
       entry := PSYSTEM_LOGICAL_PROCESSOR_INFORMATION(
-        Pointer(LongWord(entry) + CLogProcInfoSize));
+        Pointer(NativeUInt(entry) + CLogProcInfoSize));
       Dec(remain, CLogProcInfoSize);
     end;
   finally
@@ -783,7 +764,7 @@ begin
       if entry^.Relationship = RelationProcessorCore then
         Inc(Result);
       entry := PSYSTEM_LOGICAL_PROCESSOR_INFORMATION(
-        Pointer(LongWord(entry) + CLogProcInfoSize));
+        Pointer(NativeUInt(entry) + CLogProcInfoSize));
       Dec(remain, CLogProcInfoSize);
     end;
   finally                                                                  
@@ -818,24 +799,24 @@ begin
       Exit;
     if size < 8 then
       Exit;
-    tableLen := PDWORD(Pointer(LongWord(buf) + 4))^;
+    tableLen := PDWORD(Pointer(NativeUInt(buf) + 4))^;
     if (tableLen = 0) or (8 + tableLen > size) then
       Exit;
     offset := 0;
     while offset + 4 <= tableLen do
     begin
-      structType := PByte(LongWord(buf) + 8 + offset)^;
-      structLen := PByte(LongWord(buf) + 8 + offset + 1)^;
+      structType := PByte(NativeUInt(buf) + 8 + offset)^;
+      structLen := PByte(NativeUInt(buf) + 8 + offset + 1)^;
       if structLen < 4 then
         Break;
       if offset + structLen > tableLen then
         Break;
       if (structType = 4) and (structLen >= $14) then
       begin
-        procType := PByte(LongWord(buf) + 8 + offset + 1)^;
+        procType := PByte(NativeUInt(buf) + 8 + offset + 1)^;
         if procType = cSmbProcTypeCentral then
         begin
-          bootSpeed := PWord(LongWord(buf) + 8 + offset + $12)^;
+          bootSpeed := PWord(NativeUInt(buf) + 8 + offset + $12)^;
           if CpuIsPlausibleSpeedMhz(bootSpeed) then
           begin
             Result := bootSpeed;
@@ -844,10 +825,10 @@ begin
         end;
       end;
       Inc(offset, structLen);
-      while (offset < tableLen) and (PByte(LongWord(buf) + 8 + offset)^ <> 0) do
+      while (offset < tableLen) and (PByte(NativeUInt(buf) + 8 + offset)^ <> 0) do
         Inc(offset);
       Inc(offset);
-      while (offset < tableLen) and (PByte(LongWord(buf) + 8 + offset)^ = 0) do
+      while (offset < tableLen) and (PByte(NativeUInt(buf) + 8 + offset)^ = 0) do
         Inc(offset);
       if structType = 127 then
         Break;
@@ -871,7 +852,7 @@ begin
     entrySize := SizeOf(PROCESSOR_POWER_INFORMATION);
     for i := 0 to cpuCount - 1 do
     begin
-      entry := PPROCESSOR_POWER_INFORMATION(Pointer(LongWord(powerBuf) + LongWord(i) * entrySize));
+      entry := PPROCESSOR_POWER_INFORMATION(Pointer(NativeUInt(powerBuf) + NativeUInt(i) * entrySize));
       if CpuIsPlausibleSpeedMhz(entry^.MaxMhz) and (entry^.MaxMhz > Result) then
         Result := entry^.MaxMhz;
     end;

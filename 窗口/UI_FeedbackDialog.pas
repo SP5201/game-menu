@@ -11,14 +11,14 @@ type
   private
     class var
       FEdtContent: TEditUI;
-    class function OnBtnSend(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnSend(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TFeedbackDialogUI; reintroduce;
-    class procedure ShowDialog(const hParent: Windows.HWND = 0; hAttachWnd: Integer = 0);
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TFeedbackDialogUI; reintroduce;
+    class procedure ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0);
   end;
 
 implementation
@@ -33,7 +33,7 @@ const
   ID_EDIT_CONTENT     = 'edit_feedback_content';
   ID_TXT_DIALOG_TITLE = 'txt_feedback_title';
 
-class function TFeedbackDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: Integer): TFeedbackDialogUI;
+class function TFeedbackDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TFeedbackDialogUI;
 var
   h: HXCGUI;
 begin
@@ -56,7 +56,7 @@ begin
     RegEvent(WM_KEYDOWN, @TFeedbackDialogUI.OnWndKeyDown);
 end;
 
-class function TFeedbackDialogUI.OnBtnSend(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TFeedbackDialogUI.OnBtnSend(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   ownerWnd: Windows.HWND;
   feedbackText, errMsg: string;
@@ -68,26 +68,26 @@ begin
   feedbackText := Trim(FEdtContent.Text);
   if feedbackText = '' then
   begin
-    TMessageBoxUI.Confirm('提示', '请输入反馈内容。', XWidget_GetHWND(hEle));
+    TMessageBoxUI.Confirm('提示', '请输入反馈内容。', XWidget_GetHWINDOW(hEle));
     Exit;
   end;
   ownerWnd := XWidget_GetHWND(hEle);
   if not SendFeedbackMessage(feedbackText, ownerWnd, errMsg) then
   begin
-    TMessageBoxUI.Confirm('打开失败', '无法在浏览器中打开 GitHub 反馈页面。' + sLineBreak + sLineBreak + errMsg, ownerWnd);
+    TMessageBoxUI.Confirm('打开失败', '无法在浏览器中打开 GitHub 反馈页面。' + sLineBreak + sLineBreak + errMsg, XWidget_GetHWINDOW(hEle));
     Exit;
   end;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TFeedbackDialogUI.OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TFeedbackDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TFeedbackDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer;
+class function TFeedbackDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if wParam = VK_ESCAPE then
@@ -97,7 +97,7 @@ begin
   end;
 end;
 
-class procedure TFeedbackDialogUI.ShowDialog(const hParent: Windows.HWND; hAttachWnd: Integer);
+class procedure TFeedbackDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW);
 var
   dlg: TFeedbackDialogUI;
 begin

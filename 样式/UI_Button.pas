@@ -7,32 +7,34 @@ uses
 
 type
   TButtonPaintFlags = Cardinal;
+  THWindowKey = HWINDOW;
+  TMaxBtnEle = HELE;
 
   TButtonUI = class(TXBtn)
   private
     class var
-      FButtonMap: TDictionary<Integer, TButtonPaintFlags>;
-      FMaxBtnByWnd: TDictionary<Integer, Integer>;
-    class function BtnHasCaption(const hBtn: HELE): Boolean; static;
-    class function BtnGetSvg(const hBtn: HELE; out hSvgIcon: HSVG; out SvgW, SvgH: Integer): Boolean; static;
-    class procedure ApplyButtonSvgIcon(const hBtn: HELE; const SvgFile: PWideChar; const SvgWidth, SvgHeight: Integer); static;
-    class function NeedsCustomPaint(const Flags: TButtonPaintFlags; const SvgLoaded: Boolean; const hBtn: HELE): Boolean; static;
+      FButtonMap: TDictionary<HXCGUI, TButtonPaintFlags>;
+      FMaxBtnByWnd: TDictionary<THWindowKey, TMaxBtnEle>;
+    class function BtnHasCaption(const hBtn: XCGUI.HELE): Boolean; static;
+    class function BtnGetSvg(const hBtn: XCGUI.HELE; out hSvgIcon: HSVG; out SvgW, SvgH: Integer): Boolean; static;
+    class procedure ApplyButtonSvgIcon(const hBtn: XCGUI.HELE; const SvgFile: PWideChar; const SvgWidth, SvgHeight: Integer); static;
+    class function NeedsCustomPaint(const Flags: TButtonPaintFlags; const SvgLoaded: Boolean; const hBtn: XCGUI.HELE): Boolean; static;
     class procedure EnsureMaxBtnMap; static;
-    class function ResolveMaxButton(const hWindow: HWINDOW): HELE; static;
+    class function ResolveMaxButton(const hWindow: THWindowKey): HELE; static;
   protected
     procedure Init; override;
-    class function GetPaintFlagsOfHandle(const hBtn: HELE): TButtonPaintFlags; static;
-    procedure SetPaintFlagsOfHandle(const hBtn: HELE; const Flags: TButtonPaintFlags);
-    class function OnBtnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnDestroy(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function GetPaintFlagsOfHandle(const hBtn: XCGUI.HELE): TButtonPaintFlags; static;
+    procedure SetPaintFlagsOfHandle(const hBtn: XCGUI.HELE; const Flags: TButtonPaintFlags);
+    class function OnBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnDestroy(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     procedure ApplyPaintFlags(const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar; const SvgWidth: Integer; const SvgHeight: Integer);
   public
     class function FromXmlName(const XmlName: string; const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar = nil; const SvgWidth: Integer = 16; const SvgHeight: Integer = 16): TButtonUI; reintroduce;
-    class function FormHandle(const hBtn: HELE; const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar = nil; const SvgWidth: Integer = 16; const SvgHeight: Integer = 16): TButtonUI;
+    class function FormHandle(const hBtn: XCGUI.HELE; const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar = nil; const SvgWidth: Integer = 16; const SvgHeight: Integer = 16): TButtonUI;
     procedure SetSvgFile(const SvgFile: PWideChar);
-    class procedure BindMaxButton(const hWindow: HWINDOW; const hBtn: HELE); static;
-    class procedure SetMaxButtonSvg(const hWindow: HWINDOW; const AMaximized: Boolean); static;
-    class procedure SyncMaxButtonSvg(const hWindow: HWINDOW); static;
+    class procedure BindMaxButton(const hWindow: THWindowKey; const hBtn: XCGUI.HELE); static;
+    class procedure SetMaxButtonSvg(const hWindow: THWindowKey; const AMaximized: Boolean); static;
+    class procedure SyncMaxButtonSvg(const hWindow: THWindowKey); static;
     destructor Destroy; override;
   end;
 
@@ -51,7 +53,7 @@ const
 
 implementation
 
-class function TButtonUI.BtnHasCaption(const hBtn: HELE): Boolean;
+class function TButtonUI.BtnHasCaption(const hBtn: XCGUI.HELE): Boolean;
 var
   p: PWideChar;
 begin
@@ -59,7 +61,7 @@ begin
   Result := (p <> nil) and (p^ <> #0);
 end;
 
-class function TButtonUI.BtnGetSvg(const hBtn: HELE; out hSvgIcon: HSVG; out SvgW, SvgH: Integer): Boolean;
+class function TButtonUI.BtnGetSvg(const hBtn: XCGUI.HELE; out hSvgIcon: HSVG; out SvgW, SvgH: Integer): Boolean;
 var
   hBtnIcon: HIMAGE;
 begin
@@ -75,7 +77,7 @@ begin
     XSvg_GetSize(hSvgIcon, SvgW, SvgH);
 end;
 
-class procedure TButtonUI.ApplyButtonSvgIcon(const hBtn: HELE; const SvgFile: PWideChar; const SvgWidth, SvgHeight: Integer);
+class procedure TButtonUI.ApplyButtonSvgIcon(const hBtn: XCGUI.HELE; const SvgFile: PWideChar; const SvgWidth, SvgHeight: Integer);
 var
   hSvgIcon: HSVG;
   hBtnIcon: HIMAGE;
@@ -100,14 +102,14 @@ begin
     XBtn_SetIcon(hBtn, hBtnIcon);
 end;
 
-class function TButtonUI.NeedsCustomPaint(const Flags: TButtonPaintFlags; const SvgLoaded: Boolean; const hBtn: HELE): Boolean;
+class function TButtonUI.NeedsCustomPaint(const Flags: TButtonPaintFlags; const SvgLoaded: Boolean; const hBtn: XCGUI.HELE): Boolean;
 begin
   Result := SvgLoaded or ((Flags and (BB_EnableBorder or BB_EnableHighlightBk or BB_EnableNormalBk or BB_EnableCheckStyle)) <> 0);
   if not Result and (hBtn <> 0) then
     Result := BtnHasCaption(hBtn);
 end;
 
-class function TButtonUI.FormHandle(const hBtn: HELE; const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar = nil; const SvgWidth: Integer = 16; const SvgHeight: Integer = 16): TButtonUI;
+class function TButtonUI.FormHandle(const hBtn: XCGUI.HELE; const PaintFlags: TButtonPaintFlags; const SvgFile: PWideChar = nil; const SvgWidth: Integer = 16; const SvgHeight: Integer = 16): TButtonUI;
 begin
   Result := TButtonUI(TButtonUI.FromHandle(hBtn));
   Result.ApplyPaintFlags(PaintFlags, SvgFile, SvgWidth, SvgHeight);
@@ -133,14 +135,14 @@ begin
   inherited;
 end;
 
-class function TButtonUI.GetPaintFlagsOfHandle(const hBtn: HELE): TButtonPaintFlags;
+class function TButtonUI.GetPaintFlagsOfHandle(const hBtn: XCGUI.HELE): TButtonPaintFlags;
 begin
   if Assigned(FButtonMap) and FButtonMap.TryGetValue(hBtn, Result) then
     Exit;
   Result := BB_EnableNormalBk;
 end;
 
-procedure TButtonUI.SetPaintFlagsOfHandle(const hBtn: HELE; const Flags: TButtonPaintFlags);
+procedure TButtonUI.SetPaintFlagsOfHandle(const hBtn: XCGUI.HELE; const Flags: TButtonPaintFlags);
 begin
   if Assigned(FButtonMap) then
     FButtonMap.AddOrSetValue(hBtn, Flags);
@@ -175,10 +177,10 @@ end;
 class procedure TButtonUI.EnsureMaxBtnMap;
 begin
   if FMaxBtnByWnd = nil then
-    FMaxBtnByWnd := TDictionary<Integer, Integer>.Create;
+    FMaxBtnByWnd := TDictionary<THWindowKey, TMaxBtnEle>.Create;
 end;
 
-class function TButtonUI.ResolveMaxButton(const hWindow: HWINDOW): HELE;
+class function TButtonUI.ResolveMaxButton(const hWindow: THWindowKey): HELE;
 begin
   Result := 0;
   if (FMaxBtnByWnd <> nil) and FMaxBtnByWnd.TryGetValue(hWindow, Result) then
@@ -186,7 +188,7 @@ begin
   Result := XWnd_GetButton(hWindow, button_type_max);
 end;
 
-class procedure TButtonUI.SetMaxButtonSvg(const hWindow: HWINDOW; const AMaximized: Boolean);
+class procedure TButtonUI.SetMaxButtonSvg(const hWindow: THWindowKey; const AMaximized: Boolean);
 var
   hBtn: HELE;
   btnUi: TButtonUI;
@@ -203,7 +205,7 @@ begin
     btnUi.SetSvgFile(cBtnSvgMax);
 end;
 
-class procedure TButtonUI.SyncMaxButtonSvg(const hWindow: HWINDOW);
+class procedure TButtonUI.SyncMaxButtonSvg(const hWindow: THWindowKey);
 var
   hWndReal: Windows.HWND;
 begin
@@ -213,7 +215,7 @@ begin
   SetMaxButtonSvg(hWindow, IsZoomed(hWndReal));
 end;
 
-class procedure TButtonUI.BindMaxButton(const hWindow: HWINDOW; const hBtn: HELE);
+class procedure TButtonUI.BindMaxButton(const hWindow: THWindowKey; const hBtn: XCGUI.HELE);
 begin
   if (not XC_IsHWINDOW(hWindow)) or (XC_GetObjectType(hBtn) <> XC_BUTTON) then
     Exit;
@@ -221,7 +223,7 @@ begin
   FMaxBtnByWnd.AddOrSetValue(hWindow, hBtn);
 end;
 
-class function TButtonUI.OnBtnDestroy(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TButtonUI.OnBtnDestroy(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
 
@@ -229,7 +231,7 @@ begin
     FButtonMap.Remove(hEle);
 end;
 
-class function TButtonUI.OnBtnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall;
+class function TButtonUI.OnBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   F: TButtonPaintFlags;
   hSvgIcon: HSVG;
@@ -347,7 +349,7 @@ begin
 end;
 
 initialization
-  TButtonUI.FButtonMap := TDictionary<Integer, TButtonPaintFlags>.Create;
+  TButtonUI.FButtonMap := TDictionary<HXCGUI, TButtonPaintFlags>.Create;
 
 finalization
   FreeAndNil(TButtonUI.FMaxBtnByWnd);

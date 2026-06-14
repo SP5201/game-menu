@@ -11,6 +11,10 @@ const
   cGrowChunkNamePool = 256 * 1024;
 
 function Utf8ToLowerAnsi(const AUtf8: PAnsiChar): AnsiString;
+function AnsiCharLower(ACh: AnsiChar): AnsiChar;
+function AnsiStrLen(const S: PAnsiChar): Integer;
+function AnsiStrComp(L, R: PAnsiChar): Integer;
+function ExtEntryNameToString(const AEntry: TExtEntry): string;
 procedure GrowFolders(var ADB: TEverythingDB);
 procedure GrowFiles(var ADB: TEverythingDB);
 procedure GrowNamePool(var ADB: TEverythingDB; AExtraBytes: Cardinal);
@@ -30,22 +34,79 @@ function UnixDateToDelta(const ABaseDate, ADate: Cardinal): Word;
 
 implementation
 
+function AnsiStrLen(const S: PAnsiChar): Integer;
+var
+  p: PAnsiChar;
+begin
+  Result := 0;
+  if S = nil then
+    Exit;
+  p := S;
+  while p^ <> #0 do
+  begin
+    Inc(p);
+    Inc(Result);
+  end;
+end;
+
+function AnsiCharLower(ACh: AnsiChar): AnsiChar;
+begin
+  if (ACh >= 'A') and (ACh <= 'Z') then
+    Result := AnsiChar(Ord(ACh) + 32)
+  else
+    Result := ACh;
+end;
+
+function AnsiStrComp(L, R: PAnsiChar): Integer;
+begin
+  if L = nil then
+    L := '';
+  if R = nil then
+    R := '';
+  while True do
+  begin
+    if L^ <> R^ then
+      Exit(Ord(L^) - Ord(R^));
+    if L^ = #0 then
+      Exit(0);
+    Inc(L);
+    Inc(R);
+  end;
+end;
+
+function AnsiStrPas(const S: PAnsiChar): AnsiString;
+var
+  len: Integer;
+begin
+  if S = nil then
+    Exit('');
+  len := AnsiStrLen(S);
+  SetLength(Result, len);
+  if len > 0 then
+    Move(S^, Result[1], len);
+end;
+
+function ExtEntryNameToString(const AEntry: TExtEntry): string;
+begin
+  Result := string(AnsiStrPas(@AEntry.ExtName[0]));
+end;
+
 function Utf8ToLowerAnsi(const AUtf8: PAnsiChar): AnsiString;
 var
-  i: Integer;
-  ch: AnsiChar;
+  i, len: Integer;
+  p: PAnsiChar;
 begin
   if AUtf8 = nil then
     Exit('');
-  i := 0;
-  SetLength(Result, 0);
-  while AUtf8[i] <> #0 do
+  len := AnsiStrLen(AUtf8);
+  SetLength(Result, len);
+  if len = 0 then
+    Exit;
+  p := AUtf8;
+  for i := 1 to len do
   begin
-    ch := AUtf8[i];
-    if (ch >= 'A') and (ch <= 'Z') then
-      ch := AnsiChar(Ord(ch) + 32);
-    Result := Result + ch;
-    Inc(i);
+    Result[i] := AnsiCharLower(p^);
+    Inc(p);
   end;
 end;
 
@@ -113,7 +174,7 @@ begin
   if (AUtf8 = nil) or (AUtf8^ = #0) then
     Exit(0);
   if ALen < 0 then
-    len := StrLen(AUtf8)
+    len := AnsiStrLen(AUtf8)
   else
     len := ALen;
   GrowNamePool(ADB, Cardinal(len));
@@ -132,29 +193,6 @@ begin
   Result := AppendUtf8Name(ADB, PAnsiChar(utf8), Length(utf8));
 end;
 
-function ExtAnsiEqual(const AEntry: TExtEntry; const AExt: PAnsiChar): Boolean;
-var
-  i: Integer;
-  a, b: AnsiChar;
-begin
-  Result := False;
-  if AExt = nil then
-    Exit;
-  for i := 0 to cExtNameMaxLen do
-  begin
-    a := AEntry.ExtName[i];
-    b := AExt[i];
-    if (a >= 'A') and (a <= 'Z') then
-      a := AnsiChar(Ord(a) + 32);
-    if (b >= 'A') and (b <= 'Z') then
-      b := AnsiChar(Ord(b) + 32);
-    if a <> b then
-      Exit;
-    if a = #0 then
-      Exit(True);
-  end;
-end;
-
 function FindOrAddExt(var ADB: TEverythingDB; const AExtUtf8: PAnsiChar): Word;
 var
   i, n: Integer;
@@ -165,7 +203,7 @@ begin
     Exit;
   ext := Utf8ToLowerAnsi(AExtUtf8);
   for i := 0 to ADB.ExtCount - 1 do
-    if ExtAnsiEqual(ADB.ExtTable[i], PAnsiChar(ext)) then
+    if AnsiStrComp(@ADB.ExtTable[i].ExtName[0], PAnsiChar(ext)) = 0 then
       Exit(ADB.ExtTable[i].ExtID);
   if ADB.ExtCount >= cMaxExtTable then
     Exit;
@@ -202,12 +240,8 @@ begin
     R := '';
   while True do
   begin
-    lc := L^;
-    rc := R^;
-    if (lc >= 'A') and (lc <= 'Z') then
-      lc := AnsiChar(Ord(lc) + 32);
-    if (rc >= 'A') and (rc <= 'Z') then
-      rc := AnsiChar(Ord(rc) + 32);
+    lc := AnsiCharLower(L^);
+    rc := AnsiCharLower(R^);
     if lc <> rc then
       Exit(Ord(lc) - Ord(rc));
     if lc = #0 then
@@ -231,9 +265,9 @@ begin
     Exit('');
   maxLen := Integer(ADB.NamePoolUsed) - Integer(AOffset);
   p := PAnsiChar(@ADB.NamePool[AOffset]);
-  len := 0;
-  while (len < maxLen) and (p[len] <> #0) do
-    Inc(len);
+  len := AnsiStrLen(p);
+  if len > maxLen then
+    len := maxLen;
   SetLength(Result, len);
   if len > 0 then
     Move(p^, Result[1], len);
@@ -279,7 +313,7 @@ begin
   Result := nil;
   if ANameUtf8 = nil then
     Exit;
-  p := ANameUtf8 + StrLen(ANameUtf8);
+  p := ANameUtf8 + AnsiStrLen(ANameUtf8);
   while p > ANameUtf8 do
   begin
     if p^ = '.' then

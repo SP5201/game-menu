@@ -15,17 +15,17 @@ const
 type
   TListBoxCategoryItem = record
     Title: string;
-    SvgHandle: Integer;
+    SvgHandle: HSVG;
   end;
 
   TListBoxUI = class(TXListBox)
   private
     FItems: array of TListBoxCategoryItem;
     FItemCount: Integer;
-    class function OnListDrawItem(hList: HELE; hCanvas: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListButtonDown(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListRButtonUp(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    function LoadCategorySvg(const AIconFile: string): Integer;
+    class function OnListDrawItem(hList: XCGUI.HELE; hCanvas: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListButtonDown(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListRButtonUp(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    function LoadCategorySvg(const AIconFile: string): HSVG;
   protected
     procedure Init; override;
   public
@@ -60,10 +60,10 @@ begin
   SetVirtualRowCount(0);
 end;
 
-class function TListBoxUI.OnListDrawItem(hList: HELE; hCanvas: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TListBoxUI.OnListDrawItem(hList: XCGUI.HELE; hCanvas: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   ListBox: TListBoxUI;
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   iconSize: Integer;
   xDraw: Integer;
   yDraw: Integer;
@@ -117,14 +117,14 @@ begin
   pbHandled^ := True;
 end;
  
-class function TListBoxUI.OnListButtonDown(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListBoxUI.OnListButtonDown(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if XListBox_HitTestOffset(hList, pPt) < 0 then
     pbHandled^ := True;
 end;
 
-class function TListBoxUI.OnListRButtonUp(hList: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListBoxUI.OnListRButtonUp(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
 begin
@@ -148,7 +148,7 @@ begin
   end;
 end;
 
-function TListBoxUI.LoadCategorySvg(const AIconFile: string): Integer;
+function TListBoxUI.LoadCategorySvg(const AIconFile: string): HSVG;
 var
   iconPath: string;
 begin

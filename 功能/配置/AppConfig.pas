@@ -169,7 +169,7 @@ implementation
 
 
 uses
-  IniFiles, Windows, Registry, XCGUI;
+  IniFiles, Windows, Registry, XCGUI, AppPaths;
 
 class function TAppConfig.ClampInt(const AValue, AMin, AMax: Integer): Integer;
 begin
@@ -465,10 +465,7 @@ begin
     Exit;
   end;
   nameOnly := ExtractFileName(Trim(AIconFile));
-  Result := ExpandFileName('Data\CategoryIcons\' + nameOnly);
-  if FileExists(Result) then
-    Exit;
-  Result := ExpandFileName('Debug\Data\CategoryIcons\' + nameOnly);
+  Result := AppDataDirectory + 'CategoryIcons\' + nameOnly;
   if FileExists(Result) then
     Exit;
   Result := 'Resource\category\default.svg';

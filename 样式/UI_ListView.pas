@@ -1,4 +1,4 @@
-﻿unit UI_ListView;
+unit UI_ListView;
 
 interface
 
@@ -81,17 +81,17 @@ type
     procedure FlushWheelLayoutRefresh;
     procedure ApplyItemWidthFromWheel(const AWidth: Integer);
     function CalcIconSideForItemWidth(AItemW: Integer): Integer;
-    class function OnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewMouseWheel(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnScrollViewScrollV(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnScrollViewScrollH(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnScrollBarScroll(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnEleXCTimer(hEle: HELE; nTimerID: UINT; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewKeyDown(hEle: HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewRButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewLButtonDBClick(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewMouseWheel(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnScrollViewScrollV(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnScrollViewScrollH(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnScrollBarScroll(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEleXCTimer(hEle: XCGUI.HELE; nTimerID: UINT; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewKeyDown(hEle: XCGUI.HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewRButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewLButtonDBClick(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
@@ -1311,7 +1311,7 @@ begin
     XEle_Redraw(Handle, False);
 end;
 
-class function TListViewUI.OnListViewDrawItem(hEle: hEle; hDraw: hDraw; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
   itemRec: TListViewFileItem;
@@ -1417,7 +1417,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TListViewUI.OnListViewButtonDown(hEle: hEle; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   grp, itm: Integer;
 begin
@@ -1427,7 +1427,7 @@ begin
     pbHandled^ := True;
 end;
 
-class function TListViewUI.OnListViewKeyDown(hEle: HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewKeyDown(hEle: XCGUI.HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
   rc: TRect;
@@ -1492,7 +1492,7 @@ begin
   end;
 end;
 
-class function TListViewUI.OnScrollViewScrollV(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnScrollViewScrollV(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
 begin
@@ -1503,7 +1503,7 @@ begin
   ListView.OnScrollMoving(False);
 end;
 
-class function TListViewUI.OnScrollViewScrollH(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnScrollViewScrollH(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
 begin
@@ -1514,7 +1514,7 @@ begin
   ListView.OnScrollMoving(False);
 end;
 
-class function TListViewUI.OnScrollBarScroll(hEle: HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnScrollBarScroll(hEle: XCGUI.HELE; AScrollPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
 begin
@@ -1525,7 +1525,7 @@ begin
   ListView.OnScrollMoving(False);
 end;
 
-class function TListViewUI.OnEleXCTimer(hEle: HELE; nTimerID: UINT; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnEleXCTimer(hEle: XCGUI.HELE; nTimerID: UINT; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
 begin
@@ -1538,7 +1538,7 @@ begin
     ListView.OnScrollIdleIconRefresh;
 end;
 
-class function TListViewUI.OnListViewMouseWheel(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewMouseWheel(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
   delta: SmallInt;
@@ -1572,7 +1572,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TListViewUI.OnListViewLButtonDBClick(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewLButtonDBClick(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
   grp, itm: Integer;
@@ -1591,7 +1591,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TListViewUI.OnListViewRButtonUp(hEle: hEle; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnListViewRButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
   ListView: TListViewUI;
@@ -1624,7 +1624,7 @@ begin
   end;
 end;
 
-class function TListViewUI.OnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall;
+class function TListViewUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TListViewUI;
   rc: TRect;

@@ -14,7 +14,7 @@
 
 > **演示程序已经放在 `Debug` 文件夹内**
 >
-> 进入 `Debug/` 目录，双击 `QDesktop.exe` 即可运行（无需安装 Delphi、无需先编译）。
+> 进入 `Debug/Win32/` 或 `Debug/Win64/`，双击 `QDesktop.exe` 即可运行（无需安装 Delphi、无需先编译）。
 
 ## 目录
 
@@ -164,7 +164,7 @@ flowchart TB
 
 ### 界面机制
 
-1. **布局** — `Resource/Layout/*.xml`（源稿 `Debug/Resource/Layout/`），`XC_GetObjectByName` 关联控件。
+1. **布局** — `Resource/Layout/*.xml`（源稿 `Debug/Win32/Resource/Layout/`，Win64 同步），`XC_GetObjectByName` 关联控件。
 2. **绘制** — 样式单元注册 `XE_*` 回调；D2D 需 `XC_IsEnableD2D` 与 DPI 坐标转换。
 3. **列表虚表与图标** — `FItems` 为数据源、绘制零 IO、虚表用 `XEle_Redraw`（见 [docs/列表虚表与图标.md](docs/列表虚表与图标.md)）。
 4. **主题** — 语义色在 `UI_Theme.pas`；窗口 `ApplyDefaultStyles` 仅做 CPU/RAM/GPU 分色。
@@ -293,11 +293,11 @@ flowchart TD
 | `功能/天气IP/` | 外网 IP、天气解析 |
 | `库/XCGUI/` | 炫彩界面库 Delphi API |
 | `库/SQLite3/` | SQLite C API（[stijnsanders/TSQLite](https://github.com/stijnsanders/TSQLite)，sqlite.h 3.51.3）+ `SQLite3Wrap` |
-| `库/libcurl/` | libcurl Pascal 绑定（运行时 DLL 在 `Debug/Bin/`） |
+| `库/libcurl/` | libcurl Pascal 绑定（运行时 DLL 在 `Debug/Win32/Bin/` 或 `Debug/Win64/Bin/`） |
 | `库/ZXingQRCode/` | 二维码生成 |
-| `Debug/` | 编译输出：`QDesktop.exe`、`Bin/`、`Resource/`、`Data/` |
-| `Debug/Resource/Layout/` | 界面布局 XML |
-| `Debug/Data/` | `games.db`、图标缓存、`QDesktop.ini`、`city.json`（城市经纬度） |
+| `Debug/Win32/` · `Debug/Win64/` | 编译输出：`QDesktop.exe`、`Bin/`、`Resource/`、`Data/` |
+| `Debug/*/Resource/Layout/` | 界面布局 XML |
+| `Debug/*/Data/` | `games.db`、图标缓存、`QDesktop.ini`、`city.json`（城市经纬度） |
 | `docs/` | [列表虚表与图标](docs/列表虚表与图标.md) |
 
 </details>

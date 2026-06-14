@@ -16,7 +16,7 @@ function CpuFanLastDiag: string;
 implementation
 
 uses
-  Windows, SysUtils, PawnIo;
+  Windows, SysUtils, PawnIoClient;
 
 const
   cIsaBusMutex = 'Global\Access_ISABUS.HTP.Method';

@@ -10,10 +10,10 @@ type
   TSafeLogWindow = class(TFormUI)
   private
     class var
-      CListEle: HELE;
-      CEditDetail: HELE;
-    class function OnListSelect(hEle: HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWinProc(hWindow: HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+      CListEle: XCGUI.HELE;
+      CEditDetail: XCGUI.HELE;
+    class function OnListSelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure ShowEntryDetail(AEntryId: Integer); static;
     class procedure AppendRowToList(const AEntry: TSafeLogEntry); static;
     class procedure DoAppend(AEntryId: Integer); static;
@@ -22,9 +22,9 @@ type
     class procedure DoClearLog; static;
     class procedure DoExportLog; static;
     class procedure DoCopyMessage; static;
-    class function OnExportClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnClearClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnCopyClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnExportClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnClearClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnCopyClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
@@ -164,28 +164,28 @@ begin
   XEdit_ClipboardCopyAll(CEditDetail);
 end;
 
-class function TSafeLogWindow.OnCopyClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSafeLogWindow.OnCopyClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   DoCopyMessage;
   pbHandled^ := True;
 end;
 
-class function TSafeLogWindow.OnExportClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSafeLogWindow.OnExportClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   DoExportLog;
   pbHandled^ := True;
 end;
 
-class function TSafeLogWindow.OnClearClick(hEle: HELE; pbHandled: PBOOL): Integer;
+class function TSafeLogWindow.OnClearClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   DoClearLog;
   pbHandled^ := True;
 end;
 
-class function TSafeLogWindow.OnWinProc(hWindow: hWindow; Msg: UINT; wParam: wParam; lParam: lParam; pbHandled: PBOOL): Integer; stdcall;
+class function TSafeLogWindow.OnWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   TFormUI.HandleWndSize(hWindow, Msg, wParam);
@@ -203,7 +203,7 @@ begin
   end;
 end;
 
-class function TSafeLogWindow.OnListSelect(hEle: hEle; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TSafeLogWindow.OnListSelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   entryId: Integer;
 begin
@@ -216,8 +216,8 @@ end;
 
 procedure TSafeLogWindow.Init;
 var
-  hEdit: HELE;
-  hTitle: HXCGUI;
+  hEdit: XCGUI.HELE;
+  hTitle: XCGUI.HXCGUI;
   editUI: TEditUI;
   btnUi: TButtonUI;
 begin
@@ -293,7 +293,7 @@ end;
 
 class procedure TSafeLogWindow.CloseIfOpen;
 var
-  hLogWnd: Integer;
+  hLogWnd: XCGUI.HWINDOW;
   inst: TSafeLogWindow;
 begin
   hLogWnd := SafeLogLiveWindowHandle;
@@ -307,7 +307,7 @@ end;
 class procedure TSafeLogWindow.ShowWindow;
 var
   dlg: TSafeLogWindow;
-  hLogWnd: Integer;
+  hLogWnd: XCGUI.HWINDOW;
   hRealWnd: Windows.HWND;
   inst: TSafeLogWindow;
 begin
@@ -342,7 +342,7 @@ end;
 
 class function TSafeLogWindow.LoadLayout(const LayoutFile: PWideChar): TSafeLogWindow;
 var
-  h: HXCGUI;
+  h: XCGUI.HXCGUI;
 begin
   h := XC_LoadLayout(LayoutFile, 0, 0);
   if h = 0 then

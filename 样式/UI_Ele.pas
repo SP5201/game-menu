@@ -5,7 +5,7 @@ interface
 uses
   Windows, XCGUI, XElement;
 
-procedure DrawRoundedElement(hDraw: hDraw; rc: TRect; const CornerRadius: Integer;
+procedure DrawRoundedElement(hDraw: XCGUI.HDRAW; rc: TRect; const CornerRadius: Integer;
   const EnableBkColor: Boolean; const BkColor: Integer; const EnableBorder: Boolean;
   const BorderColor: Integer);
 
@@ -25,7 +25,7 @@ type
   protected
     procedure Init; override;
   public
-    class function OnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     property CornerRadius: Integer read FCornerRadius write SetCornerRadius;
     property EnableBorder: Boolean read FEnableBorder write SetEnableBorder;
     property EnableBkColor: Boolean read FEnableBkColor write SetEnableBkColor;
@@ -38,7 +38,7 @@ implementation
 uses
   UI_Theme;
 
-procedure DrawRoundedElement(hDraw: hDraw; rc: TRect; const CornerRadius: Integer;
+procedure DrawRoundedElement(hDraw: XCGUI.HDRAW; rc: TRect; const CornerRadius: Integer;
   const EnableBkColor: Boolean; const BkColor: Integer; const EnableBorder: Boolean;
   const BorderColor: Integer);
 begin
@@ -96,7 +96,7 @@ begin
   FBorderColor := Value;
 end;
 
-class function TEleUI.OnPaint(hEle: hEle; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TEleUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   pEleUI: TEleUI;
   rc: TRect;

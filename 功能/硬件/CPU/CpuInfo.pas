@@ -2,7 +2,7 @@ unit CpuInfo;
 
 {
   CPU 悬停提示：静态信息由 CpuInfoNative（CPUID + NT API）提供；
-  温度/功耗由 CpuInfoPawnIo（PawnIO MSR RAPL）按 TTL 缓存刷新；PawnIO 无温度时回退 HardwarePdh（ACPI 热区）。
+  温度/功耗由 CpuInfoSensors（PawnIO MSR RAPL）按 TTL 缓存刷新；PawnIO 无温度时回退 HardwarePdh（ACPI 热区）。
   当前频率由 Native 实时采样。
 }
 
@@ -57,7 +57,7 @@ function CpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  AppPaths, CpuInfoNative, CpuInfoPawnIo, CpuInfoFan, HardwarePdh;
+  AppPaths, CpuInfoNative, CpuInfoSensors, CpuInfoFan, HardwarePdh;
 
 const
   cCpuSensorRefreshMs = 3000;
@@ -120,7 +120,7 @@ begin
   end;
 
   CpuInitSensorInfo(fresh);
-  CpuPawnIoQuerySensors(fresh);
+  CpuSensorsQuery(fresh);
   if not fresh.HasCoreTemp and not fresh.HasPackageTemp then
   begin
     tempC := HardwarePdhSampleCpuPackageTempC;

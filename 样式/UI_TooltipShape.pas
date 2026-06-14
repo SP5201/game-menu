@@ -36,9 +36,9 @@ function TooltipLayoutLikePopupMenu: TTooltipBubbleLayout;
 
 function TooltipCornerRadius: Integer;
 
-procedure TooltipDrawPopupMenuSurface(hDraw: hDraw; const ARc: TRect; ARadius: Integer);
+procedure TooltipDrawPopupMenuSurface(hDraw: XCGUI.HDRAW; const ARc: TRect; ARadius: Integer);
 
-procedure TooltipPrepareDraw(hDraw: hDraw);
+procedure TooltipPrepareDraw(hDraw: XCGUI.HDRAW);
 
 procedure TooltipCalcBubbleSize(const ATextSize: TSize; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; out AWidth, AHeight: Integer);
@@ -46,9 +46,9 @@ procedure TooltipCalcBubbleSize(const ATextSize: TSize; const L: TTooltipBubbleL
 procedure TooltipCalcTextRect(const ARc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; out ATextRect: TRect);
 
-procedure TooltipDrawRoundRectPopup(hDraw: hDraw; const ARc: TRect; AShadowPad, ARadius: Integer);
+procedure TooltipDrawRoundRectPopup(hDraw: XCGUI.HDRAW; const ARc: TRect; AShadowPad, ARadius: Integer);
 
-procedure TooltipDrawBubble(hDraw: hDraw; const ARc: TRect; const L: TTooltipBubbleLayout;
+procedure TooltipDrawBubble(hDraw: XCGUI.HDRAW; const ARc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; TriangleCenterX: Integer);
 
 implementation
@@ -180,13 +180,13 @@ begin
   Result.CornerRadius := TooltipCornerRadius;
 end;
 
-procedure TooltipPrepareDraw(hDraw: hDraw);
+procedure TooltipPrepareDraw(hDraw: XCGUI.HDRAW);
 begin
   if XC_IsEnableD2D then
     XDraw_D2D_Clear(hDraw, 0);
 end;
 
-procedure TooltipDrawPopupMenuSurface(hDraw: hDraw; const ARc: TRect; ARadius: Integer);
+procedure TooltipDrawPopupMenuSurface(hDraw: XCGUI.HDRAW; const ARc: TRect; ARadius: Integer);
 var
   rc: TRect;
 begin
@@ -199,7 +199,7 @@ begin
   XDraw_DrawRoundRect(hDraw, rc, ARadius, ARadius);
 end;
 
-procedure TooltipDrawPopupMenuSurfacePath(hDraw: hDraw; pPts: PPoint; ptCount: Integer);
+procedure TooltipDrawPopupMenuSurfacePath(hDraw: XCGUI.HDRAW; pPts: PPoint; ptCount: Integer);
 begin
   if ptCount < 3 then
     Exit;
@@ -290,7 +290,7 @@ begin
   Sink.EndFigure(D2D1_FIGURE_END_CLOSED);
 end;
 
-function TooltipCreateBubbleGeometry(hDraw: hDraw; const clientRc: TRect; const L: TTooltipBubbleLayout;
+function TooltipCreateBubbleGeometry(hDraw: XCGUI.HDRAW; const clientRc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; cx: Integer; out AGeometry: ID2D1PathGeometry): Boolean;
 var
   d2dRT: ID2D1RenderTarget;
@@ -328,7 +328,7 @@ begin
   Result := True;
 end;
 
-procedure TooltipDrawPathShadowD2D(hDraw: hDraw; Geometry: ID2D1PathGeometry);
+procedure TooltipDrawPathShadowD2D(hDraw: XCGUI.HDRAW; Geometry: ID2D1PathGeometry);
 var
   d2dRT: ID2D1RenderTarget;
   brush: ID2D1SolidColorBrush;
@@ -370,7 +370,7 @@ begin
   d2dRT.SetTransform(oldTransform);
 end;
 
-procedure TooltipDrawPathShadowGDI(hDraw: hDraw; const pts: array of TPoint; ptCount: Integer);
+procedure TooltipDrawPathShadowGDI(hDraw: XCGUI.HDRAW; const pts: array of TPoint; ptCount: Integer);
 var
   offsetPts: array[0..63] of TPoint;
   i, j: Integer;
@@ -396,7 +396,7 @@ begin
   end;
 end;
 
-procedure TooltipDrawPathFillD2D(hDraw: hDraw; Geometry: ID2D1PathGeometry; AColor: Integer;
+procedure TooltipDrawPathFillD2D(hDraw: XCGUI.HDRAW; Geometry: ID2D1PathGeometry; AColor: Integer;
   offsetX, offsetY: Single);
 var
   d2dRT: ID2D1RenderTarget;
@@ -424,7 +424,7 @@ begin
   d2dRT.SetTransform(oldTransform);
 end;
 
-procedure TooltipDrawPathStrokeD2D(hDraw: hDraw; Geometry: ID2D1PathGeometry; AColor: Integer;
+procedure TooltipDrawPathStrokeD2D(hDraw: XCGUI.HDRAW; Geometry: ID2D1PathGeometry; AColor: Integer;
   lineWidth: Single; offsetX, offsetY: Single);
 var
   d2dRT: ID2D1RenderTarget;
@@ -452,7 +452,7 @@ begin
   d2dRT.SetTransform(oldTransform);
 end;
 
-procedure TooltipDrawBubblePathShadow(hDraw: hDraw; const clientRc: TRect; const L: TTooltipBubbleLayout;
+procedure TooltipDrawBubblePathShadow(hDraw: XCGUI.HDRAW; const clientRc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; cx: Integer);
 var
   geometry: ID2D1PathGeometry;
@@ -473,7 +473,7 @@ begin
   TooltipDrawPathShadowGDI(hDraw, pts, ptCount);
 end;
 
-procedure TooltipDrawBubblePathBody(hDraw: hDraw; const clientRc: TRect; const L: TTooltipBubbleLayout;
+procedure TooltipDrawBubblePathBody(hDraw: XCGUI.HDRAW; const clientRc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; cx: Integer);
 var
   geometry: ID2D1PathGeometry;
@@ -495,7 +495,7 @@ begin
   TooltipDrawPopupMenuSurfacePath(hDraw, @pts[0], ptCount);
 end;
 
-procedure TooltipDrawRoundRectShadow(hDraw: hDraw; const ARc: TRect; AShadowPad, ARadius: Integer);
+procedure TooltipDrawRoundRectShadow(hDraw: XCGUI.HDRAW; const ARc: TRect; AShadowPad, ARadius: Integer);
 var
   i: Integer;
   opacity: Single;
@@ -561,7 +561,7 @@ begin
   end;
 end;
 
-procedure TooltipDrawRoundRectPopup(hDraw: hDraw; const ARc: TRect; AShadowPad, ARadius: Integer);
+procedure TooltipDrawRoundRectPopup(hDraw: XCGUI.HDRAW; const ARc: TRect; AShadowPad, ARadius: Integer);
 var
   rcBody: TRect;
 begin
@@ -571,7 +571,7 @@ begin
   TooltipDrawPopupMenuSurface(hDraw, rcBody, ARadius);
 end;
 
-procedure TooltipDrawBubble(hDraw: hDraw; const ARc: TRect; const L: TTooltipBubbleLayout;
+procedure TooltipDrawBubble(hDraw: XCGUI.HDRAW; const ARc: TRect; const L: TTooltipBubbleLayout;
   AEdge: TTooltipArrowEdge; TriangleCenterX: Integer);
 var
   clientRc: TRect;

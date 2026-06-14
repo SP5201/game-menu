@@ -1,4 +1,4 @@
-﻿unit UI_EditItemDialog;
+unit UI_EditItemDialog;
 
 interface
 
@@ -23,19 +23,19 @@ type
     FEdtHotkey: TEditUI;
     FComboShowCmd: TComboBoxUI;
     FPicIcon: HELE;
-    class function OnBtnOK(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnChangeIcon(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnChangeIcon(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetItemImage(const AIcon: HIMAGE = 0);
     procedure SetFields(const AFilePath, ATitle, AParams, AWorkingDir, AIconPath: string; const AShowCmd: Integer; const AIcon: HIMAGE = 0);
     procedure GetFields(out ATitle, AParams, AWorkingDir: string; out AShowCmd: Integer);
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TEditItemDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TEditItemDialogUI; reintroduce;
     class function EditItem(const AFilePath: string; const AIcon: HIMAGE; var ATitle, AParams, AWorkingDir: string;
-      var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: HWND): Boolean;
+      var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: XCGUI.HWINDOW): Boolean;
   end;
 
 implementation
@@ -66,7 +66,7 @@ begin
   Result := 0;
 end;
 
-class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: Integer): TEditItemDialogUI;
+class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TEditItemDialogUI;
 var
   h: HXCGUI;
 begin
@@ -149,7 +149,7 @@ begin
   AShowCmd := ShowCmdFromComboIndex(XComboBox_GetSelItem(FComboShowCmd.Handle));
 end;
 
-class function TEditItemDialogUI.OnBtnOK(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TEditItemDialogUI.OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   dlg: TEditItemDialogUI;
   title, params, workDir: string;
@@ -169,14 +169,14 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TEditItemDialogUI.OnBtnCancel(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TEditItemDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TEditItemDialogUI.OnBtnChangeIcon(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TEditItemDialogUI.OnBtnChangeIcon(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   dlg: TEditItemDialogUI;
   iconPath: string;
@@ -222,7 +222,7 @@ begin
     XImage_Release(hIconImage);
 end;
 
-class function TEditItemDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TEditItemDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 var
   dlg: TEditItemDialogUI;
   title, params, workDir: string;
@@ -256,7 +256,7 @@ begin
 end;
 
 class function TEditItemDialogUI.EditItem(const AFilePath: string; const AIcon: HIMAGE; var ATitle, AParams, AWorkingDir: string;
-  var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: HWND): Boolean;
+  var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: XCGUI.HWINDOW): Boolean;
 var
   dlg: TEditItemDialogUI;
   hIcon: HIMAGE;

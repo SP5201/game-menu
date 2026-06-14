@@ -15,8 +15,8 @@ type
     FBkColor: Integer;
     FFocusBkColor: Integer;
     FBorderColor: Integer;
-    class function OnInputFocusChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnInputFocusChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetCornerRadius(const Value: Integer);
     procedure SetEnableBorder(const Value: Boolean);
     procedure SetEnableBkColor(const Value: Boolean);
@@ -28,7 +28,7 @@ type
     procedure Init; override;
   public
     class function FromXmlName(const XmlName: string): TEditUI; reintroduce;
-    class procedure ApplyInputElementBaseStyle(const hInputEle: HELE); static;
+    class procedure ApplyInputElementBaseStyle(const hInputEle: XCGUI.HELE); static;
     class procedure ApplyEditStyle(const EditUI: TEditUI); static;
     property CornerRadius: Integer read FCornerRadius write SetCornerRadius;
     property EnableBorder: Boolean read FEnableBorder write SetEnableBorder;
@@ -56,14 +56,14 @@ begin
   EditUI.BkColor := UITheme_InputSurface;
   EditUI.FocusBkColor := UITheme_InputSurfaceFocus;
   EditUI.BorderColor := UITheme_InputBorder;
-  EditUI.SetDefaultTextColor(UITheme_TextPlaceholder);
-  EditUI.SetCaretColor(UITheme_InputCaret);
-  EditUI.SetSelectBkColor(UITheme_InputSelection);
+  XEdit_SetDefaultTextColor(EditUI.Handle, UITheme_TextPlaceholder);
+  XEdit_SetCaretColor(EditUI.Handle, UITheme_InputCaret);
+  XEdit_SetSelectBkColor(EditUI.Handle, UITheme_InputSelection);
   TScrollBarUI.ApplyDefault(EditUI.Handle);
   TScrollBarUI.ApplyDefaultH(EditUI.Handle);
 end;
 
-class procedure TEditUI.ApplyInputElementBaseStyle(const hInputEle: HELE);
+class procedure TEditUI.ApplyInputElementBaseStyle(const hInputEle: XCGUI.HELE);
 var
   InputEle: TEleUI;
 begin
@@ -89,7 +89,7 @@ begin
   TEditUI.ApplyEditStyle(Self);
 end;
 
-class function TEditUI.OnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TEditUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   pEditUI: TEditUI;
   rc: TRect;
@@ -128,7 +128,7 @@ begin
   );
 end;
 
-class function TEditUI.OnInputFocusChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TEditUI.OnInputFocusChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   TEditUI(TXEle.FromHandle(hEle)).Redraw(False);

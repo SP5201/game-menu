@@ -1,4 +1,4 @@
-unit UI_MainWindowTools;
+﻿unit UI_MainWindowTools;
 
 interface
 
@@ -31,12 +31,12 @@ const
   ID_SETTINGS_SHORTCUT = 404;
   ID_SETTINGS_FEEDBACK = 405;
 
-function MainWindowTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
-function MainWindowTools_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
-function MainWindowCommonTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
-function MainWindowCommonTools_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
-function MainWindowSettings_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
-function MainWindowSettings_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowTools_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowTools_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowCommonTools_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowCommonTools_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowSettings_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
+function MainWindowSettings_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 
 implementation
 
@@ -44,7 +44,7 @@ uses
    SysUtils, ShellAPI, UI_PopupMenu, ShellHelper, UI_QrCodeDialog,
    UI_SettingsDialog, UI_FeedbackDialog;
 
-function MainWindowTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+function MainWindowTools_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
   pt: TPoint;
@@ -92,13 +92,13 @@ begin
   end;
 end;
 
-function MainWindowTools_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer;
+function MainWindowTools_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
-  hwnd: Integer;
+  hwnd: Windows.HWND;
 begin
   Result := 0;
   pbHandled^ := True;
-  hwnd := XWidget_GetHWND(hEle);
+  hwnd := Windows.HWND(XWidget_GetHWND(hEle));
   case nItem of
     ID_SYS_RESTART_EXPLORER:
       RestartWindowsExplorerAsync;
@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-function MainWindowSettings_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+function MainWindowSettings_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
   pt: TPoint;
@@ -153,28 +153,30 @@ begin
   end;
 end;
 
-function MainWindowSettings_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer;
+function MainWindowSettings_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
-  hParentWnd: HWND;
+  hParentWnd: XCGUI.HWINDOW;
+  hwndOwner: Windows.HWND;
 begin
   Result := 0;
   pbHandled^ := True;
   hParentWnd := XWidget_GetHWINDOW(hEle);
+  hwndOwner := Windows.HWND(XWidget_GetHWND(hEle));
   case nItem of
     ID_SETTINGS_CONFIG:
       TSettingsDialogUI.ShowDialog(hParentWnd);
     ID_SETTINGS_ABOUT:
-      MessageBoxW(hParentWnd, 'QDesktop 游戏菜单', '关于', MB_OK or MB_ICONINFORMATION);
+      MessageBoxW(hwndOwner, 'QDesktop 游戏菜单', '关于', MB_OK or MB_ICONINFORMATION);
     ID_SETTINGS_DONATE:
-      ShellExecuteDefaultVerb(hParentWnd, 'https://github.com/sponsors', '', '', SW_SHOWNORMAL);
+      ShellExecuteDefaultVerb(hwndOwner, 'https://github.com/sponsors', '', '', SW_SHOWNORMAL);
     ID_SETTINGS_SHORTCUT:
-      MessageBoxW(hParentWnd, '快捷键功能待实现', '快捷键', MB_OK or MB_ICONINFORMATION);
+      MessageBoxW(hwndOwner, '快捷键功能待实现', '快捷键', MB_OK or MB_ICONINFORMATION);
     ID_SETTINGS_FEEDBACK:
       TFeedbackDialogUI.ShowDialog(hParentWnd);
   end;
 end;
 
-function MainWindowCommonTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
+function MainWindowCommonTools_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
   pt: TPoint;
@@ -196,9 +198,9 @@ begin
   end;
 end;
 
-function MainWindowCommonTools_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer;
+function MainWindowCommonTools_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
-  hParentWnd: Integer;
+  hParentWnd: XCGUI.HWINDOW;
 begin
   Result := 0;
   pbHandled^ := True;

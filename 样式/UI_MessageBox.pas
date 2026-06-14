@@ -10,20 +10,20 @@ type
   private
     class var
       CModalResult: Integer;
-    class function OnBtnOK(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetDialogText(const ATitle, AText: string);
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TMessageBoxUI; reintroduce;
-    class function Confirm(const ATitle, AText: string; const hParent: HWND = 0; hAttachWnd: Integer = 0): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TMessageBoxUI; reintroduce;
+    class function Confirm(const ATitle, AText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
   end;
 
 implementation
 
-class function TMessageBoxUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TMessageBoxUI;
+class function TMessageBoxUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TMessageBoxUI;
 var
   h: HXCGUI;
 begin
@@ -36,7 +36,7 @@ end;
 procedure TMessageBoxUI.Init;
 var
   hIcon: HXCGUI;
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   hImg: HIMAGE;
 begin
   inherited;
@@ -71,7 +71,7 @@ begin
   XShapeText_SetText(XC_GetObjectByName('txt_msgbox_content'), PWideChar(AText));
 end;
 
-class function TMessageBoxUI.OnBtnOK(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TMessageBoxUI.OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -79,7 +79,7 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), CModalResult);
 end;
 
-class function TMessageBoxUI.OnBtnCancel(hEle: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TMessageBoxUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -87,7 +87,7 @@ begin
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), CModalResult);
 end;
 
-class function TMessageBoxUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TMessageBoxUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if wParam = VK_RETURN then
@@ -110,7 +110,7 @@ begin
   end;
 end;
 
-class function TMessageBoxUI.Confirm(const ATitle, AText: string; const hParent: HWND = 0; hAttachWnd: Integer = 0): Boolean;
+class function TMessageBoxUI.Confirm(const ATitle, AText: string; const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0): Boolean;
 var
   dlg: TMessageBoxUI;
   szText: TSize;

@@ -66,7 +66,7 @@ function NormalizeProgramFilesPathForWow64(const APath: string): string;
 
 function ResolveItemIconPath(const AIconPath: string): string;
 
-function BrowseForFolderPath(const ATitle: string; const AOwnerWnd: HWND; out AFolderPath: string): Boolean;
+function BrowseForFolderPath(const ATitle: string; const AOwnerWnd: Windows.HWND; out AFolderPath: string): Boolean;
 
 implementation
 
@@ -257,7 +257,7 @@ function GetTickCount64: UInt64; stdcall;
   external 'kernel32.dll' name 'GetTickCount64';
 
 // 获取当前任务栏句柄
-function GetShellTaskbarHwnd: HWND;
+function GetShellTaskbarHwnd: Windows.HWND;
 begin
   Result := FindWindow('Shell_TrayWnd', nil);
 end;
@@ -340,20 +340,20 @@ const
   cExplorerGracefulExitWaitMs = 50;  // 仅给一次轮询机会，不等待优雅退出
   cExplorerProcessGoneTimeoutMs = 1000;
 var
-  hTaskbar: HWND;
+  hTaskbar: Windows.HWND;
   t0: UInt64;
 begin
   hTaskbar := GetShellTaskbarHwnd;
 
   // 第一步：尝试发送优雅退出消息
-  if hTaskbar <> HWND(0) then
+  if hTaskbar <> Windows.HWND(0) then
   begin
     PostMessage(hTaskbar, WM_USER_EXITEXPLORER, 0, 0);
 
     t0 := GetTickCount64;
     while GetTickCount64 - t0 < cExplorerGracefulExitWaitMs do
     begin
-      if GetShellTaskbarHwnd = HWND(0) then
+      if GetShellTaskbarHwnd = Windows.HWND(0) then
         Break;
       Sleep(cShellTaskbarPollIntervalMs);
     end;
@@ -410,12 +410,12 @@ begin
   end;
 end;
 
-function IsTaskbarWindowReady(hTaskbar: HWND): Boolean;
+function IsTaskbarWindowReady(hTaskbar: Windows.HWND): Boolean;
 var
   rc: TRect;
 begin
   Result := False;
-  if (hTaskbar = HWND(0)) or (not IsWindow(hTaskbar)) or (not IsWindowVisible(hTaskbar)) then
+  if (hTaskbar = Windows.HWND(0)) or (not IsWindow(hTaskbar)) or (not IsWindowVisible(hTaskbar)) then
     Exit;
   if not GetWindowRect(hTaskbar, rc) then
     Exit;
@@ -429,17 +429,17 @@ begin
   t0 := GetTickCount64;
   while GetTickCount64 - t0 < ATimeoutMs do
   begin
-    if GetShellTaskbarHwnd = HWND(0) then
+    if GetShellTaskbarHwnd = Windows.HWND(0) then
       Exit(True);
     Sleep(cShellTaskbarPollIntervalMs);
   end;
-  Result := (GetShellTaskbarHwnd = HWND(0));
+  Result := (GetShellTaskbarHwnd = Windows.HWND(0));
 end;
 
-function WaitForNewShellTaskbarReady(AOldHwnd: HWND; ATimeoutMs: Cardinal): Boolean;
+function WaitForNewShellTaskbarReady(AOldHwnd: Windows.HWND; ATimeoutMs: Cardinal): Boolean;
 var
   t0: UInt64;
-  hTaskbar: HWND;
+  hTaskbar: Windows.HWND;
   stableCount: Integer;
 begin
   Result := False;
@@ -448,7 +448,7 @@ begin
   while GetTickCount64 - t0 < ATimeoutMs do
   begin
     hTaskbar := GetShellTaskbarHwnd;
-    if (hTaskbar <> HWND(0)) and (hTaskbar <> AOldHwnd) and IsTaskbarWindowReady(hTaskbar) then
+    if (hTaskbar <> Windows.HWND(0)) and (hTaskbar <> AOldHwnd) and IsTaskbarWindowReady(hTaskbar) then
     begin
       Inc(stableCount);
       if stableCount >= cShellTaskbarStablePollCount then
@@ -462,7 +462,7 @@ end;
 
 procedure RestartWindowsExplorer;
 var
-  oldTaskbar: HWND;
+  oldTaskbar: Windows.HWND;
 begin
   oldTaskbar := GetShellTaskbarHwnd;
   KillExplorerProcesses;
@@ -672,7 +672,7 @@ begin
     Result := '';
 end;
 
-function BrowseForFolderPath(const ATitle: string; const AOwnerWnd: HWND; out AFolderPath: string): Boolean;
+function BrowseForFolderPath(const ATitle: string; const AOwnerWnd: Windows.HWND; out AFolderPath: string): Boolean;
 var
   browseInfo: TBrowseInfoW;
   pidl: PItemIDList;

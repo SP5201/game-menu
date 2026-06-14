@@ -5,7 +5,7 @@ interface
 uses
   Windows;
 
-function SendFeedbackMessage(const AMessage: string; const AOwnerWnd: HWND;
+function SendFeedbackMessage(const AMessage: string; const AOwnerWnd: Windows.HWND;
   out AError: string): Boolean;
 
 implementation
@@ -194,7 +194,7 @@ begin
     '&body=' + UrlEncodeUtf8(body);
 end;
 
-function SendFeedbackMessage(const AMessage: string; const AOwnerWnd: HWND;
+function SendFeedbackMessage(const AMessage: string; const AOwnerWnd: Windows.HWND;
   out AError: string): Boolean;
 var
   issueUrl: string;

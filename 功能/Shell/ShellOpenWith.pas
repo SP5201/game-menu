@@ -22,9 +22,9 @@ procedure ShellOpenWithEnum(const FilePath: UnicodeString;
 procedure ShellOpenWithAppendContextMenuItems(Menu: TXMenu; const FilePath: UnicodeString);
 
 /// <summary>处理 ListView 右键菜单中与「打开方式」相关的命令 ID。</summary>
-function ShellOpenWithHandleMenuCommand(nMenuId: Integer; hwndOwner: HWND): Boolean;
+function ShellOpenWithHandleMenuCommand(nMenuId: Integer; hwndOwner: Windows.HWND): Boolean;
 
-function ShellOpenWithShowDialog(hwndOwner: HWND; const FilePath: UnicodeString): Boolean;
+function ShellOpenWithShowDialog(hwndOwner: Windows.HWND; const FilePath: UnicodeString): Boolean;
 
 function ShellOpenWithHandlerImageFromExe(const ExePath: UnicodeString): HIMAGE;
 
@@ -100,7 +100,7 @@ type
   end;
   POPENASINFO = ^TOPENASINFO;
 
-function SHOpenWithDialog(hwnd: HWND; poainfo: POPENASINFO): HRESULT; stdcall;
+function SHOpenWithDialog(hwnd: Windows.HWND; poainfo: POPENASINFO): HRESULT; stdcall;
   external 'shell32.dll' name 'SHOpenWithDialog';
 
 var
@@ -624,7 +624,7 @@ begin
   Menu.AddItem(cShellOpenWithMenuChooseApp, '选择其他应用...', cShellOpenWithMenuParent, 0);
 end;
 
-function ShellOpenWithShowDialog(hwndOwner: HWND; const FilePath: UnicodeString): Boolean;
+function ShellOpenWithShowDialog(hwndOwner: Windows.HWND; const FilePath: UnicodeString): Boolean;
 var
   oa: TOPENASINFO;
   hr: HRESULT;
@@ -641,7 +641,7 @@ begin
   Result := hr = S_OK;
 end;
 
-function ShellOpenWithHandleMenuCommand(nMenuId: Integer; hwndOwner: HWND): Boolean;
+function ShellOpenWithHandleMenuCommand(nMenuId: Integer; hwndOwner: Windows.HWND): Boolean;
 var
   idx: Integer;
 begin

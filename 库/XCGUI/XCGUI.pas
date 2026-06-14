@@ -6,7 +6,11 @@ uses
   Windows,System.Types, SysUtils, System.Variants, D2D1;
 
 const
+{$IFDEF WIN64}
+  XCGUI_DLL = 'Bin\XCGUI_x64.dll';
+{$ELSE}
   XCGUI_DLL = 'Bin\XCGUI.dll';
+{$ENDIF}
   // 定义一个常量 XC_ID_ROOT，值为 0，用于表示根节点
   XC_ID_ROOT = 0;
   // 定义一个常量 XC_ID_ERROR，值为 -1，用于表示 ID 错误
@@ -479,6 +483,20 @@ type
   end;
 
   TRectF = RECTF;
+  PRECTF = ^RECTF;
+
+  gradient_point_ = record
+    color: COLORREF;
+    nPos: Integer;
+  end;
+  Pgradient_point_ = ^gradient_point_;
+
+  gradient_info_ = record
+    pArray: Pgradient_point_;
+    nCount: Integer;
+    fAngle: Single;
+  end;
+  Pgradient_info_ = ^gradient_info_;
 
 type
   // 定义一个结构体 borderSize_，用于存储四条边的大小
@@ -1327,7 +1345,7 @@ function XC_SendMessage(hWindow: Integer; msg: UINT; wParam: WPARAM; lParam: LPA
 
 function XC_PostMessage(hWindow: Integer; msg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; stdcall; external XCGUI_DLL;
 
-function XC_CallUiThread(pCall: Integer; data: vint): vint; stdcall; external XCGUI_DLL;
+function XC_CallUiThread(pCall: vint; data: vint): vint; stdcall; external XCGUI_DLL;
 
 procedure XC_DebugToFileInfo(pInfo: PAnsiChar); stdcall; external XCGUI_DLL;
 
@@ -2095,13 +2113,13 @@ function _XEle_RegEvent(hEle: HELE; nEvent: Integer; pEvent: Integer): BOOL; std
 
 function _XEle_RemoveEvent(hEle: HELE; nEvent: UINT; pEvent: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XEle_RegEventC(hEle: HELE; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XEle_RegEventC(hEle: HELE; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XEle_RegEventC1(hEle: HELE; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XEle_RegEventC1(hEle: HELE; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XEle_RegEventC2(hEle: HELE; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XEle_RegEventC2(hEle: HELE; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XEle_RemoveEventC(hEle: HELE; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XEle_RemoveEventC(hEle: HELE; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
 function XEle_SendEvent(hEle: HELE; nEvent: Integer; wParam: WPARAM; lParam: LPARAM): Integer; stdcall; external XCGUI_DLL;
 
@@ -2411,11 +2429,11 @@ function XImage_LoadZipRect(pZipFileName: PWideChar; pFileName: PWideChar; pPass
 
 function XImage_LoadZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImage_LoadMemory(pBuffer: Integer; nSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
+function XImage_LoadMemory(pBuffer: vint; nSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImage_LoadMemoryRect(pBuffer: Integer; nSize: Integer; x: Integer; y: Integer; cx: Integer; cy: Integer): HIMAGE; stdcall; external XCGUI_DLL;
+function XImage_LoadMemoryRect(pBuffer: vint; nSize: Integer; x: Integer; y: Integer; cx: Integer; cy: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImage_LoadMemoryAdaptive(pBuffer: Integer; nSize: Integer; leftSize: Integer; topSize: Integer; rightSize: Integer; bottomSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
+function XImage_LoadMemoryAdaptive(pBuffer: vint; nSize: Integer; leftSize: Integer; topSize: Integer; rightSize: Integer; bottomSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
 function XImage_LoadFromImage(pImage: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
@@ -2531,7 +2549,7 @@ function XListBox_CancelSelectItem(hEle: HELE; iItem: Integer): BOOL; stdcall; e
 
 function XListBox_CancelSelectAll(hEle: HELE): BOOL; stdcall; external XCGUI_DLL;
 
-function XListBox_GetSelectAll(hEle: HELE; out pArray: Integer; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
+function XListBox_GetSelectAll(hEle: HELE; pArray: vint; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
 
 function XListBox_GetSelectCount(hEle: HELE): Integer; stdcall; external XCGUI_DLL;
 
@@ -2731,7 +2749,7 @@ function XList_AddSelectItem(hEle: HELE; iItem: Integer): BOOL; stdcall; externa
 
 procedure XList_SetSelectAll(hEle: HELE); stdcall; external XCGUI_DLL;
 
-function XList_GetSelectAll(hEle: HELE; out pArray: Integer; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
+function XList_GetSelectAll(hEle: HELE; pArray: vint; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
 
 procedure XList_VisibleItem(hEle: HELE; iItem: Integer); stdcall; external XCGUI_DLL;
 
@@ -2907,7 +2925,7 @@ procedure XListView_GetVisibleItemRange(hEle: HELE; out piGroup1: Integer; out p
 
 function XListView_GetSelectItemCount(hEle: HELE): Integer; stdcall; external XCGUI_DLL;
 
-function XListView_GetSelectAll(hEle: HELE; out pArray: Integer; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
+function XListView_GetSelectAll(hEle: HELE; pArray: vint; nArraySize: Integer): Integer; stdcall; external XCGUI_DLL;
 
 procedure XListView_SetSelectAll(hEle: HELE); stdcall; external XCGUI_DLL;
 
@@ -3707,11 +3725,11 @@ procedure XTree_DeleteItemAll(hEle: HELE); stdcall; external XCGUI_DLL;
 
 procedure XTree_DeleteColumnAll(hEle: HELE); stdcall; external XCGUI_DLL;
 
-function XWnd_RegEventC(hWindow: HWINDOW; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XWnd_RegEventC(hWindow: HWINDOW; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XWnd_RegEventC1(hWindow: HWINDOW; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XWnd_RegEventC1(hWindow: HWINDOW; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XWnd_RemoveEventC(hWindow: HWINDOW; nEvent: Integer; pFun: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XWnd_RemoveEventC(hWindow: HWINDOW; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
 function XWnd_Create(x: Integer; y: Integer; cx: Integer; cy: Integer; pTitle: PWideChar; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_default): HWINDOW; stdcall; external XCGUI_DLL;
 
@@ -4991,13 +5009,134 @@ function XEditor_IsEmptyRow(hEle: HELE; iRow: Integer): BOOL; stdcall; external 
 
 function XDraw_GetD2dBitmap(hDraw: HDRAW; hImage: HIMAGE): Vint; stdcall; external XCGUI_DLL;
 
-function XImage_LoadFromData(Data, widith, height: Integer): Integer; stdcall; external XCGUI_DLL;
+function XImage_LoadFromData(Data: vint; width, height: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
-procedure  XImage_ModifyData(hImage, Data, widith, height: Integer); stdcall; external XCGUI_DLL;
+function XImage_ModifyData(hImage: HIMAGE; Data: vint; width, height: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-procedure  XSvg_EnableAlignPixel(hSvg: HSVG; bEnable: BOOL); stdcall; external XCGUI_DLL;
+function XImage_GetWicBitMap(hImage: HIMAGE): vint; stdcall; external XCGUI_DLL;
+
+function XImage_GetGdiplusBitmap(hImage: HIMAGE): vint; stdcall; external XCGUI_DLL;
+
+procedure XSvg_EnableAlignPixel(hSvg: HSVG; bEnable: BOOL); stdcall; external XCGUI_DLL;
 
 procedure XSvg_EnableAntialias(hSvg: HSVG; bEnable: BOOL); stdcall; external XCGUI_DLL;
+
+// 以下与官方 module_xcgui.h (2026-04-14) 对齐
+procedure XWnd_SetMouseHoverTime(hWindow: HWINDOW; time: Integer); stdcall; external XCGUI_DLL;
+
+function XWnd_AdjustInScreen(hWindow: HWINDOW; nBorderSpace: Integer = 0; bCoverTaskBar: BOOL = False): BOOL; stdcall; external XCGUI_DLL;
+
+function XFrameWnd_GetDock(hWindow: HWINDOW; number: Integer): HELE; stdcall; external XCGUI_DLL;
+
+procedure XMenu_SetLeftWidth(hMenu: HMENUX; nWidth: Integer); stdcall; external XCGUI_DLL;
+
+procedure XMenu_EnableCSS(hMenu: HMENUX; bEnable: BOOL); stdcall; external XCGUI_DLL;
+
+procedure XMenu_SetCssName(hMenu: HMENUX; nType: Integer; pName: PWideChar); stdcall; external XCGUI_DLL;
+
+procedure XMenu_SetBkManager(hMenu: HMENUX; nType: Integer; hBkInfoM: HBKM); stdcall; external XCGUI_DLL;
+
+function XMenu_GetBkManager(hMenu: HMENUX; nType: Integer): HBKM; stdcall; external XCGUI_DLL;
+
+function XMenu_GetBkManagerEx(hMenu: HMENUX; nType: Integer): HBKM; stdcall; external XCGUI_DLL;
+
+function XEle_SetToolTipDuration(hEle: HELE; nDuration: Integer): BOOL; stdcall; external XCGUI_DLL;
+
+procedure XBtn_ClearAnimation(hEle: HELE); stdcall; external XCGUI_DLL;
+
+procedure XEdit_EnableUrlUnderline(hEle: HELE; bEnable: BOOL); stdcall; external XCGUI_DLL;
+
+function XComboBox_GetCount(hEle: HELE): Integer; stdcall; external XCGUI_DLL;
+
+function XComboBox_GetCountColumn(hEle: HELE): Integer; stdcall; external XCGUI_DLL;
+
+function XPane_GetTabBar(hEle: HELE): HELE; stdcall; external XCGUI_DLL;
+
+function XPane_GetSplitBar(hEle: HELE): HELE; stdcall; external XCGUI_DLL;
+
+function XPane_GetButton(hEle: HELE; number: Integer): HELE; stdcall; external XCGUI_DLL;
+
+procedure XPane_ShowButton(hPane: HELE; bShow: BOOL); stdcall; external XCGUI_DLL;
+
+procedure XProgBar_EnableStretch(hEle: HELE; bStretch: BOOL); stdcall; external XCGUI_DLL;
+
+function XSBar_GetCurPos(hEle: HELE): Integer; stdcall; external XCGUI_DLL;
+
+procedure XTable_Clear(hShape: HXCGUI); stdcall; external XCGUI_DLL;
+
+procedure XDraw_ConvRect(hDraw: HDRAW; pRect: PRect); stdcall; external XCGUI_DLL;
+
+procedure XDraw_ConvXY(hDraw: HDRAW; x: Integer; y: Integer); stdcall; external XCGUI_DLL;
+
+function XDraw_GetD2dFactory(hDraw: HDRAW): vint; stdcall; external XCGUI_DLL;
+
+function XDraw_GetD2dWICFactory(hDraw: HDRAW): vint; stdcall; external XCGUI_DLL;
+
+procedure XDraw_SetClipRect(hDraw: HDRAW; pRect: PRect); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawRoundRectExF(hDraw: HDRAW; pRect: PRECTF; leftTop, rightTop, rightBottom, leftBottom: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_GradientFill(hDraw: HDRAW; pPoints: Pgradient_point_; nCount: Integer; pRect: PRect); stdcall; external XCGUI_DLL;
+
+procedure XDraw_GradientFillPolygon(hDraw: HDRAW; pPolygonPts: PPOINTF; nPolygonCount: Integer; pPoints: Pgradient_point_; nCount: Integer; fAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_GradientDrawPolygon(hDraw: HDRAW; pPolygonPts: PPOINTF; nPolygonCount: Integer; pPoints: Pgradient_point_; nCount: Integer; width: Integer; fAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_FillRoundRectRotate(hDraw: HDRAW; pRect: PRect; pRoundAngle: PRect; fRotationAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawRoundRectRotate(hDraw: HDRAW; pRect: PRect; pRoundAngle: PRect; fRotationAngle: Single; width: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_FillRoundRectGradientRotate(hDraw: HDRAW; pRect: PRect; pGradient: Pgradient_info_; pRoundAngle: PRect; fRotationAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawRoundRectGradientRotate2(hDraw: HDRAW; pRect: PRect; pGradient: Pgradient_info_; pRoundAngle: PRect; fRotationAngle: Single; width: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_FillGradientEllipse(hDraw: HDRAW; pRect: PRect; pPoints: Pgradient_point_; nCount: Integer; fAngle, fAngleGradient: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawGradientEllipse(hDraw: HDRAW; pRect: PRect; pPoints: Pgradient_point_; nCount, width: Integer; fAngle, fAngleGradient: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_FillEllipseRotate(hDraw: HDRAW; pRect: PRect; fRotationAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawEllipseRotate(hDraw: HDRAW; pRect: PRect; width: Integer; fRotationAngle: Single); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawPolygonRotate(hDraw: HDRAW; points: PPOINTF; nCount: Integer; fRotationAngle: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_FillPolygonRotate(hDraw: HDRAW; points: PPOINTF; nCount: Integer; fRotationAngle: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawTextGradientRotate(hDraw: HDRAW; pString: PWideChar; nCount: Integer; pRect: PRect; pGradient: Pgradient_info_); stdcall; external XCGUI_DLL;
+
+procedure XDraw_TriangularArrow(hDraw: HDRAW; x, y, width, height, align: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawGroupBox_Rect(hDraw: HDRAW; pRect: PRect; pString: PWideChar; nLength: Integer; textColor: COLORREF; pOffset: PPoint); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawGroupBox_RoundRect(hDraw: HDRAW; pRect: PRect; pString: PWideChar; nLength: Integer; textColor: COLORREF; pOffset: PPoint; width, height: Integer); stdcall; external XCGUI_DLL;
+
+procedure XDraw_Gif(hDraw: HDRAW; hImageFrame: HIMAGE; pRect: PRect; iFrame: UINT); stdcall; external XCGUI_DLL;
+
+procedure XDraw_DrawImageExAlpha(hDraw: HDRAW; hImageFrame: HIMAGE; x, y, width, height: Integer; alpha: Byte); stdcall; external XCGUI_DLL;
+
+function XImgSrc_LoadFromData(Data: vint; width, height: Integer): HIMAGE; stdcall; external XCGUI_DLL;
+
+function XImgSrc_ModifyData(hImage: HIMAGE; Data: vint; width, height: Integer): BOOL; stdcall; external XCGUI_DLL;
+
+function XImgSrc_GetWicBitMap(hImage: HIMAGE): vint; stdcall; external XCGUI_DLL;
+
+function XImgSrc_GetGdiplusBitmap(hImage: HIMAGE): vint; stdcall; external XCGUI_DLL;
+
+procedure XC_EnableWindowSysNc(bEnable: BOOL); stdcall; external XCGUI_DLL;
+
+procedure XC_SetCallBack_LoadLayout(pFun: vint); stdcall; external XCGUI_DLL;
+
+function XC_LoadLayout_Create(data, propertylist: vint; uiType: XC_OBJECT_TYPE; hParent: HXCGUI): HXCGUI; stdcall; external XCGUI_DLL;
+
+function XPropertyList_GetString(propertylist: vint; pName: PWideChar): PWideChar; stdcall; external XCGUI_DLL;
+
+function XPropertyList_GetSize(propertylist: vint): Integer; stdcall; external XCGUI_DLL;
+
+procedure XEditor_SetAutoMatchSelectMode(hEle: HELE; mode: Integer); stdcall; external XCGUI_DLL;
+
+function XTemp_Get(nType: listItemTemp_type_): HTEMP; stdcall; external XCGUI_DLL;
+
+procedure XRes_SetLoadFileCallback(pFun: vint); stdcall; external XCGUI_DLL;
 
 function HexToRGBA(const HexColor: string): DWORD;
 
@@ -5138,22 +5277,22 @@ end;
 
 function XWnd_RegEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
 begin
-  Result := XWnd_RegEventC1(hWindow, nEvent, Integer(pFun));
+  Result := XWnd_RegEventC1(hWindow, nEvent, vint(NativeInt(pFun)));
 end;
 
 function XWnd_RemoveEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
 begin
-  Result := XWnd_RemoveEventC(hWindow, nEvent, Integer(pFun));
+  Result := XWnd_RemoveEventC(hWindow, nEvent, vint(NativeInt(pFun)));
 end;
 
 function XEle_RegEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
 begin
-  Result := XEle_RegEventC1(hEle, nEvent, Integer(pFun));
+  Result := XEle_RegEventC1(hEle, nEvent, vint(NativeInt(pFun)));
 end;
 
 function XEle_RemoveEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
 begin
-  Result := XEle_RemoveEventC(hEle, nEvent, Integer(pFun));
+  Result := XEle_RemoveEventC(hEle, nEvent, vint(NativeInt(pFun)));
 end;
 
 procedure MBox(const Msg: Variant);

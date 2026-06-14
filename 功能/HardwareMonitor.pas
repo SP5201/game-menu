@@ -93,7 +93,7 @@ var
   TotalDelta: Int64;
 begin
   Result := 0;
-  if not GetSystemTimes(IdleTime, KernelTime, UserTime) then
+  if not Windows.GetSystemTimes(IdleTime, KernelTime, UserTime) then
     Exit;
 
   if not FHasCpuBase then

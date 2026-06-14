@@ -15,7 +15,7 @@ procedure MemSpdTryEnrich(var AInfo: TMemStaticInfo; ADiag: TStringList = nil);
 implementation
 
 uses
-  Windows, SysUtils, PawnIo, MemJedecLookup;
+  Windows, SysUtils, PawnIoClient, MemJedecLookup;
 
 const
   cIsaBusMutex = 'Global\Access_ISABUS.HTP.Method';

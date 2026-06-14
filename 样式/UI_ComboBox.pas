@@ -17,11 +17,11 @@ type
     FFocusBkColor: Integer;
     FBorderColor: Integer;
     FItemHeight: Integer;
-    class function OnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnFocusChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPopupList(hEle: HELE; hWindow: Integer; hListBox: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPopupListDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPopupListButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnFocusChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPopupList(hEle: XCGUI.HELE; hWindow: XCGUI.HWINDOW; hListBox: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPopupListDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPopupListButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
@@ -63,7 +63,7 @@ begin
   XAdTable_AddColumn(hAdapter, XC_NAME1);
 end;
 
-class function TComboBoxUI.OnPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TComboBoxUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   pComboUI: TComboBoxUI;
   rc: TRect;
@@ -97,13 +97,13 @@ begin
   );
 end;
 
-class function TComboBoxUI.OnFocusChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TComboBoxUI.OnFocusChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   TComboBoxUI(TComboBoxUI.FromHandle(hEle)).Redraw;
 end;
 
-class function TComboBoxUI.OnPopupList(hEle: HELE; hWindow: Integer; hListBox: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TComboBoxUI.OnPopupList(hEle: XCGUI.HELE; hWindow: XCGUI.HWINDOW; hListBox: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   rcWnd: TRect;
   nShadowSize: Integer;
@@ -151,7 +151,7 @@ begin
   XEle_RegEvent(hListBox, XE_RBUTTONDOWN, @TComboBoxUI.OnPopupListButtonDown);
 end;
 
-class function TComboBoxUI.OnPopupListDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TComboBoxUI.OnPopupListDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   r: TRect;
   itemRect: TRect;
@@ -189,7 +189,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TComboBoxUI.OnPopupListButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TComboBoxUI.OnPopupListButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if XListBox_HitTestOffset(hEle, pPt) < 0 then

@@ -7,7 +7,7 @@ uses
 
 type
   TIconListItemData = record
-    SvgHandle: Integer;
+    SvgHandle: HSVG;
     SvgPath: string;
   end;
 
@@ -15,8 +15,8 @@ type
   private
     FItems: array of TIconListItemData;
     FItemCount: Integer;
-    class function OnPaint(hEle: HELE; hDraw: HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListViewDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListViewDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall; static;
     procedure ReleaseItemData(const AIndex: Integer);
   protected
     procedure Init; override;
@@ -28,7 +28,7 @@ type
     procedure AddSvgIconsFromDir(const ADir: string; const AColor: Integer = -1);
     function FindItemBySvgPath(const ASvgPath: string; out AGroup, AItem: Integer): Boolean;
     function GetSelectedSvgPath(out APath: string): Boolean; overload;
-    function GetItemSvgHandle(iGroup, iItem: Integer): Integer;
+    function GetItemSvgHandle(iGroup, iItem: Integer): HSVG;
     function GetItemSvgPath(iGroup, iItem: Integer): string;
     destructor Destroy; override;
   end;
@@ -79,7 +79,7 @@ function TIconListViewUI.AddSvgIconItem(const ASvgPath: string; const AColor: In
 const
   cGroup = 0;
 var
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   colorValue: Integer;
 begin
   Result := -1;
@@ -154,7 +154,7 @@ begin
   Result := True;
 end;
 
-class function TIconListViewUI.OnPaint(hEle: hEle; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TIconListViewUI.OnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -166,11 +166,11 @@ begin
   XDraw_FillRect(hDraw, rc);
 end;
 
-class function TIconListViewUI.OnListViewDrawItem(hEle: hEle; hDraw: hDraw; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TIconListViewUI.OnListViewDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistView_item_; pbHandled: PBOOL): Integer; stdcall;
 var
   ListView: TIconListViewUI;
   rc: TRect;
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   svgColor: Integer;
 begin
   Result := 0;
@@ -269,7 +269,7 @@ begin
     APath := GetItemSvgPath(g, i);
 end;
 
-function TIconListViewUI.GetItemSvgHandle(iGroup, iItem: Integer): Integer;
+function TIconListViewUI.GetItemSvgHandle(iGroup, iItem: Integer): HSVG;
 begin
   Result := 0;
   if (iItem >= 0) and (iItem < FItemCount) then

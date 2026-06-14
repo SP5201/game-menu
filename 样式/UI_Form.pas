@@ -9,17 +9,17 @@ type
   TFormUI = class(TXForm)
   private
     class var
-      FModalStack: array of HWINDOW;
-    class function OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndWinProc(hWindow: Integer; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
-    class procedure UnregisterModal(hWindow: HWINDOW); static;
+      FModalStack: array of XCGUI.HWINDOW;
+    class function OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class procedure UnregisterModal(hWindow: XCGUI.HWINDOW); static;
   public
     procedure ApplyDefault;
     destructor Destroy; override;
     class function LoadLayout(const LayoutFile: PWideChar): TFormUI;
-    class function TopModal: HWINDOW; static;
+    class function TopModal: XCGUI.HWINDOW; static;
     class procedure ReleaseModalStack; static;
-    class procedure HandleWndSize(const hWindow: Integer; const Msg: UINT; const wParam: WPARAM); static;
+    class procedure HandleWndSize(const hWindow: XCGUI.HWINDOW; const Msg: UINT; const wParam: WPARAM); static;
     class procedure ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer = 20); static;
   protected
     procedure Init; override;
@@ -50,12 +50,12 @@ begin
   end;
 end;
 
-class procedure TFormUI.UnregisterModal(hWindow: hWindow);
+class procedure TFormUI.UnregisterModal(hWindow: XCGUI.HWINDOW);
 var
   i, j: Integer;
 begin
   for i := 0 to High(FModalStack) do
-    if XC_GetObjectType(FModalStack[i]) = XC_MODALWINDOW then
+    if FModalStack[i] = hWindow then
     begin
       for j := i to High(FModalStack) - 1 do
         FModalStack[j] := FModalStack[j + 1];
@@ -64,7 +64,7 @@ begin
     end;
 end;
 
-class function TFormUI.TopModal: HWINDOW;
+class function TFormUI.TopModal: XCGUI.HWINDOW;
 begin
   if Length(FModalStack) > 0 then
     Result := FModalStack[High(FModalStack)]
@@ -74,16 +74,16 @@ end;
 
 class procedure TFormUI.ReleaseModalStack;
 var
-  h: Integer;
+  hModalWnd: XCGUI.HWINDOW;
   n: Integer;
 begin
   n := 0;
   while (Length(FModalStack) > 0) and (n < 512) do
   begin
-    h := TopModal;
-    if h = 0 then
+    hModalWnd := TopModal;
+    if not XC_IsHWINDOW(hModalWnd) then
       Break;
-    XModalWnd_EndModal(h, IDCANCEL);
+    XModalWnd_EndModal(hModalWnd, IDCANCEL);
     Inc(n);
   end;
   SetLength(FModalStack, 0);
@@ -116,7 +116,7 @@ begin
   Result := TFormUI.FromHandle(h);
 end;
 
-class procedure TFormUI.HandleWndSize(const hWindow: Integer; const Msg: UINT; const wParam: WPARAM);
+class procedure TFormUI.HandleWndSize(const hWindow: XCGUI.HWINDOW; const Msg: UINT; const wParam: WPARAM);
 begin
   if Msg <> WM_SIZE then
     Exit;
@@ -126,18 +126,18 @@ begin
     TButtonUI.SetMaxButtonSvg(hWindow, False);
 end;
 
-class function TFormUI.OnWndWinProc(hWindow: Integer; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TFormUI.OnWndWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   HandleWndSize(hWindow, Msg, wParam);
 end;
 
-class function TFormUI.OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TFormUI.OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   nRadius: Integer;
   colorBk: Integer;
-  hWndReal: Integer;
+  hWndReal: Windows.HWND;
   isMaximized: Boolean;
 begin
   Result := 0;

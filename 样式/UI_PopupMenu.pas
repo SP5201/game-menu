@@ -1,4 +1,4 @@
-﻿unit UI_PopupMenu;
+unit UI_PopupMenu;
 
 interface
 
@@ -25,8 +25,8 @@ type
   private
     FHostEle: HELE;
     class function OnMenuPopupWnd(HostEle: HELE; hMenu: HMENUX; var pInfo: Tmenu_popupWnd_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnMenuDrawItem(HostEle: HELE; AHDraw: HDRAW; var pInfo: Tmenu_drawItem_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnMenuDrawBackground(HostEle: HELE; AHDraw: HDRAW; var pInfo: Tmenu_drawBackground_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnMenuDrawItem(HostEle: HELE; AHDraw: XCGUI.HDRAW; var pInfo: Tmenu_drawItem_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnMenuDrawBackground(HostEle: HELE; AHDraw: XCGUI.HDRAW; var pInfo: Tmenu_drawBackground_; pbHandled: PBOOL): Integer; stdcall; static;
   public
     constructor Create(const hHostEle: HELE); reintroduce;
     destructor Destroy; override;
@@ -69,7 +69,7 @@ end;
 
 procedure TPopupMenuUI.AddItemIcon(nID: Integer; const pText: String; nParentID: Integer; const svgPath: String; nFlags: Integer; svgWidth: Integer; svgHeight: Integer);
 var
-  hSvg: Integer;
+  hSvg: XCGUI.HSVG;
   hImg: HIMAGE;
   ext: string;
 begin
@@ -158,9 +158,9 @@ end;
 
 procedure TPopupMenuUI.Popup(const hHostEle: HELE; var PtClient: TPoint; const nPosition: Integer);
 var
-  hWnd: Integer;
+  hWnd: Windows.HWND;
 begin
-  hWnd := XWidget_GetHWND(hHostEle);
+  hWnd := Windows.HWND(XWidget_GetHWND(hHostEle));
   XEle_PointClientToWndClient(hHostEle, PtClient);
   Windows.ClientToScreen(hWnd, PtClient);
   inherited Popup(hWnd, PtClient.X, PtClient.Y, hHostEle, nPosition);
@@ -172,7 +172,7 @@ var
   rcMain: TRect;
   nShadowSize: Integer;
   hWalk: HXCGUI;
-  hRootWnd: Integer;
+  hRootWnd: HXCGUI;
 begin
   Result := 0;
   nShadowSize := 12;
@@ -215,7 +215,7 @@ begin
   XWnd_SetRect(pInfo.hWindow, rcWnd);
 end;
 
-class function TPopupMenuUI.OnMenuDrawItem(HostEle: HELE; AHDraw: HDRAW; var pInfo: Tmenu_drawItem_; pbHandled: PBOOL): Integer; stdcall;
+class function TPopupMenuUI.OnMenuDrawItem(HostEle: HELE; AHDraw: XCGUI.HDRAW; var pInfo: Tmenu_drawItem_; pbHandled: PBOOL): Integer; stdcall;
 var
   rcItem: TRect;
   rcText: TRect;
@@ -355,7 +355,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TPopupMenuUI.OnMenuDrawBackground(HostEle: HELE; AHDraw: HDRAW; var pInfo: Tmenu_drawBackground_; pbHandled: PBOOL): Integer; stdcall;
+class function TPopupMenuUI.OnMenuDrawBackground(HostEle: HELE; AHDraw: XCGUI.HDRAW; var pInfo: Tmenu_drawBackground_; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   nBorderRadius: Integer;

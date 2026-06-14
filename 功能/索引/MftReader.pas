@@ -194,10 +194,10 @@ type
 
 function IsSystemFolderName(const ANameUtf8: PAnsiChar): Boolean;
 begin
-  Result := (StrComp(ANameUtf8, '$Extend') = 0) or
-    (StrComp(ANameUtf8, '$RECYCLE.BIN') = 0) or
-    (StrComp(ANameUtf8, '$Recycle.Bin') = 0) or
-    (StrComp(ANameUtf8, 'System Volume Information') = 0);
+  Result := (AnsiStrComp(ANameUtf8, '$Extend') = 0) or
+    (AnsiStrComp(ANameUtf8, '$RECYCLE.BIN') = 0) or
+    (AnsiStrComp(ANameUtf8, '$Recycle.Bin') = 0) or
+    (AnsiStrComp(ANameUtf8, 'System Volume Information') = 0);
 end;
 
 function Win32ErrorText: string;

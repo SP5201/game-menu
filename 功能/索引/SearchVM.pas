@@ -68,19 +68,6 @@ type
     AnchorEnd: Boolean;
   end;
 
-function AnsiCharLower(ACh: AnsiChar): AnsiChar;
-begin
-  if (ACh >= 'A') and (ACh <= 'Z') then
-    Result := AnsiChar(Ord(ACh) + 32)
-  else
-    Result := ACh;
-end;
-
-function AnsiCharsEqualCI(ALeft, ARight: AnsiChar): Boolean;
-begin
-  Result := AnsiCharLower(ALeft) = AnsiCharLower(ARight);
-end;
-
 function AnsiStrLCompCI(const AText: PAnsiChar; const ASub: PAnsiChar; ALen: Integer): Boolean;
 var
   i: Integer;
@@ -89,7 +76,7 @@ begin
   if (AText = nil) or (ASub = nil) or (ALen <= 0) then
     Exit;
   for i := 0 to ALen - 1 do
-    if not AnsiCharsEqualCI(AText[i], ASub[i]) then
+    if AnsiCharLower(AText[i]) <> AnsiCharLower(ASub[i]) then
       Exit;
   Result := True;
 end;
@@ -109,7 +96,7 @@ begin
     textPtr := scanPtr;
     subPtr := ASub;
     matchPtr := scanPtr;
-    while (subPtr^ <> #0) and (textPtr^ <> #0) and AnsiCharsEqualCI(textPtr^, subPtr^) do
+    while (subPtr^ <> #0) and (textPtr^ <> #0) and (AnsiCharLower(textPtr^) = AnsiCharLower(subPtr^)) do
     begin
       Inc(textPtr);
       Inc(subPtr);
@@ -124,18 +111,17 @@ function QueryToUtf8Pattern(const AQuery: string): AnsiString;
 var
   trimmed: string;
   wlen, n: Integer;
+  buf: AnsiString;
 begin
   trimmed := Trim(AQuery);
   if trimmed = '' then
     Exit('');
   wlen := Length(trimmed);
   n := WideCharToMultiByte(CP_UTF8, 0, PWideChar(trimmed), wlen, nil, 0, nil, nil);
-  SetLength(Result, n);
+  SetLength(buf, n);
   if n > 0 then
-    WideCharToMultiByte(CP_UTF8, 0, PWideChar(trimmed), wlen, PAnsiChar(Result), n, nil, nil);
-  for n := 1 to Length(Result) do
-    if (Result[n] >= 'A') and (Result[n] <= 'Z') then
-      Result[n] := AnsiChar(Ord(Result[n]) + 32);
+    WideCharToMultiByte(CP_UTF8, 0, PWideChar(trimmed), wlen, PAnsiChar(buf), n, nil, nil);
+  Result := Utf8ToLowerAnsi(PAnsiChar(buf));
 end;
 
 function CompileSearchPattern(const AQuery: string): TCompiledSearchPattern;
@@ -189,7 +175,7 @@ begin
   segCount := Length(APattern.Segments);
   if segCount = 0 then
     Exit(True);
-  textLen := StrLen(AText);
+  textLen := AnsiStrLen(AText);
   if segCount = 1 then
   begin
     partPtr := PAnsiChar(APattern.Segments[0]);

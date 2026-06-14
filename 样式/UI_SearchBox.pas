@@ -12,8 +12,8 @@ type
   private
     FEdit: TEditUI;
     FBtn: TButtonUI;
-    class function OnEditKeyDown(hEle: Integer; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnEditChanged(hEle: Integer; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEditKeyDown(hEle: XCGUI.HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEditChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure AttachSearchButton(var ABox: TSearchBoxUI; const ASvgFile: PWideChar;
       const AIconW, AIconH: Integer); static;
     class var
@@ -71,7 +71,7 @@ begin
   XEle_SetUserData(Result.FEdit.Handle, NativeInt(Result.FBtn.Handle));
 end;
 
-class function TSearchBoxUI.OnEditChanged(hEle: Integer; pbHandled: PBOOL): Integer; stdcall;
+class function TSearchBoxUI.OnEditChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -79,9 +79,9 @@ begin
     FOnInputChanged();
 end;
 
-class function TSearchBoxUI.OnEditKeyDown(hEle: Integer; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer;
+class function TSearchBoxUI.OnEditKeyDown(hEle: XCGUI.HELE; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 var
-  hBtn: Integer;
+  hBtn: XCGUI.HELE;
 begin
   Result := 0;
   case wParam of
@@ -89,7 +89,7 @@ begin
       if (lParam and $40000000) = 0 then
       begin
         pbHandled^ := True;
-        hBtn := XEle_GetUserData(hEle);
+        hBtn := XCGUI.HELE(XEle_GetUserData(hEle));
         XEle_SendEvent(hBtn, XE_BNCLICK, 0, 0);
       end;
   end;

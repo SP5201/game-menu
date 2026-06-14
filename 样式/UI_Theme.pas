@@ -72,51 +72,56 @@ begin
   Result := string(UTF8String(ABytes));
 end;
 
+function ThemeRgba(r, g, b, a: Byte): Integer; inline;
+begin
+  Result := RGBA(r, g, b, a);
+end;
+
 initialization
   UITheme_WindowCornerRadius := 8;
   UITheme_WindowDragBorderSize := 1;
   UITheme_WindowAlpha := 255;
-  UITheme_SurfaceBase := RGBA(30, 30, 30, UITheme_WindowAlpha);
-  UITheme_SurfaceOutline := RGBA(255, 255, 255, 10);
-  UITheme_SurfaceSelected := RGBA(255, 255, 255, 20);
-  UITheme_SurfaceHover := RGBA(255, 255, 255, 10);
-  UITheme_ShadowDefault := RGBA(0, 0, 0, 225);
-  UITheme_TextPrimary := RGBA(207, 207, 207, 255);
-  UITheme_TextPlaceholder := RGBA(255, 255, 255, 36);
-  UITheme_ListHeaderSurface := RGBA(42, 42, 42, 255);
-  UITheme_ListHeaderText := RGBA(207, 207, 207, 255);
-  UITheme_BorderDefault := RGBA(255, 255, 255, 30);
-  UITheme_InputSurface := RGBA(255, 255, 255, 4);
-  UITheme_InputSurfaceFocus := RGBA(0, 0, 0, 60);
-  UITheme_InputBorder := RGBA(255, 255, 255, 30);
-  UITheme_InputText := RGBA(255, 255, 255, 150);
-  UITheme_InputCaret := RGBA(255, 255, 255, 190);
-  UITheme_InputSelection := RGBA(255, 255, 255, 80);
-  UITheme_ScrollThumbIdle := RGBA(255, 255, 255, 40);
-  UITheme_ScrollThumbActive := RGBA(255, 255, 255, 80);
-  UITheme_ButtonHighlightBk := RGBA(210, 27, 70, 255);
-  UITheme_ButtonHighlightBkHover := RGBA(210, 27, 70, 245);
-  UITheme_ButtonNormalBk := RGBA(255, 255, 255, 32);
-  UITheme_ButtonNormalBkHover := RGBA(255, 255, 255, 42);
-  UITheme_IconFill := RGBA(255, 255, 255, 160);
-  UITheme_CheckMark := RGBA(255, 255, 255, 255);
-  UITheme_SvgColor := RGBA(255, 255, 255, 230);
+  UITheme_SurfaceBase := ThemeRgba(30, 30, 30, UITheme_WindowAlpha);
+  UITheme_SurfaceOutline := ThemeRgba(255, 255, 255, 10);
+  UITheme_SurfaceSelected := ThemeRgba(255, 255, 255, 20);
+  UITheme_SurfaceHover := ThemeRgba(255, 255, 255, 10);
+  UITheme_ShadowDefault := ThemeRgba(0, 0, 0, 225);
+  UITheme_TextPrimary := ThemeRgba(207, 207, 207, 255);
+  UITheme_TextPlaceholder := ThemeRgba(255, 255, 255, 36);
+  UITheme_ListHeaderSurface := ThemeRgba(42, 42, 42, 255);
+  UITheme_ListHeaderText := ThemeRgba(207, 207, 207, 255);
+  UITheme_BorderDefault := ThemeRgba(255, 255, 255, 30);
+  UITheme_InputSurface := ThemeRgba(255, 255, 255, 4);
+  UITheme_InputSurfaceFocus := ThemeRgba(0, 0, 0, 60);
+  UITheme_InputBorder := ThemeRgba(255, 255, 255, 30);
+  UITheme_InputText := ThemeRgba(255, 255, 255, 150);
+  UITheme_InputCaret := ThemeRgba(255, 255, 255, 190);
+  UITheme_InputSelection := ThemeRgba(255, 255, 255, 80);
+  UITheme_ScrollThumbIdle := ThemeRgba(255, 255, 255, 40);
+  UITheme_ScrollThumbActive := ThemeRgba(255, 255, 255, 80);
+  UITheme_ButtonHighlightBk := ThemeRgba(210, 27, 70, 255);
+  UITheme_ButtonHighlightBkHover := ThemeRgba(210, 27, 70, 245);
+  UITheme_ButtonNormalBk := ThemeRgba(255, 255, 255, 32);
+  UITheme_ButtonNormalBkHover := ThemeRgba(255, 255, 255, 42);
+  UITheme_IconFill := ThemeRgba(255, 255, 255, 160);
+  UITheme_CheckMark := ThemeRgba(255, 255, 255, 255);
+  UITheme_SvgColor := ThemeRgba(255, 255, 255, 230);
 
-  UITheme_PrimaryColor := RGBA(210, 27, 70, 255);
+  UITheme_PrimaryColor := ThemeRgba(210, 27, 70, 255);
 
   UITheme_ProgressBarWidth := 50;
   UITheme_ProgressBarHeight := 7;
   UITheme_ProgressBarCornerRadius := 3;
-  UITheme_ProgressBarFill := RGBA(239, 68, 68, 255);
-  UITheme_ProgressBarTrack := RGBA(64, 64, 64, 255);
-  UITheme_StatRamFill := RGBA(16, 185, 129, 255);
-  UITheme_StatGpuFill := RGBA(59, 130, 246, 255);
-  UITheme_StatNetDownFill := RGBA(125, 212, 232, 255);
-  UITheme_StatNetUpFill := RGBA(52, 211, 153, 255);
-  UITheme_StatLabel := RGBA(156, 163, 175, 200);
-  UITheme_StatBarTopLine := RGBA(255, 255, 255, 28);
+  UITheme_ProgressBarFill := ThemeRgba(239, 68, 68, 255);
+  UITheme_ProgressBarTrack := ThemeRgba(64, 64, 64, 255);
+  UITheme_StatRamFill := ThemeRgba(16, 185, 129, 255);
+  UITheme_StatGpuFill := ThemeRgba(59, 130, 246, 255);
+  UITheme_StatNetDownFill := ThemeRgba(125, 212, 232, 255);
+  UITheme_StatNetUpFill := ThemeRgba(52, 211, 153, 255);
+  UITheme_StatLabel := ThemeRgba(156, 163, 175, 200);
+  UITheme_StatBarTopLine := ThemeRgba(255, 255, 255, 28);
 
-  UITheme_PopupMenu_AccentWhiteAlpha30 := RGBA(255, 255, 255, 18);
+  UITheme_PopupMenu_AccentWhiteAlpha30 := ThemeRgba(255, 255, 255, 18);
 
 end.
 

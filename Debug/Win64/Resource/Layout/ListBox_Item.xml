@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-列表框元素项模板文件-->
+<head />
+<xc_template_listBox>
+	<layoutEleUI enableCanvas="false" drawBorder="false" mouseThrough="true" widthT="300" heightT="30" layout.horizon="true" layout.alignH="left" layout.alignV="center" layout.width="auto" layout.height="fill" layout.space="10" padding="20,0,20,0" transparent="true">
+		<shapePicture rect="84,15,0,0" layout.width="0" layout.height="0" image="{binding field=name1}" itemID="1" />
+		<shapeText itemID="2" layout.width="0" layout.height="0" content="{binding field=name2}" textColor="@Resource:\ID_COLOR_PRIMARY" />
+	</layoutEleUI>
+</xc_template_listBox>

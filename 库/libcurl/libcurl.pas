@@ -1,7 +1,7 @@
 unit libcurl;
 
 { Minimal libcurl 7.x bindings for NetHttpWorker.
-  Runtime: Bin\libcurl.dll + Bin\libssl-1_1.dll + Bin\libcrypto-1_1.dll (+ Bin\libssh2.dll if linked).
+  Runtime: Bin\libcurl.dll（Win64 为 libcurl_x64.dll）+ 依赖 DLL（Win32 动态链 OpenSSL 时另需 libssl/libcrypto/libssh2）。
   Loaded dynamically so transitive dependencies resolve from Bin\ directory. }
 
 interface

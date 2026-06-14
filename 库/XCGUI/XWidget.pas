@@ -11,17 +11,17 @@ type
     FHandle: HXCGUI;
     FPopupMenu: Pointer;
     FTooltip: Pointer;
-    FDraw: Integer;
+    FDraw: HDRAW;
     class var
-      FHandleMap: TDictionary<Integer, Pointer>;
-    procedure SetHandle(const Value: HELE);
+      FHandleMap: TDictionary<HXCGUI, Pointer>;
+    procedure SetHandle(const Value: HXCGUI);
   protected
     procedure Init; virtual;
   public
-    class function IsReused(const Handle: Integer): Boolean;
+    class function IsReused(const Handle: HXCGUI): Boolean;
     class function FromXmlName(const Name: string): Pointer;
-    class function FromXmlID(const hWindow: Integer; const ID: Integer): Pointer;
-    class function FromHandle(const Handle: Integer): Pointer;
+    class function FromXmlID(const hWindow: XCGUI.HWINDOW; const ID: Integer): Pointer;
+    class function FromHandle(const Handle: HXCGUI): Pointer;
     constructor Create;
     destructor Destroy; override;
     property Handle: HXCGUI read FHandle write SetHandle;
@@ -31,7 +31,7 @@ type
     function GetIsLayoutControl: BOOL;
     function GetParentEle: HELE;
     function GetParent: HXCGUI;
-    function GetHWND: Integer;
+    function GetHWND: HWND;
     function GetHWINDOW: HWINDOW; virtual;
     function GetID: Integer;
     function GetUID: Integer;
@@ -44,18 +44,18 @@ type
     procedure SetID(const nID: Integer);
     procedure SetUID(const nUID: Integer);
     procedure SetName(const pName: PChar);
-    function GetDraw: Integer;
-    procedure SetDraw(const hDraw: Integer);
+    function GetDraw: HDRAW;
+    procedure SetDraw(const hDraw: XCGUI.HDRAW);
     property IsShow: BOOL read GetIsShow;
     property IsLayoutControl: BOOL read GetIsLayoutControl;
     property ParentEle: HELE read GetParentEle;
     property Parent: HXCGUI read GetParent;
-    property HWND: Integer read GetHWND;
+    property HWND: HWND read GetHWND;
     property HWINDOW: HWINDOW read GetHWINDOW;
     property ID: Integer read GetID write SetID;
     property UID: Integer read GetUID write SetUID;
     property Name: PChar read GetName write SetName;
-    property Draw: Integer read GetDraw write SetDraw;
+    property Draw: HDRAW read GetDraw write SetDraw;
 
     procedure Show(const bShow: BOOL);
     procedure EnableLayoutControl(const bEnable: BOOL);
@@ -71,7 +71,7 @@ type
     procedure LayoutItem_GetMargin(out pMargin: TmarginSize_);
     procedure LayoutItem_SetMinSize(width, height: Integer);
     procedure LayoutItem_SetPosition(left, top, right, bottom: Integer);
-    function IsSViewExtend(hEle: HELE): Boolean;
+    function IsSViewExtend(hEle: XCGUI.HELE): Boolean;
     function GetObjectType: Integer;
     function GetObjectByUID(nUID: Integer): HXCGUI;
     function GetObjectByUIDName(const pName: PChar): HXCGUI;
@@ -116,7 +116,7 @@ begin
   Result := XWidget_GetParent(FHandle);
 end;
 
-function TXWidget.GetHWND: Integer;
+function TXWidget.GetHWND: HWND;
 begin
   if IsHWINDOW then
     Result := XWnd_GetHWND(Handle)
@@ -166,14 +166,14 @@ begin
   Result := DPI / 96;
 end;
 
-procedure TXWidget.SetDraw(const hDraw: Integer);
+procedure TXWidget.SetDraw(const hDraw: XCGUI.HDRAW);
 begin
   if FDraw <> 0 then
     XDraw_Destroy(FDraw);
   FDraw := hDraw;
 end;
 
-function TXWidget.GetDraw: Integer;
+function TXWidget.GetDraw: HDRAW;
 begin
   if IsHELE then
     Result := TXWidget(FromHandle(XWidget_GetHWINDOW(Handle))).FDraw
@@ -280,7 +280,7 @@ begin
   XWidget_LayoutItem_SetPosition(FHandle, left, top, right, bottom);
 end;
 
-function TXWidget.IsSViewExtend(hEle: hEle): Boolean;
+function TXWidget.IsSViewExtend(hEle: XCGUI.HELE): Boolean;
 begin
   Result := Boolean(XC_IsSViewExtend(hEle));
 end;
@@ -328,7 +328,7 @@ begin
   Result := XC_IsHXCGUI(hXCGUI, nType);
 end;
 
-class function TXWidget.IsReused(const Handle: Integer): Boolean;
+class function TXWidget.IsReused(const Handle: HXCGUI): Boolean;
 begin
   Result := FHandleMap.ContainsKey(Handle);
 end;
@@ -336,21 +336,21 @@ end;
 
 class function TXWidget.FromXmlName(const Name: string): Pointer;
 var
-  Handle: Integer;
+  Handle: HXCGUI;
 begin
   Handle := XC_GetObjectByName(PWideChar(Name));
   Result := FromHandle(Handle);
 end;
 
-class function TXWidget.FromXmlID(const hWindow: Integer; const ID: Integer): Pointer;
+class function TXWidget.FromXmlID(const hWindow: XCGUI.HWINDOW; const ID: Integer): Pointer;
 var
-  Handle: Integer;
+  Handle: HXCGUI;
 begin
   Handle := XC_GetObjectByID(hWindow, ID);
   Result := FromHandle(Handle);
 end;
 
-class function TXWidget.FromHandle(const Handle: Integer): Pointer;
+class function TXWidget.FromHandle(const Handle: HXCGUI): Pointer;
 var
   Reused: Boolean;
   Value: Pointer;
@@ -375,7 +375,7 @@ begin
 end;
 
 initialization
-  TXWidget.FHandleMap := TDictionary<Integer, Pointer>.Create;
+  TXWidget.FHandleMap := TDictionary<HXCGUI, Pointer>.Create;
 
 
 finalization

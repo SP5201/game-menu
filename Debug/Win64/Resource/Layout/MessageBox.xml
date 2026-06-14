@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,234,221" windowType="modalWindow" windowStyle="20" center="true" minSize="230,220" maxWindow="false">
+	<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="fill" layout.space="14">
+		<layoutEleUI rect="37,12,100,100" layout.width="fill" layout.height="38" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+			<layoutEleUI rect="0,0,100,36" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+				<shapePicture name="pic_msgbox_dialog_logo" rect="0,0,20,20" layout.width="20" layout.height="20" layout.margin="4,0,0,0" expandT="false" />
+				<shapeText name="txt_msgbox_title" rect="0,0,100,28" layout.width=":1" layout.height="fill" />
+			</layoutEleUI>
+			<buttonUI name="btn_msgbox_close" rect="184,12,60,25" layout.width="20" layout.height="20" layout.margin="0,0,10,0" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="116,59,100,100" layout.width="fill" layout.height=":1" layout.horizon="true" layout.alignV="center" layout.space="10" padding="20,0,20,0">
+			<shapePicture name="pic_msgbox_icon" rect="86,45,100,100" layout.width="80" layout.height="80" />
+			<shapeText layout.width="auto" rect="254,29,55,19" content="TextBlock" layout.height="auto" name="txt_msgbox_content" textAlign="DT_LEFT,DT_TOP" />
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" />
+		<layoutEleUI rect="0,0,100,38" layout.width="fill" layout.height="48" layout.horizon="true" layout.alignH="right" layout.space="20" layout.alignV="center" padding="0,6,5,0">
+			<buttonUI name="btn_msgbox_ok" rect="0,0,96,34" layout.width="90" layout.height="30" content="确定" />
+			<buttonUI name="btn_msgbox_cancel" rect="0,0,96,34" layout.width="90" layout.height="30" content="取消" />
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

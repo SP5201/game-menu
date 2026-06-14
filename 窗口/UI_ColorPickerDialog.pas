@@ -1,4 +1,4 @@
-﻿unit UI_ColorPickerDialog;
+unit UI_ColorPickerDialog;
 
 interface
 
@@ -33,24 +33,24 @@ type
       FCurrentR: Integer;
       FCurrentG: Integer;
       FCurrentB: Integer;
-    class function OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnOK(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnColorPanelPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHueBarPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnPreviewPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnColorPanelLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHueBarLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnColorPanelMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHueBarMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnColorPanelLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnHueBarLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnAlphaBarPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnAlphaBarLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnAlphaBarMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnAlphaBarLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnEditChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnScreenColorPicker(hEle: HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnColorPanelPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHueBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnColorPanelLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHueBarLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnColorPanelMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHueBarMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnColorPanelLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnHueBarLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnAlphaBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnAlphaBarLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnAlphaBarMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnAlphaBarLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnEditChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnScreenColorPicker(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure UpdateEdits;
     class procedure CreateHueBarImage(w, h: Integer);
     class procedure CreateAlphaBarImage(w, h: Integer);
@@ -58,8 +58,8 @@ type
   protected
     procedure Init; override;                                                                      
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): TColorPickerDialogUI; reintroduce;
-    class function PickColor(const hParent: HWND; hAttachWnd: Integer; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TColorPickerDialogUI; reintroduce;
+    class function PickColor(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
   end;
 
 implementation
@@ -90,7 +90,7 @@ const
   ID_EDIT_HEX         = 'edit_colorpicker_hex';
   ID_BTN_SCREEN       = 'btn_colorpicker_screen';
 
-class function TColorPickerDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: Integer): TColorPickerDialogUI;
+class function TColorPickerDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TColorPickerDialogUI;
 var
   h: HXCGUI;
 begin
@@ -185,21 +185,21 @@ begin
     RegEvent(WM_KEYDOWN, @TColorPickerDialogUI.OnWndKeyDown);
 end;
 
-class function TColorPickerDialogUI.OnBtnCancel(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
-class function TColorPickerDialogUI.OnBtnOK(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
   XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
 end;
 
-class function TColorPickerDialogUI.OnWndKeyDown(hWindow: HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if wParam = VK_RETURN then
@@ -215,7 +215,7 @@ begin
   end;
 end;
 
-class function TColorPickerDialogUI.OnColorPanelPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnColorPanelPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   y, h, leftColor, rightColor: Integer;
@@ -459,7 +459,7 @@ begin
         end;
     end;
 
-    FHueBarImage := XImage_LoadFromData(Integer(data), w, h);
+    FHueBarImage := XImage_LoadFromData(NativeInt(data), w, h);
   finally
     FreeMem(data);
   end;
@@ -567,7 +567,7 @@ begin
         end;
     end;
 
-    FAlphaBarImage := XImage_LoadFromData(Integer(data), w, h);
+    FAlphaBarImage := XImage_LoadFromData(NativeInt(data), w, h);
   finally
     FreeMem(data);
   end;
@@ -587,7 +587,7 @@ begin
   end;
 end;
 
-class function TColorPickerDialogUI.OnHueBarPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnHueBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   w, h: Integer;
@@ -635,7 +635,7 @@ begin
   XDraw_DrawEllipseF(hDraw, dotRect);
 end;
 
-class function TColorPickerDialogUI.OnAlphaBarPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnAlphaBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   w, h: Integer;
@@ -685,7 +685,7 @@ begin
   XDraw_DrawEllipseF(hDraw, dotRect);
 end;
 
-class function TColorPickerDialogUI.OnPreviewPaint(hEle: HELE; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   rr: Integer;
@@ -698,7 +698,7 @@ begin
   XDraw_FillRoundRect(hDraw, rc, rr, rr);
 end;
 
-class function TColorPickerDialogUI.OnColorPanelLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnColorPanelLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -719,7 +719,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnColorPanelLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnColorPanelLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -727,7 +727,7 @@ begin
   XEle_SetCapture(hEle, False);
 end;
 
-class function TColorPickerDialogUI.OnColorPanelMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnColorPanelMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -748,7 +748,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnHueBarLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnHueBarLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -756,7 +756,7 @@ begin
   XEle_SetCapture(hEle, False);
 end;
 
-class function TColorPickerDialogUI.OnHueBarMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnHueBarMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -775,7 +775,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnHueBarLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnHueBarLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -794,7 +794,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnAlphaBarLButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnAlphaBarLButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -811,7 +811,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnAlphaBarMouseMove(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnAlphaBarMouseMove(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -828,7 +828,7 @@ begin
   UpdateEdits;
 end;
 
-class function TColorPickerDialogUI.OnAlphaBarLButtonUp(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnAlphaBarLButtonUp(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -836,7 +836,7 @@ begin
   XEle_SetCapture(hEle, False);
 end;
 
-class function TColorPickerDialogUI.OnEditChanged(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnEditChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var
   txt: string;
   r, g, b, a: Integer;
@@ -909,7 +909,7 @@ begin
   XEle_Redraw(FPreviewEle);
 end;
 
-class function TColorPickerDialogUI.PickColor(const hParent: HWND; hAttachWnd: Integer; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
+class function TColorPickerDialogUI.PickColor(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW; var ARed, AGreen, ABlue: Integer; var AAlpha: Byte): Boolean;
 var
   dlg: TColorPickerDialogUI;
 begin
@@ -935,7 +935,7 @@ begin
   DestroyCachedImages;
 end;
 
-class function TColorPickerDialogUI.OnBtnScreenColorPicker(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
+class function TColorPickerDialogUI.OnBtnScreenColorPicker(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;

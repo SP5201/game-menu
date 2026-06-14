@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--炫彩界面库-窗口布局文件-->
+<head>
+	<bindJsFile value="" />
+</head>
+<windowUI rect="20,20,463,303" windowType="modalWindow" windowStyle="20" center="true" minSize="400,200" maxWindow="false">
+	<layoutEleUI rect="8,30,415,148" layout.width="fill" layout.height="fill" layout.space="10" padding="4,0,4,0">
+		<layoutEleUI rect="0,0,100,38" layout.width="fill" layout.height="38" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+			<layoutEleUI rect="0,0,100,36" layout.width=":1" layout.height="fill" layout.horizon="true" layout.alignV="center" layout.space="4" expandT="false">
+				<shapePicture name="pic_category_dialog_logo" rect="0,0,20,20" layout.width="20" layout.height="20" expandT="false" />
+				<shapeText name="txt_category_dialog_title" rect="0,0,100,28" layout.width=":1" layout.height="fill" content="重命名分类" />
+			</layoutEleUI>
+			<buttonUI name="btn_category_dialog_close" rect="0,0,60,25" layout.width="20" layout.height="20" buttonType="close" />
+		</layoutEleUI>
+		<layoutEleUI rect="0,0,100,56" layout.width="fill" layout.height="40" layout.horizon="true" layout.alignV="center" layout.space="4">
+			<shapePicture name="pic_category_icon" rect="0,29,100,100" layout.width="20" layout.height="20" />
+			<shapeText name="txt_category_label_name" rect="0,0,60,20" layout.width="auto" layout.height="fill" content="分类名称" textAlign="DT_CENTER,DT_VCENTER,DT_SINGLELINE" />
+			<editUI name="edit_category_name" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="请输入分类名称" />
+		</layoutEleUI>
+		<layoutEleUI rect="152,127,100,100" layout.width="fill" layout.height=":1">
+			<listViewUI name="list_category_icons" rect="106,54,100,100" layout.width="fill" layout.height="fill" transparent="true" drawBorder="false" drawFocus="false" />
+		</layoutEleUI>
+		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" />
+		<layoutEleUI rect="0,0,100,48" layout.width="fill" layout.height="48" layout.horizon="true" layout.alignH="right" layout.space="10" layout.alignV="center" padding="0,6,0,0">
+			<layoutEleUI rect="80,36,100,100" layout.height="fill" layout.width=":1" layout.alignV="center">
+				<buttonUI name="btn_category_icon_hint" rect="106,21,60,25" layout.width="16" layout.height="16" />
+				<textLinkUI name="link_category_open_icon_dir" content="打开图标文件夹" rect="25,32,100,20" transparent="true" underlineLeave="true" underlineStay="true" cursor="IDC_HAND" />
+			</layoutEleUI>
+			<layoutEleUI rect="263,36,100,100" layout.width="210" layout.height="fill" layout.alignV="center" layout.horizon="true" layout.space="10" layout.alignH="right">
+				<buttonUI name="btn_category_cancel" rect="0,0,96,34" layout.width="90" layout.height="30" content="取消" />
+				<buttonUI name="btn_category_confirm" rect="0,0,96,34" layout.width="90" layout.height="30" content="保存" />
+			</layoutEleUI>
+		</layoutEleUI>
+	</layoutEleUI>
+</windowUI>

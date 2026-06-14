@@ -2,7 +2,7 @@ unit AppPaths;
 
 {
   应用程序目录与原生 DLL 搜索路径。
-  默认 Bin 目录为 exe 同级的 Bin\（如 Debug\Bin\），存放 XCGUI、sqlite3、libcurl 等第三方 DLL。
+  默认 Bin 目录为 exe 同级的 Bin\（如 Debug\Win32\Bin\），存放 XCGUI、sqlite3、libcurl 等第三方 DLL。
 }
 
 interface
@@ -15,6 +15,8 @@ const
 
 function AppExeDirectory: string;
 function AppBinDirectory: string;
+function AppDataDirectory: string;
+function AppBinDllFileName(const AFileName: string): string;
 function AppBinDllPath(const AFileName: string): string;
 function AppBinRelativeDllPath(const AFileName: string): string;
 procedure SetAppBinDirectory(const ADirectory: string);
@@ -44,6 +46,11 @@ begin
   Result := GBinDirectory;
 end;
 
+function AppDataDirectory: string;
+begin
+  Result := AppExeDirectory + 'Data' + PathDelim;
+end;
+
 procedure SetAppBinDirectory(const ADirectory: string);
 var
   normalized: string;
@@ -63,14 +70,32 @@ begin
   ConfigureNativeDllSearchPath;
 end;
 
+function AppBinDllFileName(const AFileName: string): string;
+{$IFDEF WIN64}
+var
+  baseName, ext: string;
+{$ENDIF}
+begin
+  Result := ExtractFileName(AFileName);
+{$IFDEF WIN64}
+  ext := ExtractFileExt(Result);
+  if SameText(ext, '.dll') then
+  begin
+    baseName := ChangeFileExt(Result, '');
+    if (Length(baseName) < 4) or not SameText(Copy(baseName, Length(baseName) - 3, 4), '_x64') then
+      Result := baseName + '_x64' + ext;
+  end;
+{$ENDIF}
+end;
+
 function AppBinDllPath(const AFileName: string): string;
 begin
-  Result := AppBinDirectory + ExtractFileName(AFileName);
+  Result := AppBinDirectory + AppBinDllFileName(AFileName);
 end;
 
 function AppBinRelativeDllPath(const AFileName: string): string;
 begin
-  Result := cDefaultBinDirName + PathDelim + ExtractFileName(AFileName);
+  Result := cDefaultBinDirName + PathDelim + AppBinDllFileName(AFileName);
 end;
 
 procedure ConfigureNativeDllSearchPath;

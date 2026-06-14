@@ -27,7 +27,7 @@ type
     function AddSelectItem(iItem: Integer): BOOL;
     function CancelSelectItem(iItem: Integer): BOOL;
     function CancelSelectAll: BOOL;
-    function GetSelectAll(out pArray: Integer; nArraySize: Integer): Integer;
+    function GetSelectAll(pArray: vint; nArraySize: Integer): Integer;
     function GetSelectCount: Integer;
     function GetItemMouseStay: Integer;
     function SelectAll: BOOL;
@@ -166,7 +166,7 @@ begin
   Result := XListBox_CancelSelectAll(Self.Handle);
 end;
 
-function TXListBox.GetSelectAll(out pArray: Integer; nArraySize: Integer): Integer;
+function TXListBox.GetSelectAll(pArray: vint; nArraySize: Integer): Integer;
 begin
   Result := XListBox_GetSelectAll(Self.Handle, pArray, nArraySize);
 end;

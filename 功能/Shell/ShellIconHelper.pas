@@ -92,6 +92,7 @@ uses
   SyncObjs,
   GDIPAPI,
   GDIPOBJ,
+  AppPaths,
   ShellHelper;
 
 type
@@ -684,7 +685,7 @@ begin
   Result := 0;
   if not AData.Ok or (AData.Width <= 0) or (AData.Height <= 0) or (Length(AData.Bits) < AData.Width * AData.Height * 4) then
     Exit;
-  Result := XImage_LoadFromData(Integer(@AData.Bits[0]), AData.Width, AData.Height);
+  Result := XImage_LoadFromData(NativeInt(@AData.Bits[0]), AData.Width, AData.Height);
 end;
 
 function BuildListFileImageRequestKey(const AIconCachePath, AFilePath: string): string;
@@ -1269,8 +1270,7 @@ begin
   Result := $811C9DC5;
   for I := 1 to Length(S) do
   begin
-    Result := Result xor Byte(S[I]);
-    Result := Result * 16777619;
+    Result := Cardinal((UInt64(Result xor Byte(S[I])) * UInt64(16777619)) and $FFFFFFFF);
   end;
 end;
 
@@ -1395,7 +1395,7 @@ begin
       Exit;
     SetLength(buf, size);
     fs.ReadBuffer(buf[0], size);
-    Result := XImage_LoadMemory(Integer(@buf[0]), size);
+    Result := XImage_LoadMemory(NativeInt(@buf[0]), size);
   finally
     fs.Free;
   end;
@@ -1634,7 +1634,7 @@ begin
     Exit;
   CalcImageFitSize(ASrcW, ASrcH, AMaxW, AMaxH, DstW, DstH);
   if (DstW >= ASrcW) and (DstH >= ASrcH) then
-    Exit(XImage_LoadFromData(Integer(@ABits[0]), ASrcW, ASrcH));
+    Exit(XImage_LoadFromData(NativeInt(@ABits[0]), ASrcW, ASrcH));
 
   SrcBmp := TGPBitmap.Create(ASrcW, ASrcH, ASrcW * 4, PixelFormat32bppARGB, @ABits[0]);
   try
@@ -1664,7 +1664,7 @@ begin
       if DstBmp.LockBits(MakeRect(0, 0, DstW, DstH), ImageLockModeRead, PixelFormat32bppARGB, BD) <> Ok then
         Exit;
       try
-        Result := XImage_LoadFromData(Integer(BD.Scan0), DstW, DstH);
+        Result := XImage_LoadFromData(NativeInt(BD.Scan0), DstW, DstH);
       finally
         DstBmp.UnlockBits(BD);
       end;
@@ -1684,7 +1684,7 @@ begin
   Result := 0;
   if not IconToBGRA(AIcon, srcW, srcH, bits) then
     Exit;
-  Result := XImage_LoadFromData(Integer(@bits[0]), srcW, srcH);
+  Result := XImage_LoadFromData(NativeInt(@bits[0]), srcW, srcH);
 end;
 
 function GetApplicationIcon: HICON;

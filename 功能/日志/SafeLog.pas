@@ -41,10 +41,10 @@ function SafeLogFormatElapsed(AElapsedMs: Cardinal): string;
 procedure SafeLogClearAll;
 function SafeLogFormatExportText: string;
 function SafeLogSaveToFile(const AFileName: string): Boolean;
-procedure SafeLogBindWindow(AWindow: HWINDOW);
+procedure SafeLogBindWindow(AWindow: XCGUI.HWINDOW);
 procedure SafeLogClearWindow;
-procedure SafeLogReleaseWindow(AWindow: HWINDOW);
-function SafeLogLiveWindowHandle: HWINDOW;
+procedure SafeLogReleaseWindow(AWindow: XCGUI.HWINDOW);
+function SafeLogLiveWindowHandle: XCGUI.HWINDOW;
 procedure SafeLogStartupBegin;
 procedure SafeLogStartupAppendStep(const AFeature, ADetail: string; ASuccess: Boolean);
 procedure SafeLogStartupCommit;
@@ -62,12 +62,12 @@ var
   GLogLock: TCriticalSection;
   GEntries: array of TSafeLogEntry;
   GNextId: Integer;
-  GSafeLogWindow: HWINDOW;
+  GSafeLogWindow: XCGUI.HWINDOW;
   GStartupLines: TStringList;
   GStartupActive: Boolean;
   GStartupHasFailure: Boolean;
 
-procedure SafeLogBindWindow(AWindow: HWINDOW);
+procedure SafeLogBindWindow(AWindow: XCGUI.HWINDOW);
 begin
   GSafeLogWindow := AWindow;
 end;
@@ -77,13 +77,13 @@ begin
   GSafeLogWindow := 0;
 end;
 
-procedure SafeLogReleaseWindow(AWindow: HWINDOW);
+procedure SafeLogReleaseWindow(AWindow: XCGUI.HWINDOW);
 begin
   if GSafeLogWindow = AWindow then
     GSafeLogWindow := 0;
 end;
 
-function SafeLogLiveWindowHandle: HWINDOW;
+function SafeLogLiveWindowHandle: XCGUI.HWINDOW;
 begin
   if XC_IsHWINDOW(GSafeLogWindow) then
     Result := GSafeLogWindow

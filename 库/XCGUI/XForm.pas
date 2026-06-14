@@ -1,4 +1,4 @@
-﻿unit XForm;
+unit XForm;
 
 interface
 
@@ -9,12 +9,12 @@ type
   TXForm = class(TXWidget)
   private
   protected
-    class function OnDESTROY(hWnd: Integer; pbHandled: PBoolean): Integer; stdcall; static;
+    class function OnDESTROY(hWnd: XCGUI.HWINDOW; pbHandled: PBoolean): Integer; stdcall; static;
     procedure Init; override;
   public
-    constructor Create(x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND = 0; XCStyle: Integer = 0); reintroduce;
-    constructor CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND = 0; XCStyle: Integer = 0);
-    function Attach(hWnd: HWND; XCStyle: Integer): Boolean;
+    constructor Create(x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND = 0; XCStyle: Integer = 0); reintroduce;
+    constructor CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND = 0; XCStyle: Integer = 0);
+    function Attach(hWnd: Windows.HWND; XCStyle: Integer): Boolean;
     // ????????
     function AddChild(hChild: HXCGUI): Boolean;
     function InsertChild(hChild: HXCGUI; index: Integer): Boolean;
@@ -39,14 +39,14 @@ type
     procedure SetFocusEle(hFocusEle: HELE);
     function GetFocusEle: HELE;
     function GetStayEle: HELE;
-    procedure SetCaptureEle(hEle: HELE);
+    procedure SetCaptureEle(hEle: XCGUI.HELE);
     function GetCaptureEle: HELE;
     // ??????
     procedure SetCursor(hCursor: HCURSOR);
     function GetCursor: HCURSOR;
     procedure SetCursorSys(hCursor: HCURSOR);
     // ???????
-    procedure DrawWindow(hDraw: HDRAW);
+    procedure DrawWindow(hDraw: XCGUI.HDRAW);
     procedure GetDrawRect(var pRcPaint: TRect);
     procedure GetClientRect(var pRect: TRect);
     procedure GetBodyRect(var pRect: TRect);
@@ -54,7 +54,7 @@ type
     procedure GetRect(var pRect: TRect);
     procedure SetRect(var pRect: TRect);
     //
-    procedure CreateCaret(hEle: HELE; x, y, width, height: Integer);
+    procedure CreateCaret(hEle: XCGUI.HELE; x, y, width, height: Integer);
     procedure SetCaretPos(x, y, width, height: Integer; bUpdate: Boolean = True);
     procedure SetCaretColor(color: Integer);
     procedure ShowCaret(bShow: Boolean = True);
@@ -146,13 +146,13 @@ type
 implementation
 { TXForm }
 
-constructor TXForm.Create(x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: Integer);
+constructor TXForm.Create(x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND; XCStyle: Integer);
 begin
   inherited Create;
   Handle := XWnd_Create(x, y, cx, cy, pTitle, hWndParent, XCStyle);
 end;
 
-constructor TXForm.CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: Integer);
+constructor TXForm.CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND; XCStyle: Integer);
 begin
   inherited Create;
   Handle := XWnd_CreateEx(dwExStyle, dwStyle, lpClassName, x, y, cx, cy, pTitle, hWndParent, XCStyle);
@@ -165,13 +165,13 @@ begin
 end;
 
 
-class function TXForm.OnDESTROY(hWnd: Integer; pbHandled: PBoolean): Integer; stdcall;
+class function TXForm.OnDESTROY(hWnd: XCGUI.HWINDOW; pbHandled: PBoolean): Integer; stdcall;
 begin
   Result := 0;
   TXForm(FromHandle(hWnd)).Free;
 end;
 
-function TXForm.Attach(hWnd: hWnd; XCStyle: Integer): Boolean;
+function TXForm.Attach(hWnd: Windows.HWND; XCStyle: Integer): Boolean;
 begin
   Handle := XWnd_Attach(hWnd, XCStyle);
   Result := Handle <> 0;
@@ -295,7 +295,7 @@ begin
   Result := XWnd_GetStayEle(Handle)
 end;
 
-procedure TXForm.SetCaptureEle(hEle: hEle);
+procedure TXForm.SetCaptureEle(hEle: XCGUI.HELE);
 begin
   XWnd_SetCaptureEle(Handle, hEle);
 end;
@@ -322,7 +322,7 @@ begin
 end;
 // ???????
 
-procedure TXForm.DrawWindow(hDraw: hDraw);
+procedure TXForm.DrawWindow(hDraw: XCGUI.HDRAW);
 begin
   XWnd_DrawWindow(Handle, hDraw);
 end;
@@ -358,7 +358,7 @@ begin
 end;
 //
 
-procedure TXForm.CreateCaret(hEle: hEle; x, y, width, height: Integer);
+procedure TXForm.CreateCaret(hEle: XCGUI.HELE; x, y, width, height: Integer);
 begin
   XWnd_CreateCaret(Handle, hEle, x, y, width, height);
 end;

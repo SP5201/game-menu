@@ -46,7 +46,7 @@ procedure EverythingIndexCountHitFilterKinds(const AHits: TEverythingHitArray;
 procedure EverythingIndexBuildSearchFilterRowMap(const AHits: TEverythingHitArray;
   AFilterIndex, AFolderKindIndex, AOtherKindIndex: Integer;
   const AExtIdToKind: TExtFilterKindMap; out ARowMap: TSearchHitIndexArray);
-procedure EverythingIndexSetNotifyHwnd(AWnd: HWND);
+procedure EverythingIndexSetNotifyHwnd(AWnd: Windows.HWND);
 procedure EverythingIndexPatchSearchHits(var AHits: TEverythingHitArray; const ANeedle: string;
   const AChanges: TIndexHitChangeArray);
 procedure EverythingIndexDisposeHitChangesMsg(AData: PIndexHitChangesMsg);
@@ -90,7 +90,7 @@ var
   GDriveCount: Integer;
   GUsnChangedHandler: TUsnChangedHandler;
   GBuildFailureDetail: string;
-  GNotifyHwnd: HWND;
+  GNotifyHwnd: Windows.HWND;
   GUsnCheckpoints: TUsnCheckpointArray;
   GCatchUpInProgress: Boolean;
   GCatchUpApplyStats: TMftApplyUsnStats;
@@ -197,6 +197,14 @@ end;
 procedure IndexLockLeave;
 begin
   LeaveCriticalSection(GIndexLock);
+end;
+
+function ExtNameFromIdLocked(AExtId: Word): string;
+begin
+  if (AExtId = 0) or (AExtId > GDB.ExtCount) then
+    Result := ''
+  else
+    Result := ExtEntryNameToString(GDB.ExtTable[AExtId - 1]);
 end;
 
 function DriveLetterFromIndex(AIndex: Byte): Char;
@@ -556,7 +564,7 @@ begin
     PostIndexHitChanges(indexChanges);
 end;
 
-procedure EverythingIndexSetNotifyHwnd(AWnd: HWND);
+procedure EverythingIndexSetNotifyHwnd(AWnd: Windows.HWND);
 begin
   GNotifyHwnd := AWnd;
 end;
@@ -843,15 +851,11 @@ begin
 end;
 
 function EverythingIndexGetExtension(AFileIndex: Integer): string;
-var
-  extId: Word;
 begin
   Result := '';
   if (AFileIndex < 0) or (AFileIndex >= GDB.FileCount) then
     Exit;
-  extId := GDB.Files[AFileIndex].ExtID;
-  if (extId > 0) and (extId <= GDB.ExtCount) then
-    Result := string(StrPas(GDB.ExtTable[extId - 1].ExtName));
+  Result := ExtNameFromIdLocked(GDB.Files[AFileIndex].ExtID);
 end;
 
 function EverythingIndexGetModifiedUtc(AFileIndex: Integer): Int64;
@@ -994,11 +998,9 @@ end;
 
 function EverythingIndexGetExtNameById(AExtId: Word): string;
 begin
-  Result := '';
   IndexLockEnter;
   try
-    if (AExtId > 0) and (AExtId <= GDB.ExtCount) then
-      Result := string(StrPas(GDB.ExtTable[AExtId - 1].ExtName));
+    Result := ExtNameFromIdLocked(AExtId);
   finally
     IndexLockLeave;
   end;
@@ -1134,8 +1136,6 @@ begin
 end;
 
 function EverythingIndexGetHitExtension(AHitIndex: Integer): string;
-var
-  extId: Word;
 begin
   Result := '';
   if EverythingIndexHitIsFolder(AHitIndex) then
@@ -1144,9 +1144,7 @@ begin
   try
     if (AHitIndex < 0) or (AHitIndex >= GDB.FileCount) or (AHitIndex >= Length(GDB.Files)) then
       Exit;
-    extId := GDB.Files[AHitIndex].ExtID;
-    if (extId > 0) and (extId <= GDB.ExtCount) then
-      Result := string(StrPas(GDB.ExtTable[extId - 1].ExtName));
+    Result := ExtNameFromIdLocked(GDB.Files[AHitIndex].ExtID);
   finally
     IndexLockLeave;
   end;

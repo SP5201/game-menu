@@ -11,14 +11,14 @@ type
   private
     class var
       FInstance: TSliderValuePopupUI;
-      FOwnerHwnd: HWND;
+      FOwnerHwnd: Windows.HWND;
       FTextShape: HXCGUI;
       FBoundSlider: HELE;
       FIsVisible: Boolean;
       FLastText: string;
       FLayout: TTooltipBubbleLayout;
       FTriangleCenterX: Integer;
-    class function OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     class function EnsureInstance(const ASlider: HELE): TSliderValuePopupUI; static;
     procedure SetTextAndResize(const AText: string);
     class procedure PositionAboveThumb(const ASlider: HELE); static;
@@ -45,7 +45,7 @@ begin
   RegEvent(WM_PAINT, @TSliderValuePopupUI.OnWndPaint);
 end;
 
-class function TSliderValuePopupUI.OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TSliderValuePopupUI.OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
 begin
@@ -121,7 +121,7 @@ end;
 class procedure TSliderValuePopupUI.PositionAboveThumb(const ASlider: HELE);
 var
   btnEle: HELE;
-  hWnd: Integer;
+  hWnd: XCGUI.HWINDOW;
   rcBtn, rcClient: TRect;
   pt: TPoint;
   popupW, popupH: Integer;

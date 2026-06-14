@@ -1,4 +1,4 @@
-﻿unit UI_InfoListPopup;
+unit UI_InfoListPopup;
 
 {
   信息行列表悬停弹层：独立弹出窗口 + ListBox，可复用于状态栏 IP/天气等多行说明。
@@ -26,7 +26,7 @@ type
   private
     class var
       FInstance: TInfoListPopupUI;
-      FOwnerHwnd: HWND;
+      FOwnerHwnd: Windows.HWND;
       FListBoxHele: HELE;
       FHoverBinds: TObjectList<TInfoListHoverBind>;
       FIsVisible: Boolean;
@@ -53,24 +53,24 @@ type
     class function ResolveInfoSvgFile(const ASvgRelPath: string): string; static;
     class function InfoSvgFallbackText(const ASvgPath: string): string; static;
     class function ResolveInfoSvgColor(const ASvgPath: string): Integer; static;
-    class procedure ApplyInfoSvgStyle(const hSvg: Integer; const ASvgPath: string); static;
-    class function GetCachedSvg(const ASvgPath: string): Integer; static;
+    class procedure ApplyInfoSvgStyle(const hSvg: XCGUI.HSVG; const ASvgPath: string); static;
+    class function GetCachedSvg(const ASvgPath: string): XCGUI.HSVG; static;
     class function MeasureSvgDisplayWidth(const ASvgPath: string; ADrawW, ADrawH: Integer): Integer; static;
-    class procedure DrawSvgValue(const AHDraw: HDRAW; const ARcValue: TRect; const ASvgPath: string;
+    class procedure DrawSvgValue(const AHDraw: XCGUI.HDRAW; const ARcValue: TRect; const ASvgPath: string;
       ADrawW, ADrawH: Integer); static;
     class procedure EnsureSvgCache; static;
     class procedure FreeSvgCache; static;
-    class procedure DrawInfoListItem(const AHDraw: HDRAW; const ARcItem: TRect; const ALineText: string; const ALabelColWidth: Integer); static;
+    class procedure DrawInfoListItem(const AHDraw: XCGUI.HDRAW; const ARcItem: TRect; const ALineText: string; const ALabelColWidth: Integer); static;
     class function MeasureTextWidth(const AText: string; const AFont: HFONTX): Integer; static;
     class procedure CalcInfoListPopupMetrics(const ALines: TStringList; const AFont: HFONTX;
       out ALineCount, ALabelColWidth, APopupW, APopupH: Integer); static;
     class procedure CalcInfoListPopupScreenRect(const APopupW, APopupH: Integer; out ARect: TRect); static;
-    class function OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListDrawItem(hEle: HELE; hDraw: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnListButtonDown(hEle: HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnTargetMouseMove(hEle: HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnTargetMouseLeave(hEle: HELE; hEleStay: HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndTimer(hWindow: HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnListButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnTargetMouseMove(hEle: XCGUI.HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnTargetMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall; static;
     class function EnsureInstance(const ATargetHandle: HELE): TInfoListPopupUI; static;
     class procedure RedrawPopup; static;
     class procedure ClearDisplayList(const ARedraw: Boolean); static;
@@ -284,7 +284,7 @@ begin
     Result := UITheme_TextPrimary;
 end;
 
-class procedure TInfoListPopupUI.ApplyInfoSvgStyle(const hSvg: Integer; const ASvgPath: string);
+class procedure TInfoListPopupUI.ApplyInfoSvgStyle(const hSvg: XCGUI.HSVG; const ASvgPath: string);
 var
   color: Integer;
 begin
@@ -295,10 +295,10 @@ begin
   XSvg_SetUserStrokeColor(hSvg, color, 1, True);
 end;
 
-class function TInfoListPopupUI.GetCachedSvg(const ASvgPath: string): Integer;
+class function TInfoListPopupUI.GetCachedSvg(const ASvgPath: string): XCGUI.HSVG;
 var
   idx: Integer;
-  hSvg: Integer;
+  svgHandle: XCGUI.HSVG;
   filePath: string;
 begin
   Result := 0;
@@ -307,29 +307,30 @@ begin
   EnsureSvgCache;
   idx := FInfoSvgCache.IndexOf(ASvgPath);
   if idx >= 0 then
-    Exit(Integer(NativeInt(FInfoSvgCache.Objects[idx])));
+    Exit(XCGUI.HSVG(NativeInt(FInfoSvgCache.Objects[idx])));
   filePath := ResolveInfoSvgFile(ASvgPath);
   if not FileExists(filePath) then
     Exit;
-  hSvg := XSvg_LoadFile(PWideChar(filePath));
-  if XC_GetObjectType(hSvg) <> XC_SVG then
+  svgHandle := XSvg_LoadFile(PWideChar(filePath));
+  if XC_GetObjectType(svgHandle) <> XC_SVG then
     Exit;
-  ApplyInfoSvgStyle(hSvg, ASvgPath);
-  FInfoSvgCache.AddObject(ASvgPath, TObject(NativeInt(hSvg)));
-  Result := hSvg;
+  ApplyInfoSvgStyle(svgHandle, ASvgPath);
+  FInfoSvgCache.AddObject(ASvgPath, TObject(NativeInt(svgHandle)));
+  Result := svgHandle;
 end;
 
 class function TInfoListPopupUI.MeasureSvgDisplayWidth(const ASvgPath: string; ADrawW, ADrawH: Integer): Integer;
 var
-  hSvg, svgW, svgH: Integer;
+  svgHandle: XCGUI.HSVG;
+  svgW, svgH: Integer;
 begin
   if ADrawW > 0 then
     Exit(ADrawW);
   Result := 0;
-  hSvg := GetCachedSvg(ASvgPath);
-  if hSvg <= 0 then
+  svgHandle := GetCachedSvg(ASvgPath);
+  if svgHandle <= 0 then
     Exit;
-  XSvg_GetSize(hSvg, svgW, svgH);
+  XSvg_GetSize(svgHandle, svgW, svgH);
   if svgH <= 0 then
     Exit;
   if ADrawH > 0 then
@@ -338,15 +339,16 @@ begin
     Result := svgW;
 end;
 
-class procedure TInfoListPopupUI.DrawSvgValue(const AHDraw: HDRAW; const ARcValue: TRect;
+class procedure TInfoListPopupUI.DrawSvgValue(const AHDraw: XCGUI.HDRAW; const ARcValue: TRect;
   const ASvgPath: string; ADrawW, ADrawH: Integer);
 var
-  hSvg, svgW, svgH, drawW, drawH, x, y: Integer;
+  svgHandle: XCGUI.HSVG;
+  svgW, svgH, drawW, drawH, x, y: Integer;
 begin
-  hSvg := GetCachedSvg(ASvgPath);
-  if hSvg <= 0 then
+  svgHandle := GetCachedSvg(ASvgPath);
+  if svgHandle <= 0 then
     Exit;
-  XSvg_GetSize(hSvg, svgW, svgH);
+  XSvg_GetSize(svgHandle, svgW, svgH);
   if ADrawH > 0 then
     drawH := ADrawH
   else if svgH > 0 then
@@ -361,7 +363,7 @@ begin
     drawW := svgW;
   x := ARcValue.Right - drawW;
   y := ARcValue.Top + (ARcValue.Bottom - ARcValue.Top - drawH) div 2;
-  XDraw_DrawSvgEx(AHDraw, hSvg, x, y, drawW, drawH);
+  XDraw_DrawSvgEx(AHDraw, svgHandle, x, y, drawW, drawH);
 end;
 
 class procedure TInfoListPopupUI.FreeSvgCache;
@@ -371,11 +373,11 @@ begin
   if FInfoSvgCache = nil then
     Exit;
   for i := 0 to FInfoSvgCache.Count - 1 do
-    XSvg_Release(Integer(NativeInt(FInfoSvgCache.Objects[i])));
+    XSvg_Release(XCGUI.HSVG(NativeInt(FInfoSvgCache.Objects[i])));
   FreeAndNil(FInfoSvgCache);
 end;
 
-class procedure TInfoListPopupUI.DrawInfoListItem(const AHDraw: HDRAW; const ARcItem: TRect; const ALineText: string; const ALabelColWidth: Integer);
+class procedure TInfoListPopupUI.DrawInfoListItem(const AHDraw: XCGUI.HDRAW; const ARcItem: TRect; const ALineText: string; const ALabelColWidth: Integer);
 var
   rc, rcLabel, rcValue: TRect;
   labelText, valueText, svgPath: string;
@@ -494,7 +496,7 @@ class procedure TInfoListPopupUI.CalcInfoListPopupScreenRect(const APopupW, APop
 var
   rcTarget, rcMainClient: TRect;
   ptAnchor, ptMainLT, ptMainRB: TPoint;
-  hTargetWindow: Integer;
+  hTargetWindow: XCGUI.HWINDOW;
   targetW, x, y, mainL, mainR, minX, maxX: Integer;
 begin
   ARect := Rect(0, 0, 0, 0);
@@ -592,7 +594,7 @@ begin
     FInstance.SetTimer(CInfoRefreshTimerId, CInfoRefreshTimerMs);
 end;
 
-class function TInfoListPopupUI.OnWndTimer(hWindow: hWindow; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnWndTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if nIDEvent = CInfoDeferHoverTimerId then
@@ -618,7 +620,7 @@ begin
     (FBoundTargetHandle = ATarget);
 end;
 
-class function TInfoListPopupUI.OnWndPaint(hWindow: hWindow; hDraw: hDraw; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnWndPaint(hWindow: XCGUI.HWINDOW; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
 var
   rc: TRect;
   nRadius: Integer;
@@ -635,7 +637,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TInfoListPopupUI.OnListDrawItem(hEle: hEle; hDraw: hDraw; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnListDrawItem(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if FDisplayLines = nil then
@@ -646,7 +648,7 @@ begin
   pbHandled^ := True;
 end;
 
-class function TInfoListPopupUI.OnListButtonDown(hEle: hEle; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnListButtonDown(hEle: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   pbHandled^ := True;
@@ -658,7 +660,7 @@ const
 var
   exStyle: DWORD;
   style: DWORD;
-  ownerHwnd: Integer;
+  ownerHwnd: Windows.HWND;
 begin
   ownerHwnd := 0;
   if ATargetHandle <> 0 then
@@ -814,7 +816,7 @@ begin
   end;
 end;
 
-class function TInfoListPopupUI.OnTargetMouseMove(hEle: hEle; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnTargetMouseMove(hEle: XCGUI.HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   bindIdx: Integer;
   bindEntry: TInfoListHoverBind;
@@ -851,7 +853,7 @@ begin
     RefreshPopup(firstShow, switchingTarget);
 end;
 
-class function TInfoListPopupUI.OnTargetMouseLeave(hEle: hEle; hEleStay: hEle; pbHandled: PBOOL): Integer; stdcall;
+class function TInfoListPopupUI.OnTargetMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if IsStayWithinBoundHover(hEleStay) then
