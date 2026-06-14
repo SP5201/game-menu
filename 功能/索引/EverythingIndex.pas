@@ -452,7 +452,7 @@ begin
       FillChar(GCatchUpApplyStats, SizeOf(GCatchUpApplyStats), 0);
       driveStartTick := GetTickCount;
       catchResult := UsnCatchUpDrive(drive, Byte(i), ACheckpoints[i],
-        GUsnChangedHandler.OnUsnRecords, dbFileTime, stats);
+        GUsnChangedHandler.OnUsnRecords, stats);
       driveMs := TickElapsed(driveStartTick);
       applyStats := GCatchUpApplyStats;
       totalAppliedAdd := totalAppliedAdd + applyStats.FilesAdded;

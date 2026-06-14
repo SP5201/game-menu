@@ -24,8 +24,6 @@ type
     UsnAdvanced: Boolean;
     LastReadError: DWORD;
     AlreadyCurrent: Boolean;
-    ForceVerifyMode: Boolean;
-    VerifySinceFileTime: Int64;
   end;
 
   TUsnMonitorThread = class(TThread)
