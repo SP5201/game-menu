@@ -461,7 +461,7 @@ end;
 
 procedure TXListView.SetItemTemplateXMLFromMem(data: Pointer; length: Integer);
 begin
-  XListView_SetItemTemplateXMLFromMem(Handle, Integer(data), length);
+  XListView_SetItemTemplateXMLFromMem(Handle, data, length);
 end;
 
 procedure TXListView.SetItemTemplateXMLFromString(const pStringXML: AnsiString);

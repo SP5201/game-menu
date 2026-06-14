@@ -15,7 +15,7 @@ type
     class var
       FInstance: THintPopupUI;
     class var
-      FOwnerHwnd: Windows.HWND;
+      FOwnerWindow: XCGUI.HWINDOW;
       FTextShape: HXCGUI;
       FHoverHintMap: TStringList;
       FHoverStyleMap: TStringList;
@@ -135,24 +135,24 @@ const
 var
   exStyle: DWORD;
   style: DWORD;
-  ownerHwnd: Windows.HWND;
+  hOwnerWindow: XCGUI.HWINDOW;
 begin
-  ownerHwnd := 0;
+  hOwnerWindow := 0;
   if ATargetComponentHandle <> 0 then
-    ownerHwnd := Windows.HWND(XWidget_GetHWND(ATargetComponentHandle));
+    hOwnerWindow := XWidget_GetHWINDOW(ATargetComponentHandle);
 
-  if Assigned(FInstance) and FInstance.IsHWINDOW and (NativeUInt(FOwnerHwnd) = NativeUInt(ownerHwnd)) then
+  if Assigned(FInstance) and FInstance.IsHWINDOW and (FOwnerWindow = hOwnerWindow) then
     Exit(FInstance);
 
   if Assigned(FInstance) and FInstance.IsHWINDOW then
     XWnd_DestroyWindow(FInstance.Handle);
   FInstance := nil;
-  FOwnerHwnd := ownerHwnd;
+  FOwnerWindow := hOwnerWindow;
 
   exStyle := WS_EX_TOPMOST or WS_EX_TRANSPARENT or WS_EX_TOOLWINDOW or WS_EX_NOACTIVATE;
   style := WS_POPUP;
 
-  FInstance := THintPopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', ownerHwnd, window_style_nothing);
+  FInstance := THintPopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', hOwnerWindow, window_style_nothing);
 
   XWnd_SetTransparentType(FInstance.Handle, Ord(window_transparent_shaped));
   XWnd_SetTransparentAlpha(FInstance.Handle, 255);

@@ -1,4 +1,4 @@
-﻿unit UI_MainWindowTools;
+unit UI_MainWindowTools;
 
 interface
 
@@ -98,7 +98,7 @@ var
 begin
   Result := 0;
   pbHandled^ := True;
-  hwnd := Windows.HWND(XWidget_GetHWND(hEle));
+  hwnd := XWidget_GetHWND(hEle);
   case nItem of
     ID_SYS_RESTART_EXPLORER:
       RestartWindowsExplorerAsync;
@@ -161,7 +161,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   hParentWnd := XWidget_GetHWINDOW(hEle);
-  hwndOwner := Windows.HWND(XWidget_GetHWND(hEle));
+  hwndOwner := XWidget_GetHWND(hEle);
   case nItem of
     ID_SETTINGS_CONFIG:
       TSettingsDialogUI.ShowDialog(hParentWnd);
@@ -201,15 +201,17 @@ end;
 function MainWindowCommonTools_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 var
   hParentWnd: XCGUI.HWINDOW;
+  hwndOwner: Windows.HWND;
 begin
   Result := 0;
   pbHandled^ := True;
   hParentWnd := XWidget_GetHWINDOW(hEle);
+  hwndOwner := XWidget_GetHWND(hEle);
   case nItem of
     ID_COMMON_SHUTDOWN:
-      MessageBoxW(XWidget_GetHWND(hEle), '定时关机功能待实现', '定时关机', MB_OK or MB_ICONINFORMATION);
+      MessageBoxW(hwndOwner, '定时关机功能待实现', '定时关机', MB_OK or MB_ICONINFORMATION);
     ID_COMMON_IMAGE_CONV:
-      MessageBoxW(XWidget_GetHWND(hEle), '图片转换功能待实现', '图片转换', MB_OK or MB_ICONINFORMATION);
+      MessageBoxW(hwndOwner, '图片转换功能待实现', '图片转换', MB_OK or MB_ICONINFORMATION);
     ID_COMMON_QR_CODE:
       TQrCodeDialogUI.ShowDialog(hParentWnd);
   end;

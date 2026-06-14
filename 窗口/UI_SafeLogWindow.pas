@@ -225,7 +225,7 @@ begin
   CListEle := XC_GetObjectByName('list_safelog');
   CEditDetail := XC_GetObjectByName('edit_safelog_detail');
 
-  TFormUI.ApplyTitleLogo('pic_safelog_logo');
+  TFormUI.ApplyTitleLogo('pic_safelog_logo', 20, Handle);
 
   hTitle := XC_GetObjectByName('txt_safelog_title');
   if XC_GetObjectType(hTitle) = XC_SHAPE_TEXT then

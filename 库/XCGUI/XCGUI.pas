@@ -228,36 +228,18 @@ type
 {$ENDIF}
 
 type
-  // 炫彩句柄，使用 Integer 表示资源句柄
-  HXCGUI = Integer;
-  // 窗口资源句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HWINDOW = Integer;
-  // 元素资源句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HELE = Integer;
-  // 菜单资源句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HMENUX = Integer;
-  // 图形绘制资源句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HDRAW = Integer;
-  // 图片资源句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HIMAGE = Integer;
-  // 炫彩字体句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HFONTX = Integer;
-  // 背景内容管理器句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HBKM = Integer;
-  // 模板句柄，使用 Integer，具体类型可能由 DECLARE_HANDLEX 宏定义，这里假设为 Integer
-
-  HTEMP = Integer;
-  // SVG 句柄，使用 Integer，具体类型可能由 DECLARE 宏定义，这里假设为 Integer
-  HSVG = Integer;
-  // 拖放句柄（对应 xcgui.h DECLARE_HANDLEX(HDROP)，未引用 ShellAPI 时）
-  HDROP = THandle;
+  // xcgui.h: typedef void* HXCGUI；DECLARE_HANDLEX(name) → struct name##__ *，均为指针宽
+  HXCGUI = NativeInt;
+  HWINDOW = NativeInt;
+  HELE = NativeInt;
+  HMENUX = NativeInt;
+  HDRAW = NativeInt;
+  HIMAGE = NativeInt;
+  HFONTX = NativeInt;
+  HBKM = NativeInt;
+  HTEMP = NativeInt;
+  HSVG = NativeInt;
+  HDROP = NativeInt;
 
 type
   XC_OBJECT_TYPE = Integer;
@@ -1341,9 +1323,9 @@ function XC_UnicodeToAnsi(pIn: PWideChar; inLen: Integer; pOut: PAnsiChar; outLe
 
 function XC_AnsiToUnicode(pIn: PAnsiChar; inLen: Integer; pOut: PWideChar; outLen: Integer): Integer; stdcall; external XCGUI_DLL;
 
-function XC_SendMessage(hWindow: Integer; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; external XCGUI_DLL;
+function XC_SendMessage(hWindow: HWINDOW; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; external XCGUI_DLL;
 
-function XC_PostMessage(hWindow: Integer; msg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; stdcall; external XCGUI_DLL;
+function XC_PostMessage(hWindow: HWINDOW; msg: UINT; wParam: WPARAM; lParam: LPARAM): BOOL; stdcall; external XCGUI_DLL;
 
 function XC_CallUiThread(pCall: vint; data: vint): vint; stdcall; external XCGUI_DLL;
 
@@ -1357,7 +1339,7 @@ function XC_IsShape(hShape: HXCGUI): BOOL; stdcall; external XCGUI_DLL;
 
 function XC_IsHXCGUI(hXCGUI: HXCGUI; nType: XC_OBJECT_TYPE): BOOL; stdcall; external XCGUI_DLL;
 
-function XC_hWindowFromHWnd(hWnd: Integer): HWINDOW; stdcall; external XCGUI_DLL;
+function XC_hWindowFromHWnd(hWnd: HWND): HWINDOW; stdcall; external XCGUI_DLL;
 
 function XC_SetActivateTopWindow(): BOOL; stdcall; external XCGUI_DLL;
 
@@ -1407,7 +1389,7 @@ function XC_LoadResource(pFileName: PWideChar): BOOL; stdcall; external XCGUI_DL
 
 function XC_LoadResourceZip(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
 
-function XC_LoadResourceZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
+function XC_LoadResourceZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
 
 function XC_LoadResourceFromString(pStringXML: PAnsiChar; pFileName: PWideChar): BOOL; stdcall; external XCGUI_DLL;
 
@@ -1417,7 +1399,7 @@ function XC_LoadStyle(pFileName: PWideChar): BOOL; stdcall; external XCGUI_DLL;
 
 function XC_LoadStyleZip(pZipFile: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
 
-function XC_LoadStyleZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
+function XC_LoadStyleZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): BOOL; stdcall; external XCGUI_DLL;
 
 procedure XC_GetTextSize(pString: PWideChar; length: Integer; hFontX: HFONTX; out pOutSize: TSize); stdcall; external XCGUI_DLL;
 
@@ -1449,13 +1431,13 @@ function _XC_GetBindData(hXCGUI: HXCGUI): vint; stdcall; external XCGUI_DLL;
 
 procedure XC_Alert(pTitle: PWideChar; pText: PWideChar); stdcall; external XCGUI_DLL;
 
-function XC_Sys_ShellExecute(hwnd: Integer; lpOperation: PWideChar; lpFile: PWideChar; lpParameters: PWideChar; lpDirectory: PWideChar; nShowCmd: Integer): Integer; stdcall; external XCGUI_DLL;
+function XC_Sys_ShellExecute(hwnd: HWND; lpOperation: PWideChar; lpFile: PWideChar; lpParameters: PWideChar; lpDirectory: PWideChar; nShowCmd: Integer): HINST; stdcall; external XCGUI_DLL;
 
 function XC_LoadLibrary(lpFileName: PWideChar): HMODULE; stdcall; external XCGUI_DLL;
 
-function XC_GetProcAddress(hModule: Integer; lpProcName: PAnsiChar): FARPROC; stdcall; external XCGUI_DLL;
+function XC_GetProcAddress(hModule: HMODULE; lpProcName: PAnsiChar): FARPROC; stdcall; external XCGUI_DLL;
 
-function XC_FreeLibrary(hModule: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XC_FreeLibrary(hModule: HMODULE): BOOL; stdcall; external XCGUI_DLL;
 
 function XC_LoadDll(pDllFileName: PWideChar): HMODULE; stdcall; external XCGUI_DLL;
 
@@ -1495,7 +1477,7 @@ function XWidget_GetParentEle(hXCGUI: HXCGUI): HELE; stdcall; external XCGUI_DLL
 
 function XWidget_GetParent(hXCGUI: HXCGUI): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XWidget_GetHWND(hXCGUI: HXCGUI): Integer; stdcall; external XCGUI_DLL;
+function XWidget_GetHWND(hXCGUI: HXCGUI): HWND; stdcall; external XCGUI_DLL;
 
 function XWidget_GetHWINDOW(hXCGUI: HXCGUI): HWINDOW; stdcall; external XCGUI_DLL;
 
@@ -2351,7 +2333,7 @@ function XFont_GetRefCount(hFontX: HFONTX): Integer; stdcall; external XCGUI_DLL
 
 procedure XFont_Destroy(hFontX: HFONTX); stdcall; external XCGUI_DLL;
 
-function XFrameWnd_Create(x: Integer; y: Integer; cx: Integer; cy: Integer; pTitle: PWideChar; hWndParent: Integer; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
+function XFrameWnd_Create(x: Integer; y: Integer; cx: Integer; cy: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
 
 procedure XFrameWnd_GetLayoutAreaRect(hWindow: HWINDOW; out Rect: TRect); stdcall; external XCGUI_DLL;
 
@@ -2379,7 +2361,7 @@ function XImgSrc_LoadZip(pZipFileName: PWideChar; pFileName: PWideChar; pPasswor
 
 function XImgSrc_LoadZipRect(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar; x: Integer; y: Integer; cx: Integer; cy: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImgSrc_LoadZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HIMAGE; stdcall; external XCGUI_DLL;
+function XImgSrc_LoadZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HIMAGE; stdcall; external XCGUI_DLL;
 
 function XImgSrc_LoadMemory(pBuffer: Pointer; nSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
@@ -2427,7 +2409,7 @@ function XImage_LoadZipAdaptive(pZipFileName: PWideChar; pFileName: PWideChar; p
 
 function XImage_LoadZipRect(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar; x: Integer; y: Integer; cx: Integer; cy: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImage_LoadZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HIMAGE; stdcall; external XCGUI_DLL;
+function XImage_LoadZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HIMAGE; stdcall; external XCGUI_DLL;
 
 function XImage_LoadMemory(pBuffer: vint; nSize: Integer): HIMAGE; stdcall; external XCGUI_DLL;
 
@@ -2661,13 +2643,13 @@ function XTemp_Load(nType: listItemTemp_type_; pFileName: PWideChar): HTEMP; std
 
 function XTemp_LoadZip(nType: listItemTemp_type_; pZipFile: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil): HTEMP; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadZipMem(nType: listItemTemp_type_; data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HTEMP; stdcall; external XCGUI_DLL;
+function XTemp_LoadZipMem(nType: listItemTemp_type_; data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil): HTEMP; stdcall; external XCGUI_DLL;
 
 function XTemp_LoadEx(nType: listItemTemp_type_; pFileName: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
 
 function XTemp_LoadZipEx(nType: listItemTemp_type_; pZipFile: PWideChar; pFileName: PWideChar; pPassword: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadZipMemEx(nType: listItemTemp_type_; data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
+function XTemp_LoadZipMemEx(nType: listItemTemp_type_; data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
 
 function XTemp_LoadFromString(nType: listItemTemp_type_; pStringXML: PAnsiChar): HTEMP; stdcall; external XCGUI_DLL;
 
@@ -3057,7 +3039,7 @@ procedure XMenu_EnableDrawBackground(hMenu: HMENUX; bEnable: BOOL); stdcall; ext
 
 procedure XMenu_EnableDrawItem(hMenu: HMENUX; bEnable: BOOL); stdcall; external XCGUI_DLL;
 
-function XMenu_Popup(hMenu: HMENUX; hParentWnd: Integer; x: Integer; y: Integer; hParentEle: HELE = 0; nPosition: Tmenu_popup_position_ = menu_popup_position_left_top): BOOL; stdcall; external XCGUI_DLL;
+function XMenu_Popup(hMenu: HMENUX; hParentWnd: HWND; x: Integer; y: Integer; hParentEle: HELE = 0; nPosition: Tmenu_popup_position_ = menu_popup_position_left_top): BOOL; stdcall; external XCGUI_DLL;
 
 procedure XMenu_DestroyMenu(hMenu: HMENUX); stdcall; external XCGUI_DLL;
 
@@ -3093,7 +3075,7 @@ function XMenu_SetItemCheck(hMenu: HMENUX; nID: Integer; bCheck: BOOL): BOOL; st
 
 function XMenu_IsItemCheck(hMenu: HMENUX; nID: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XModalWnd_Create(nWidth: Integer; nHeight: Integer; pTitle: PWideChar; hWndParent: Integer; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
+function XModalWnd_Create(nWidth: Integer; nHeight: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
 
 procedure XModalWnd_EnableAutoClose(hWindow: HWINDOW; bEnable: BOOL); stdcall; external XCGUI_DLL;
 
@@ -3731,13 +3713,13 @@ function XWnd_RegEventC1(hWindow: HWINDOW; nEvent: Integer; pFun: vint): BOOL; s
 
 function XWnd_RemoveEventC(hWindow: HWINDOW; nEvent: Integer; pFun: vint): BOOL; stdcall; external XCGUI_DLL;
 
-function XWnd_Create(x: Integer; y: Integer; cx: Integer; cy: Integer; pTitle: PWideChar; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_default): HWINDOW; stdcall; external XCGUI_DLL;
+function XWnd_Create(x: Integer; y: Integer; cx: Integer; cy: Integer; pTitle: PWideChar; hWndParent: HWND = 0; XCStyle: window_style_ = window_style_default): HWINDOW; stdcall; external XCGUI_DLL;
 
 function XWnd_AddChild(hWindow: HWINDOW; hChild: HXCGUI): BOOL; stdcall; external XCGUI_DLL;
 
 function XWnd_InsertChild(hWindow: HWINDOW; hChild: HXCGUI; index: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XWnd_GetHWND(hWindow: HWINDOW): Integer; stdcall; external XCGUI_DLL;
+function XWnd_GetHWND(hWindow: HWINDOW): HWND; stdcall; external XCGUI_DLL;
 
 procedure XWnd_EnableDragBorder(hWindow: HWINDOW; bEnable: BOOL); stdcall; external XCGUI_DLL;
 
@@ -3918,11 +3900,11 @@ procedure XWidget_LayoutItem_SetMinSize(hXCGUI: HXCGUI; width, height: Integer);
 
 procedure XWidget_LayoutItem_SetPosition(hXCGUI: HXCGUI; left, top, right, bottom: Integer); stdcall; external XCGUI_DLL;
 
-function XWnd_Attach(hWnd: Integer; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
+function XWnd_Attach(hWnd: HWND; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
 
-function XModalWnd_Attach(hWnd: Integer; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
+function XModalWnd_Attach(hWnd: HWND; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
 
-function XFrameWnd_Attach(hWnd: Integer; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
+function XFrameWnd_Attach(hWnd: HWND; XCStyle: Integer): HWINDOW; stdcall; external XCGUI_DLL;
 
 procedure XWnd_EnableDragFiles(hWindow: HWINDOW; bEnable: BOOL); stdcall; external XCGUI_DLL;
 
@@ -4183,7 +4165,7 @@ function XLayoutFrame_GetHeightIn(hEle: HELE): Integer; stdcall; external XCGUI_
 
 procedure XDraw_SetTextRenderingHint(hDraw: HDRAW; nType: Integer); stdcall; external XCGUI_DLL;
 
-function XFont_CreateFromMem(data: Integer; length: UINT; fontSize: Integer = 12; style: fontStyle_ = fontStyle_regular): HFONTX; stdcall; external XCGUI_DLL;
+function XFont_CreateFromMem(data: Pointer; length: UINT; fontSize: Integer = 12; style: fontStyle_ = fontStyle_regular): HFONTX; stdcall; external XCGUI_DLL;
 
 procedure XComboBox_PopupDropList(hEle: HELE); stdcall; external XCGUI_DLL;
 
@@ -4191,11 +4173,11 @@ function XComboBox_SetItemTemplate(hEle: HELE; hTemp: HTEMP): BOOL; stdcall; ext
 
 function XC_IsEnableD2D(): BOOL; stdcall; external XCGUI_DLL;
 
-function XFont_CreateFromRes(id: Integer; pType: PWideChar; fontSize: Integer; style: Integer; hModule: Integer = 0): HFONTX; stdcall; external XCGUI_DLL;
+function XFont_CreateFromRes(id: Integer; pType: PWideChar; fontSize: Integer; style: Integer; hModule: HMODULE = 0): HFONTX; stdcall; external XCGUI_DLL;
 
-function XC_MessageBox(pTitle: PWideChar; pText: PWideChar; nFlags: Integer; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_modal): Integer; stdcall; external XCGUI_DLL;
+function XC_MessageBox(pTitle: PWideChar; pText: PWideChar; nFlags: Integer; hWndParent: HWND = 0; XCStyle: window_style_ = window_style_modal): Integer; stdcall; external XCGUI_DLL;
 
-function XMsg_Create(pTitle: PWideChar; pText: PWideChar; nFlags: Integer; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
+function XMsg_Create(pTitle: PWideChar; pText: PWideChar; nFlags: Integer; hWndParent: HWND = 0; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
 
 // 3.2.0--------------------------
 // 修改:
@@ -4291,7 +4273,7 @@ function XSvg_LoadStringUtf8(pString: PChar): HSVG; stdcall; external XCGUI_DLL;
 
 function XSvg_LoadZip(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil): HSVG; stdcall; external XCGUI_DLL;
 
-function XSvg_LoadRes(id: Integer; pType: PWideChar; hModule: Integer = 0): HSVG; stdcall; external XCGUI_DLL;
+function XSvg_LoadRes(id: Integer; pType: PWideChar; hModule: HMODULE = 0): HSVG; stdcall; external XCGUI_DLL;
 
 procedure XSvg_SetSize(hSvg: HSVG; nWidth: Integer; nHeight: Integer); stdcall; external XCGUI_DLL;
 
@@ -4406,11 +4388,11 @@ procedure XAnima_EnableAutoDestroy(hAnimation: HXCGUI; bEnable: Boolean); stdcal
 
 
 //v3.3.1---------------------------------------------------------
-function XWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_default): HWINDOW; stdcall; external XCGUI_DLL;
+function XWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND = 0; XCStyle: window_style_ = window_style_default): HWINDOW; stdcall; external XCGUI_DLL;
 
-function XModalWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Integer; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
+function XModalWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
 
-function XFrameWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Integer; XCStyle: window_style_): HWINDOW; stdcall; external XCGUI_DLL;
+function XFrameWnd_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: HWND; XCStyle: window_style_): HWINDOW; stdcall; external XCGUI_DLL;
 
 function XAnima_DestroyObjectUI(hSequence: HXCGUI; duration: Single): HXCGUI; stdcall; external XCGUI_DLL;
 
@@ -4454,7 +4436,7 @@ procedure XNotifyMsg_SetBorderSize(hWindow: HWINDOW; left, top, right, bottom: I
 
 procedure XNotifyMsg_SetParentMargin(hWindow: HWINDOW; left, top, right, bottom: Integer); stdcall; external XCGUI_DLL;
 
-function XMsg_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName, pTitle, pText: PWideChar; nFlags: Integer; hWndParent: Integer = 0; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
+function XMsg_CreateEx(dwExStyle, dwStyle: DWORD; lpClassName, pTitle, pText: PWideChar; nFlags: Integer; hWndParent: HWND = 0; XCStyle: window_style_ = window_style_modal): HWINDOW; stdcall; external XCGUI_DLL;
 
 function XAnima_DelayEx(hSequence: HXCGUI; duration: Single; nLoopCount: Integer = 1; ease_flag: ease_flag_ = ease_flag_linear; bGoBack: Boolean = False): HXCGUI; stdcall; external XCGUI_DLL;
 
@@ -4466,15 +4448,15 @@ function XWnd_SetBkInfo(hWindow: HWINDOW; pText: PWideChar): Integer; stdcall; e
 
 function XBkM_SetInfo(hBkInfoM: HBKM; pText: PWideChar): Integer; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayout(pFileName: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayout(pFileName: PWideChar; hParent: HXCGUI = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutZip(pZipFileName, pFileName, pPassword: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutZip(pZipFileName, pFileName, pPassword: PWideChar; hParent: HXCGUI = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutZipMem(data: Integer; length: Integer; pFileName, pPassword: PWideChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutZipMem(data: Pointer; length: Integer; pFileName, pPassword: PWideChar; hParent: HXCGUI = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutFromString(pStringXML: PChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutFromString(pStringXML: PChar; hParent: HXCGUI = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutFromStringUtf8(pStringXML: PChar; hParent: HXCGUI = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutFromStringUtf8(pStringXML: PChar; hParent: HXCGUI = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
 procedure XWnd_SetCaptionMargin(hWindow: HWINDOW; left, top, right, bottom: Integer); stdcall; external XCGUI_DLL;
 
@@ -4647,11 +4629,11 @@ procedure XListBox_SetDragRectColor(hEle: HELE; color: Integer; width: Integer);
 
 procedure XList_SetDragRectColor(hEle: HELE; color: Integer; width: Integer); stdcall; external XCGUI_DLL;
 
-function XSvg_LoadZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar): HSVG; stdcall; external XCGUI_DLL;
+function XSvg_LoadZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar): HSVG; stdcall; external XCGUI_DLL;
 
 function XFont_CreateFromZip(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar; fontSize: Integer; style: Integer): HFONTX; stdcall; external XCGUI_DLL;
 
-function XFont_CreateFromZipMem(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar; fontSize: Integer; style: Integer): HFONTX; stdcall; external XCGUI_DLL;
+function XFont_CreateFromZipMem(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar; fontSize: Integer; style: Integer): HFONTX; stdcall; external XCGUI_DLL;
 
 //--------------------------------------
 procedure XListBox_SetItemHeight(hEle: HELE; iItem: Integer; nHeight: Integer; nSelHeight: Integer); stdcall; external XCGUI_DLL;
@@ -4693,15 +4675,15 @@ function XTemp_List_MoveColumn(hTemp: HTEMP; iColDest: Integer; iColSrc: Integer
 // 增加事件: XE_TOOLTIP_POPUP
 // 结构体 menu_drawItem_ 增加成员 nShortcutKeyWidth
 
-function XC_LoadLayoutEx(pFileName: PWideChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutEx(pFileName: PWideChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutZipEx(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutZipEx(pZipFileName: PWideChar; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutZipMemEx(data: Integer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutZipMemEx(data: Pointer; length: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutFromStringEx(pStringXML: PChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutFromStringEx(pStringXML: PChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutFromStringUtf8Ex(pStringXML: PChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutFromStringUtf8Ex(pStringXML: PChar; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
 procedure XEdit_InsertChatBegin(hEle: HELE; hImageAvatar: HIMAGE; hImageBubble: HIMAGE; nFlag: Integer); stdcall; external XCGUI_DLL;
 
@@ -4715,51 +4697,51 @@ procedure XC_EnableAutoDPI(bEnabel: BOOL); stdcall; external XCGUI_DLL;
 
 procedure XWnd_SetDPI(hWindow: HWINDOW; nDPI: Integer); stdcall; external XCGUI_DLL;
 
-function XC_LoadLayoutZipResEx(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: Integer = 0; hAttachWnd: Integer = 0; hModule: Integer = 0): HXCGUI; stdcall; external XCGUI_DLL;
+function XC_LoadLayoutZipResEx(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; pPrefixName: PWideChar = nil; hParent: HXCGUI = 0; hParentWnd: HWND = 0; hAttachWnd: HWND = 0; hModule: HMODULE = 0): HXCGUI; stdcall; external XCGUI_DLL;
 
-function XC_LoadResourceZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XC_LoadResourceZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
-function XC_LoadStyleZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XC_LoadStyleZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadFromMem(nType: listItemTemp_type_; data: Integer; length: Integer): HTEMP; stdcall; external XCGUI_DLL;
+function XTemp_LoadFromMem(nType: listItemTemp_type_; data: Pointer; length: Integer): HTEMP; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadFromMemEx(nType: listItemTemp_type_; data: Integer; length: Integer; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
+function XTemp_LoadFromMemEx(nType: listItemTemp_type_; data: Pointer; length: Integer; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP): BOOL; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadZipRes(nType: listItemTemp_type_; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): HTEMP; stdcall; external XCGUI_DLL;
+function XTemp_LoadZipRes(nType: listItemTemp_type_; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): HTEMP; stdcall; external XCGUI_DLL;
 
-function XTemp_LoadZipResEx(nType: listItemTemp_type_; id: Integer; pFileName: PWideChar; pPassword: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XTemp_LoadZipResEx(nType: listItemTemp_type_; id: Integer; pFileName: PWideChar; pPassword: PWideChar; out pOutTemp1: HTEMP; out pOutTemp2: HTEMP; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
-function XImage_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): HIMAGE; stdcall; external XCGUI_DLL;
+function XImage_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XImgSrc_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): HIMAGE; stdcall; external XCGUI_DLL;
+function XImgSrc_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): HIMAGE; stdcall; external XCGUI_DLL;
 
-function XSvg_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): HSVG; stdcall; external XCGUI_DLL;
+function XSvg_LoadZipRes(id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): HSVG; stdcall; external XCGUI_DLL;
 
-function XListBox_SetItemTemplateXMLFromMem(hEle: HELE; data: Integer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XListBox_SetItemTemplateXMLFromMem(hEle: HELE; data: Pointer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XListBox_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XListBox_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
 function XListBox_GetItemTemplate(hEle: HELE): HTEMP; stdcall; external XCGUI_DLL;
 
-function XList_SetItemTemplateXMLFromMem(hEle: HELE; data: Integer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XList_SetItemTemplateXMLFromMem(hEle: HELE; data: Pointer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XList_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XList_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
-function XComboBox_SetItemTemplateXMLFromMem(hEle: HELE; data: Integer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XComboBox_SetItemTemplateXMLFromMem(hEle: HELE; data: Pointer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XComboBox_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XComboBox_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
 function XComboBox_GetItemTemplate(hEle: HELE): HTEMP; stdcall; external XCGUI_DLL;
 
-function XTree_SetItemTemplateXMLFromMem(hEle: HELE; data: Integer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XTree_SetItemTemplateXMLFromMem(hEle: HELE; data: Pointer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XTree_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: Integer = 0): BOOL; stdcall; external XCGUI_DLL;
+function XTree_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar = nil; hModule: HMODULE = 0): BOOL; stdcall; external XCGUI_DLL;
 
 function XTree_GetItemTemplate(hEle: HELE): HTEMP; stdcall; external XCGUI_DLL;
 
-function XListView_SetItemTemplateXMLFromMem(hEle: HELE; data: Integer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XListView_SetItemTemplateXMLFromMem(hEle: HELE; data: Pointer; length: Integer): BOOL; stdcall; external XCGUI_DLL;
 
-function XListView_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar; hModule: Integer): BOOL; stdcall; external XCGUI_DLL;
+function XListView_SetItemTemplateXMLFromZipRes(hEle: HELE; id: Integer; pFileName: PWideChar; pPassword: PWideChar; hModule: HMODULE): BOOL; stdcall; external XCGUI_DLL;
 
 function XListView_GetItemTemplate(hEle: HELE): HTEMP; stdcall; external XCGUI_DLL;
 
@@ -5142,13 +5124,13 @@ function HexToRGBA(const HexColor: string): DWORD;
 
 function RGBAToHex(const RGBA: DWORD; const Digits: Integer = 8): string;
 
-function XWnd_RegEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XWnd_RegEvent(hWindow: HWINDOW; nEvent: Integer; pFun: Pointer): Boolean;
 
-function XWnd_RemoveEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XWnd_RemoveEvent(hWindow: HWINDOW; nEvent: Integer; pFun: Pointer): Boolean;
 
-function XEle_RegEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XEle_RegEvent(hEle: HELE; nEvent: Integer; pFun: Pointer): Boolean;
 
-function XEle_RemoveEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XEle_RemoveEvent(hEle: HELE; nEvent: Integer; pFun: Pointer): Boolean;
 
 procedure MBox(const Msg: Variant);
 
@@ -5275,22 +5257,22 @@ begin
   end;
 end;
 
-function XWnd_RegEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XWnd_RegEvent(hWindow: HWINDOW; nEvent: Integer; pFun: Pointer): Boolean;
 begin
   Result := XWnd_RegEventC1(hWindow, nEvent, vint(NativeInt(pFun)));
 end;
 
-function XWnd_RemoveEvent(hWindow: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XWnd_RemoveEvent(hWindow: HWINDOW; nEvent: Integer; pFun: Pointer): Boolean;
 begin
   Result := XWnd_RemoveEventC(hWindow, nEvent, vint(NativeInt(pFun)));
 end;
 
-function XEle_RegEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XEle_RegEvent(hEle: HELE; nEvent: Integer; pFun: Pointer): Boolean;
 begin
   Result := XEle_RegEventC1(hEle, nEvent, vint(NativeInt(pFun)));
 end;
 
-function XEle_RemoveEvent(hEle: Integer; nEvent: Integer; pFun: Pointer): Boolean;
+function XEle_RemoveEvent(hEle: HELE; nEvent: Integer; pFun: Pointer): Boolean;
 begin
   Result := XEle_RemoveEventC(hEle, nEvent, vint(NativeInt(pFun)));
 end;

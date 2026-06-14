@@ -32,12 +32,52 @@ alwaysApply: true
 
 ## 5. 炫彩句柄与 WinAPI 句柄
 
+### 句柄宽度（对照 `库/XCGUI/xcgui.h`）
+
+`xcgui.h` 中炫彩句柄均为**指针宽度**（Win32 = 4 字节，Win64 = 8 字节），**不是** Delphi 里恒 32 位的 `Integer`：
+
+| C 类型 | `xcgui.h` 定义 | 宽度 |
+|--------|----------------|------|
+| `vint` | `#ifdef _WIN64` → `__int64`，否则 `int` | 随平台（`XCGUI.pas` 已用 `Int64`/`Integer` 对齐） |
+| `HXCGUI` | `typedef void* HXCGUI` | 指针宽（`NativeInt`） |
+| `HWINDOW` / `HELE` / `HMENUX` / `HDRAW` / `HIMAGE` / `HFONTX` / `HBKM` / `HTEMP` / `HSVG` 等 | `DECLARE_HANDLEX` → `struct … *` | 指针宽（`NativeInt`） |
+
+`库/XCGUI/XCGUI.pas` 已将 `HXCGUI`/`HWINDOW`/`HELE` 等句柄绑定为 `NativeInt`（指针宽、有符号，兼容 `XC_ERROR = -1`），`vint` 按平台为 `Int64`/`Integer`。`XWidget_GetHWND`/`XWnd_GetHWND` 返回类型为 `HWND`，**无需**再包 `Windows.HWND(...)`。业务代码仍用 `XCGUI.HXCGUI` / `HWINDOW` / `HELE` 类型名，禁止裸 `Integer` 存炫彩句柄。
+
+**总原则**：炫彩 API 与 Win32 API 句柄**分层、禁止混用**。`XWidget_GetHWND` / `XWnd_GetHWND` 取的是 **Win32 `HWND`**；`XWidget_GetHWINDOW` / `Handle` / `HWINDOW` 是 **炫彩窗口句柄**。二者数值来源不同，**不得**把 `GetHWND` 结果传给 `XWnd_Create*`、`XC_LoadLayout` 父窗、或 `XEle_*` / `XShape_*` 的 `hParent`。**例外**：`XMenu_Popup` 第 2 参数 `hParentWnd` 须 **Win32 `Windows.HWND`**（见下）。
+
 | 类型 | 适用 API / 场景 | 获取方式 | 约束 |
 |------|----------------|----------|------|
-| `XCGUI.HWINDOW` | **默认**炫彩窗口；`XWnd_Create`/`XWnd_CreateEx`、`XWnd_*`、`XModalWnd_*`、`XFloatWnd_*`、`XFrameWnd_*`、`XC_PostMessage` 等 | `XWidget_GetHWINDOW`、`TFormUI.Handle`、`XC_LoadLayout` 的 `hParent`/`hAttachWnd` | 炫彩 API 窗口参数均用此类型；不得传 `Windows.HWND`/`HELE` |
-| `XCGUI.HELE` | 炫彩组件；`XEle_*`、`XBtn_*`、`XList_*`、`XEdit_*`、`XLayout_*` 等 | `XC_GetObjectByName`/`XC_GetObjectByID` | 刷新 `XEle_Redraw` |
-| `XCGUI.HXCGUI` | 炫彩形状；`XShape_*`、`XShapePicture_*`、`XShapeRect_*` 等 | `XC_GetObjectByName`/`XC_GetObjectByID` | 刷新 `XShape_Redraw` |
-| `Windows.HWND` | **Win32 窗口**；WinAPI / Shell（`MessageBoxW`、`ShellExecute*`、`OpenFileDialog*`、`BrowseForFolderPath`、`PostMessageW`、`IsZoomed` 等） | `XWnd_GetHWND`、`XWidget_GetHWND`、`TXWidget.HWND` | 变量/字段写 `Windows.HWND`，禁止裸 `HWND` |
+| `XCGUI.HWINDOW` | 炫彩**窗口**：`XWnd_Create`/`XWnd_CreateEx`、`XModalWnd_*`、`XFloatWnd_*`、`XFrameWnd_*`、`XWnd_*`、`XC_PostMessage`；`XC_LoadLayout` 的 **`hAttachWnd`**；窗口 **`Create`/`CreateEx` 的父窗参数** | `XWidget_GetHWINDOW`、`TFormUI.Handle`、`TXWidget.HWINDOW` | 炫彩窗口 API 与创建父窗均用此类型；**不得**传 `Windows.HWND`/`HELE` |
+| `XCGUI.HXCGUI` | 炫彩**通用对象句柄**（窗口/元素/形状/布局等，类型未定时用此类型）；`XC_LoadLayout` **返回值**（可能是窗口，也可能是布局元素）；`XEle_*`/`XBtn_*`/`XList_*`/`XEdit_*`/`XLayout_*` 的 **`hParent`**；`XShape_*`/`XListBox_Create`/`XShapeText_Create` 等 **`hParent`** | `XC_LoadLayout`、`XC_GetObjectByName`/`XC_GetObjectByID`、父控件 `.Handle` | 后续需判断类型可用 `XC_GetObjectType` 区分；组件**永远创建在炫彩句柄上**（窗口用 `HWINDOW`，元素/形状用 `HELE`/`HXCGUI`），**禁止**用 Win32 `HWND` 作父级 |
+| `XCGUI.HELE` | 炫彩**元素**；`XMenu_Popup` 第 5 参数 **`hParentEle`** | 同上 | 刷新 `XEle_Redraw`（第二参数禁止 `True`） |
+| `Windows.HWND` | **Win32**：`MessageBoxW`、`ShellExecute*`、`OpenFileDialog*`、`BrowseForFolderPath`、`PostMessageW`、`IsZoomed`、`ClientToScreen`（WinAPI）等；**炫彩例外** `XMenu_Popup`/`TXMenu.Popup` 第 2 参数 **`hParentWnd`** | `XWnd_GetHWND`、`XWidget_GetHWND`、`TXWidget.HWND` | 变量/字段写 `Windows.HWND`，禁止裸 `HWND`；**禁止**传入 `XWnd_*`/`XC_PostMessage`/`CreateEx` 父窗（菜单弹出除外） |
+
+### 创建与父级（易错）
+
+- **窗口 `Create`/`CreateEx`**（含 `TFormUI.CreateEx`）：父窗参数类型 **`XCGUI.HWINDOW`**，从触发控件取 **`XWidget_GetHWINDOW(hEle)`**，**禁止** `XWidget_GetHWND`。`库/XForm.pas` 参数误标为 `Windows.HWND`，工程内统一走 **`TFormUI.CreateEx(..., hOwnerWindow: HWINDOW, ...)`**。
+- **元素/形状 `*_Create(..., hParent)`**：`hParent` 为 **`HXCGUI`**（常为父窗/容器的 `.Handle`），同样是炫彩句柄，**不是** Win32 `HWND`。
+- **`XC_LoadLayout(..., hParent, hAttachWnd)`**：返回值类型 **`HXCGUI`**（可能是 `HWINDOW` 或布局 `HELE`，后续需判断类型可用 `XC_GetObjectType` 区分）；`hParent` → `HXCGUI`；`hAttachWnd` → **`HWINDOW`**（模态附着窗）。
+- **`XMenu_Popup(hMenu, hParentWnd, x, y, hParentEle, ...)`**（`TXMenu.Popup` 同理）：**第 2 参数 `hParentWnd` → `Windows.HWND`**（`XWidget_GetHWND` / `XWnd_GetHWND`）；**第 5 参数 `hParentEle` → `HELE`**。坐标须先 `XEle_PointClientToWndClient` 再 `ClientToScreen(hParentWnd, pt)`。参照 `样式/UI_PopupMenu.pas`。
+
+```pascal
+// 浮动窗：父窗用 HWINDOW
+hOwnerWindow := XWidget_GetHWINDOW(hEle);
+Popup := TSliderValuePopupUI.CreateEx(..., hOwnerWindow, window_style_nothing);
+
+// 子组件：父级用炫彩 Handle
+FTextShape := XShapeText_Create(0, 0, 80, 24, '', FInstance.Handle);
+
+// 菜单弹出：第 2 参数 Win32 HWND，第 5 参数 HELE（炫彩 API 中的例外）
+hWnd := XWidget_GetHWND(hHostEle);
+XEle_PointClientToWndClient(hHostEle, pt);
+ClientToScreen(hWnd, pt);
+XMenu_Popup(hMenu, hWnd, pt.X, pt.Y, hHostEle, menu_popup_position_left_top);
+
+// 其他 WinAPI
+MessageBoxW(XWidget_GetHWND(hEle), ...);
+PostMessageW(XWnd_GetHWND(hWindow), WM_QD_..., ...);
+```
 
 ## 6. 多线程与 UI
 - **禁止 VCL 线程 UI 模型**：不得 `TThread.Synchronize`、`TThread.Queue`、`CheckSynchronize` 回主线程改界面。

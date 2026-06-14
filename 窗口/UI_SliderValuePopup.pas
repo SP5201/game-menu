@@ -11,7 +11,7 @@ type
   private
     class var
       FInstance: TSliderValuePopupUI;
-      FOwnerHwnd: Windows.HWND;
+      FOwnerWindow: XCGUI.HWINDOW;
       FTextShape: HXCGUI;
       FBoundSlider: HELE;
       FIsVisible: Boolean;
@@ -61,26 +61,26 @@ const
 var
   exStyle: DWORD;
   style: DWORD;
-  ownerHwnd: Integer;
+  hOwnerWindow: XCGUI.HWINDOW;
   rcText: TRect;
 begin
-  ownerHwnd := 0;
+  hOwnerWindow := 0;
   if ASlider <> 0 then
-    ownerHwnd := XWidget_GetHWND(ASlider);
+    hOwnerWindow := XWidget_GetHWINDOW(ASlider);
 
-  if Assigned(FInstance) and FInstance.IsHWINDOW and (NativeUInt(FOwnerHwnd) = NativeUInt(ownerHwnd)) then
+  if Assigned(FInstance) and FInstance.IsHWINDOW and (FOwnerWindow = hOwnerWindow) then
     Exit(FInstance);
 
   if Assigned(FInstance) and FInstance.IsHWINDOW then
     XWnd_DestroyWindow(FInstance.Handle);
   FInstance := nil;
-  FOwnerHwnd := ownerHwnd;
+  FOwnerWindow := hOwnerWindow;
   FLayout := TooltipLayoutLikePopupMenu;
 
   exStyle := WS_EX_TOPMOST or WS_EX_TRANSPARENT or WS_EX_TOOLWINDOW or WS_EX_NOACTIVATE;
   style := WS_POPUP;
 
-  FInstance := TSliderValuePopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', ownerHwnd, window_style_nothing);
+  FInstance := TSliderValuePopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', hOwnerWindow, window_style_nothing);
   XWnd_SetTransparentType(FInstance.Handle, Ord(window_transparent_shaped));
   XWnd_SetTransparentAlpha(FInstance.Handle, 255);
 

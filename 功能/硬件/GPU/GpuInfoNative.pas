@@ -238,7 +238,7 @@ const
   DEVPKEY_PciDevice_CurrentLinkSpeed: TDevPropKey =
     (FmtId: '{1A3D8496-3267-4D69-843E-998A8701F2E9}'; Pid: 11);
 
-function SetupDiGetClassDevsW(ClassGuid: PGUID; Enumerator: PWideChar; hwndParent: HWND;
+function SetupDiGetClassDevsW(ClassGuid: PGUID; Enumerator: PWideChar; hwndParent: Windows.HWND;
   Flags: DWORD): THandle; stdcall; external 'setupapi.dll';
 function SetupDiEnumDeviceInfo(DeviceInfoSet: THandle; MemberIndex: DWORD;
   DeviceInfoData: PSPDevInfoData): BOOL; stdcall; external 'setupapi.dll';

@@ -21,8 +21,8 @@ type
     function GetDropHeight: Integer;
     procedure SetItemTemplateXML(const pXmlFile: string);
     procedure SetItemTemplateXMLFromString(const pStringXML: string);
-    function SetItemTemplateXMLFromMem(data: Integer; length: Integer): Boolean;
-    function SetItemTemplateXMLFromZipRes(id: Integer; const pFileName, pPassword: string; hModule: Integer): Boolean;
+    function SetItemTemplateXMLFromMem(data: Pointer; length: Integer): Boolean;
+    function SetItemTemplateXMLFromZipRes(id: Integer; const pFileName, pPassword: string; hModule: HMODULE): Boolean;
     function SetItemTemplate(hTemp: Integer): Boolean;
     function GetItemTemplate: Integer;
     procedure EnableDrawButton(bEnable: Boolean);
@@ -123,12 +123,12 @@ begin
   XComboBox_SetItemTemplateXMLFromString(Handle, PAnsiChar(AnsiString(pStringXML)));
 end;
 
-function TXComboBox.SetItemTemplateXMLFromMem(data: Integer; length: Integer): Boolean;
+function TXComboBox.SetItemTemplateXMLFromMem(data: Pointer; length: Integer): Boolean;
 begin
   Result := XComboBox_SetItemTemplateXMLFromMem(Handle, data, length);
 end;
 
-function TXComboBox.SetItemTemplateXMLFromZipRes(id: Integer; const pFileName, pPassword: string; hModule: Integer): Boolean;
+function TXComboBox.SetItemTemplateXMLFromZipRes(id: Integer; const pFileName, pPassword: string; hModule: HMODULE): Boolean;
 begin
   Result := XComboBox_SetItemTemplateXMLFromZipRes(Handle, id, PWideChar(pFileName), PWideChar(pPassword), hModule);
 end;

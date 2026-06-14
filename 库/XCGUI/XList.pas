@@ -86,7 +86,7 @@ type
 
     // 模板操作
     function SetItemTemplateXML(pXmlFile: PWideChar): BOOL;
-    function SetItemTemplateXMLFromMem(data: Integer; length: Integer): BOOL;
+    function SetItemTemplateXMLFromMem(data: Pointer; length: Integer): BOOL;
     function SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: HMODULE): BOOL;
     function SetItemTemplateXMLFromString(pStringXML: PAnsiChar): BOOL;
     function SetItemTemplate(hTemp: HTEMP): BOOL;
@@ -339,9 +339,9 @@ begin
   Result := XList_SetItemTemplateXML(Handle, pXmlFile);
 end;
 
-function TXList.SetItemTemplateXMLFromMem(data: Integer; length: Integer): BOOL;
+function TXList.SetItemTemplateXMLFromMem(data: Pointer; length: Integer): BOOL;
 begin
-  Result := XList_SetItemTemplateXMLFromMem(Handle, Integer(data), length);
+  Result := XList_SetItemTemplateXMLFromMem(Handle, data, length);
 end;
 
 function TXList.SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: hModule): BOOL;

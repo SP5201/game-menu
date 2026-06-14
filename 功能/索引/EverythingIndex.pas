@@ -94,7 +94,16 @@ var
   GUsnCheckpoints: TUsnCheckpointArray;
   GCatchUpInProgress: Boolean;
   GCatchUpApplyStats: TMftApplyUsnStats;
-  GCatchUpFileLookup: TDictionary<string, Integer>;
+  GCatchUpFileLookup: TDictionary<AnsiString, Integer>;
+
+function TickElapsed(AStartTick: Cardinal): Cardinal;
+begin
+  if GetTickCount >= AStartTick then
+    Result := GetTickCount - AStartTick
+  else
+    Result := (High(Cardinal) - AStartTick) + GetTickCount + 1;
+end;
+
 function CountMountedLocalNtfsVolumes: Integer;
 var
   mask: DWORD;
@@ -180,9 +189,9 @@ var
   summary, detail: string;
 begin
   if ASuccess then
-    summary := '全盘索引构建成功'
+    summary := '索引构建成功'
   else
-    summary := '全盘索引构建失败';
+    summary := '索引构建失败';
   detail := FormatIndexStatsDetail(ASource, AElapsedMs);
   if Trim(AExtraDetail) <> '' then
     detail := detail + sLineBreak + AExtraDetail;
@@ -395,7 +404,7 @@ begin
   end;
 end;
 
-function CatchUpIndexFromUsn(var ACheckpoints: TUsnCheckpointArray): Boolean;
+function CatchUpIndexFromUsn(var ACheckpoints: TUsnCheckpointArray; out ACatchUpDetail: string): Boolean;
 var
   i: Integer;
   drive: Char;
@@ -408,13 +417,11 @@ var
   totalAppliedAdd, totalAppliedRemove, totalAppliedUpdate: Integer;
   applyStats: TMftApplyUsnStats;
   detail: TStringList;
-  driveLine, verifyTag, summary: string;
-  startTime: TDateTime;
-  startTick, elapsedMs: Cardinal;
+  driveLine, verifyTag: string;
+  driveStartTick, driveMs: Integer;
 begin
   Result := True;
-  startTime := Now;
-  startTick := GetTickCount;
+  ACatchUpDetail := '';
   fileCountBefore := GDB.FileCount;
   dbFileTime := EverythingDbSavedFileTime;
   totalRecords := 0;
@@ -427,15 +434,10 @@ begin
   totalAppliedUpdate := 0;
   FillChar(GCatchUpApplyStats, SizeOf(GCatchUpApplyStats), 0);
   GCatchUpInProgress := True;
-  GCatchUpFileLookup := TDictionary<string, Integer>.Create;
-  IndexLockEnter;
-  try
-    MftBuildFileParentNameMap(GDB, GCatchUpFileLookup);
-  finally
-    IndexLockLeave;
-  end;
+  GCatchUpFileLookup := TDictionary<AnsiString, Integer>.Create;
   detail := TStringList.Create;
   try
+    detail.Add('【离线同步】');
     detail.Add('缓存保存时间(FILETIME): ' + IntToStr(dbFileTime));
     detail.Add('回放前索引文件数: ' + IntToStr(fileCountBefore));
     detail.Add('');
@@ -448,8 +450,10 @@ begin
         Continue;
       savedCheckpoint := ACheckpoints[i];
       FillChar(GCatchUpApplyStats, SizeOf(GCatchUpApplyStats), 0);
+      driveStartTick := GetTickCount;
       catchResult := UsnCatchUpDrive(drive, Byte(i), ACheckpoints[i],
         GUsnChangedHandler.OnUsnRecords, dbFileTime, stats);
+      driveMs := TickElapsed(driveStartTick);
       applyStats := GCatchUpApplyStats;
       totalAppliedAdd := totalAppliedAdd + applyStats.FilesAdded;
       totalAppliedRemove := totalAppliedRemove + applyStats.FilesRemoved;
@@ -467,7 +471,8 @@ begin
         verifyTag := '';
       driveLine := drive + ': 保存断点 JournalId=' + IntToStr(savedCheckpoint.JournalId) +
         ' LastUsn=' + IntToStr(savedCheckpoint.LastUsn) +
-        ' 当前NextUsn=' + IntToStr(stats.CurrentNextUsn) + verifyTag;
+        ' 当前NextUsn=' + IntToStr(stats.CurrentNextUsn) + verifyTag +
+        ' 耗时 ' + SafeLogFormatElapsed(driveMs);
       if stats.RecordsRead > 0 then
         driveLine := driveLine + sLineBreak + '  回放 USN ' + IntToStr(stats.StartUsn) +
           '..' + IntToStr(stats.EndUsn) + ' 变动 ' + IntToStr(stats.RecordsRead) + ' 条' +
@@ -518,13 +523,11 @@ begin
       ' ~' + IntToStr(totalAppliedUpdate));
     detail.Add('索引文件数: ' + IntToStr(fileCountBefore) + ' -> ' +
       IntToStr(fileCountAfter) + ' (Δ' + IntToStr(fileCountAfter - fileCountBefore) + ')');
-    if GetTickCount >= startTick then
-      elapsedMs := GetTickCount - startTick
+    if GCatchUpFileLookup.Count > 0 then
+      detail.Add('文件查找表: ' + IntToStr(GCatchUpFileLookup.Count) + ' 项（按需构建）')
     else
-      elapsedMs := (High(Cardinal) - startTick) + GetTickCount + 1;
-    detail.Add('耗时: ' + SafeLogFormatElapsed(elapsedMs));
-    summary := '关闭期间 ' + IntToStr(totalRecords) + ' 条文件变动';
-    SafeLogFetch('索引', 'USN 离线同步', summary, startTime, elapsedMs, Result, detail.Text);
+      detail.Add('文件查找表: 未构建（无 USN 变动）');
+    ACatchUpDetail := detail.Text;
   finally
     GCatchUpInProgress := False;
     FreeAndNil(GCatchUpFileLookup);
@@ -537,7 +540,7 @@ procedure TUsnChangedHandler.OnUsnRecords(const ADriveLetter: Char; ADriveIndex:
 var
   applied: Boolean;
   batchStats: TMftApplyUsnStats;
-  fileLookup: TDictionary<string, Integer>;
+  fileLookup: TDictionary<AnsiString, Integer>;
   indexChanges: TIndexHitChangeArray;
 begin
   if (Length(ARecords) = 0) or (GBuilding and not GCatchUpInProgress) then
@@ -569,13 +572,14 @@ begin
   GNotifyHwnd := AWnd;
 end;
 
-function BuildAllVolumes(out AFailDetail: string): Boolean;
+function BuildAllVolumes(out AFailDetail: string; ADriveTimings: TStrings = nil): Boolean;
 var
   mask: DWORD;
   drive: Char;
   driveIndex, ntfsCount, okCount, failCount: Integer;
   driveFailReason: string;
   failLines: TStringList;
+  driveStartTick, driveMs: Cardinal;
 begin
   Result := False;
   AFailDetail := '';
@@ -601,12 +605,17 @@ begin
         Continue;
       Inc(ntfsCount);
       GBuildStatusText := '正在索引 ' + drive + ':';
+      driveStartTick := GetTickCount;
       if MftBuildFromDrive(drive, Byte(driveIndex), GDB, GFrnToFolder, GFrnToFile, GFileFrnKeys,
         GExcludedFrn, procedure(const AStatus: string)
         begin
           GBuildStatusText := AStatus;
         end, driveFailReason) then
       begin
+        driveMs := TickElapsed(driveStartTick);
+        if ADriveTimings <> nil then
+          ADriveTimings.Add(drive + ': ' + SafeLogFormatElapsed(driveMs) + ' (' +
+            IntToStr(GDB.FileCount) + ' 文件)');
         SetDriveLetter(drive, Byte(driveIndex));
         Inc(GDriveCount);
         Inc(driveIndex);
@@ -668,7 +677,7 @@ end;
 
 procedure TEverythingBuildThread.Execute;
 var
-  startTick, elapsedMs: Cardinal;
+  startTick, elapsedMs, loadMs, restoreMs, catchUpMs, buildMs, saveMs: Cardinal;
   cacheLoaded, cacheUsable, buildOk: Boolean;
   failDetail, extraDetail: string;
   loadedDriveMap: TDriveLetterMap;
@@ -677,8 +686,14 @@ var
   staleCacheFileCount, staleIndexedDrives, staleMountedNtfs: Integer;
   cacheRejectReason: string;
   catchUpOk: Boolean;
+  catchUpDetail, catchUpFailNote, catchUpPhaseTiming: string;
+  phaseTick: Cardinal;
+  driveTimings: TStringList;
+  driveTimingText: string;
 begin
   startTick := GetTickCount;
+  buildMs := 0;
+  saveMs := 0;
   GLastError := eieOk;
   GBuildFailureDetail := '';
   GBuildStatusText := '正在加载索引…';
@@ -686,8 +701,13 @@ begin
   staleIndexedDrives := 0;
   staleMountedNtfs := 0;
   cacheRejectReason := '';
+  catchUpDetail := '';
+  catchUpFailNote := '';
+  catchUpPhaseTiming := '';
+  phaseTick := GetTickCount;
   cacheLoaded := FTryCacheFirst and EverythingDbLoad(GDB, loadedDriveMap, loadedFileFrnKeys,
     loadedUsnCheckpoints, '');
+  loadMs := TickElapsed(phaseTick);
   cacheUsable := cacheLoaded and IndexCacheIsUsable(GDB);
   if cacheLoaded and not cacheUsable then
   begin
@@ -699,15 +719,21 @@ begin
   if cacheUsable then
   begin
     RestoreDriveLettersFromMap(loadedDriveMap);
+    phaseTick := GetTickCount;
     IndexLockEnter;
     try
       RestoreFrnMapsAfterLoad(loadedFileFrnKeys);
     finally
       IndexLockLeave;
     end;
+    restoreMs := TickElapsed(phaseTick);
     GUsnCheckpoints := loadedUsnCheckpoints;
     GBuildStatusText := '正在同步离线变更…';
-    catchUpOk := CatchUpIndexFromUsn(GUsnCheckpoints);
+    phaseTick := GetTickCount;
+    catchUpOk := CatchUpIndexFromUsn(GUsnCheckpoints, catchUpDetail);
+    catchUpMs := TickElapsed(phaseTick);
+    catchUpPhaseTiming := ' / FRN 恢复 ' + SafeLogFormatElapsed(restoreMs) +
+      ' / 离线同步 ' + SafeLogFormatElapsed(catchUpMs);
     if catchUpOk then
     begin
       IndexLockEnter;
@@ -718,16 +744,23 @@ begin
       finally
         IndexLockLeave;
       end;
-      elapsedMs := GetTickCount - startTick;
-      LogIndexBuildResult(True, 'Everything.db 缓存', elapsedMs,
-        '缓存文件: ' + EverythingDbFilePath + sLineBreak +
-        '详见日志「USN 离线同步」');
+      elapsedMs := TickElapsed(startTick);
+      phaseTick := GetTickCount;
       UsnMonitorStart(GUsnThreads, GDriveLetters, GUsnChangedHandler.OnUsnRecords,
         GUsnCheckpoints);
       EverythingDbSave(GDB, GDriveLetters, GFileFrnKeys, GUsnCheckpoints);
+      saveMs := TickElapsed(phaseTick);
+      extraDetail := '缓存文件: ' + EverythingDbFilePath + sLineBreak +
+        '阶段耗时: 加载 ' + SafeLogFormatElapsed(loadMs) + catchUpPhaseTiming +
+        ' / 保存 ' + SafeLogFormatElapsed(saveMs);
+      if Trim(catchUpDetail) <> '' then
+        extraDetail := extraDetail + sLineBreak + sLineBreak + catchUpDetail;
+      LogIndexBuildResult(True, 'Everything.db 缓存', elapsedMs, extraDetail);
       Exit;
     end;
-    SafeLogRecord('索引', 'USN 回放', '离线变更回放失败，改从 $MFT 重建', False, '');
+    catchUpFailNote := '离线变更回放失败，改从 $MFT 重建';
+    if Trim(catchUpDetail) <> '' then
+      catchUpFailNote := catchUpFailNote + sLineBreak + sLineBreak + catchUpDetail;
     cacheUsable := False;
   end;
 
@@ -747,12 +780,19 @@ begin
     GExcludedFrn.Clear;
 
   failDetail := '';
+  driveTimingText := '';
+  driveTimings := TStringList.Create;
   try
-    buildOk := BuildAllVolumes(failDetail);
+    phaseTick := GetTickCount;
+    buildOk := BuildAllVolumes(failDetail, driveTimings);
+    buildMs := TickElapsed(phaseTick);
+    driveTimingText := driveTimings.Text;
     if buildOk then
     begin
       RefreshUsnCheckpoints(GUsnCheckpoints);
+      phaseTick := GetTickCount;
       EverythingDbSave(GDB, GDriveLetters, GFileFrnKeys, GUsnCheckpoints);
+      saveMs := TickElapsed(phaseTick);
       GLastError := eieOk;
     end
     else if GLastError = eieOk then
@@ -765,6 +805,7 @@ begin
       GBuildFailureDetail := failDetail;
     end;
   end;
+  driveTimings.Free;
 
   IndexLockEnter;
   try
@@ -778,15 +819,29 @@ begin
     IndexLockLeave;
   end;
 
-  elapsedMs := GetTickCount - startTick;
+  elapsedMs := TickElapsed(startTick);
   if GReady then
   begin
-    extraDetail := '';
+    if catchUpFailNote <> '' then
+      extraDetail := '阶段耗时: 加载 ' + SafeLogFormatElapsed(loadMs) + catchUpPhaseTiming +
+        ' / $MFT 构建 ' + SafeLogFormatElapsed(buildMs) +
+        ' / 保存 ' + SafeLogFormatElapsed(saveMs)
+    else
+      extraDetail := '阶段耗时: 加载 ' + SafeLogFormatElapsed(loadMs) +
+        ' / $MFT 构建 ' + SafeLogFormatElapsed(buildMs) +
+        ' / 保存 ' + SafeLogFormatElapsed(saveMs);
+    if driveTimingText <> '' then
+    begin
+      extraDetail := extraDetail + sLineBreak + '各卷 $MFT:';
+      extraDetail := extraDetail + sLineBreak + driveTimingText;
+    end;
+    if catchUpFailNote <> '' then
+      extraDetail := catchUpFailNote + sLineBreak + sLineBreak + extraDetail;
     if cacheLoaded and not cacheUsable then
       extraDetail := '缓存不可用（文件数=' + IntToStr(staleCacheFileCount) +
         '，已索引盘=' + IntToStr(staleIndexedDrives) +
         '，NTFS 盘=' + IntToStr(staleMountedNtfs) +
-        '，原因：' + cacheRejectReason + '），已改从 $MFT 重建' + sLineBreak;
+        '，原因：' + cacheRejectReason + '），已改从 $MFT 重建' + sLineBreak + sLineBreak + extraDetail;
     if GBuildFailureDetail <> '' then
       extraDetail := extraDetail + GBuildFailureDetail;
     LogIndexBuildResult(True, 'NTFS USN', elapsedMs, extraDetail);
@@ -803,6 +858,8 @@ begin
     end;
     if cacheLoaded then
       failDetail := '缓存加载后无有效记录，$MFT 重建失败' + sLineBreak + failDetail;
+    if catchUpFailNote <> '' then
+      failDetail := catchUpFailNote + sLineBreak + sLineBreak + failDetail;
     LogIndexBuildResult(False, 'NTFS USN', elapsedMs, '失败原因: ' + failDetail);
   end;
 end;

@@ -113,19 +113,6 @@ begin
   Result := (AReason and cUsnReasonMask) <> 0;
 end;
 
-procedure AppendUsnJournalRecords(var ADest: TUsnJournalRecordArray;
-  const ASrc: TUsnJournalRecordArray);
-var
-  base, i: Integer;
-begin
-  if Length(ASrc) = 0 then
-    Exit;
-  base := Length(ADest);
-  SetLength(ADest, base + Length(ASrc));
-  for i := 0 to High(ASrc) do
-    ADest[base + i] := ASrc[i];
-end;
-
 procedure UsnAccumulateStats(const ARecords: TUsnJournalRecordArray; var AStats: TUsnCatchUpStats);
 var
   i: Integer;
@@ -253,80 +240,6 @@ begin
   until False;
 end;
 
-function UsnCountChangesSince(AHandle: THandle; const AJournal: TUsnJournalData;
-  AJournalId, AMinFileTime: Int64): Integer;
-var
-  nextUsn, prevUsn: Int64;
-  records: TUsnJournalRecordArray;
-  journal: TUsnJournalData;
-  readErr: DWORD;
-  i: Integer;
-begin
-  Result := 0;
-  if AMinFileTime <= 0 then
-    Exit;
-  nextUsn := AJournal.LowestValidUsn;
-  journal := AJournal;
-  while nextUsn < journal.NextUsn do
-  begin
-    prevUsn := nextUsn;
-    ReadUsnJournalBatch(AHandle, nextUsn, AJournalId, False, records, journal, readErr);
-    for i := 0 to High(records) do
-      if records[i].TimeStamp >= AMinFileTime then
-        Inc(Result);
-    if nextUsn <= prevUsn then
-      Break;
-    if not QueryUsnJournal(AHandle, journal) then
-      Break;
-  end;
-end;
-
-function UsnQueryCurrentCheckpoint(const ADriveLetter: Char; out ACheckpoint: TUsnCheckpoint): Boolean;
-var
-  hVol: THandle;
-  journal: TUsnJournalData;
-begin
-  FillChar(ACheckpoint, SizeOf(ACheckpoint), 0);
-  EnableVolumeScanPrivileges;
-  hVol := MftOpenVolumeForJournal(ADriveLetter);
-  if hVol = INVALID_HANDLE_VALUE then
-    Exit(False);
-  try
-    Result := QueryUsnJournal(hVol, journal);
-    if Result then
-    begin
-      ACheckpoint.JournalId := journal.UsnJournalID;
-      ACheckpoint.LastUsn := journal.NextUsn;
-    end;
-  finally
-    CloseHandle(hVol);
-  end;
-end;
-
-function FilterRecordsSince(const ARecords: TUsnJournalRecordArray; AMinFileTime: Int64;
-  out AFiltered: TUsnJournalRecordArray): Integer;
-var
-  i, n: Integer;
-begin
-  n := 0;
-  SetLength(AFiltered, 0);
-  if AMinFileTime <= 0 then
-  begin
-    AFiltered := ARecords;
-    Exit(Length(ARecords));
-  end;
-  for i := 0 to High(ARecords) do
-    if ARecords[i].TimeStamp >= AMinFileTime then
-    begin
-      if Length(AFiltered) <= n then
-        SetLength(AFiltered, n + 64);
-      AFiltered[n] := ARecords[i];
-      Inc(n);
-    end;
-  SetLength(AFiltered, n);
-  Result := n;
-end;
-
 function UsnCatchUpDrive(const ADriveLetter: Char; ADriveIndex: Byte;
   var ACheckpoint: TUsnCheckpoint; const AOnRecords: TUsnRecordsProc;
   AVerifySinceFileTime: Int64; out AStats: TUsnCatchUpStats): TUsnCatchUpResult;
@@ -334,9 +247,7 @@ var
   hVol: THandle;
   journal: TUsnJournalData;
   startUsn, nextUsn, prevUsn: Int64;
-  records, filtered, accumulated: TUsnJournalRecordArray;
-  verifyCount: Integer;
-  minFileTime: Int64;
+  records: TUsnJournalRecordArray;
 begin
   FillChar(AStats, SizeOf(AStats), 0);
   EnableVolumeScanPrivileges;
@@ -363,29 +274,11 @@ begin
     if startUsn >= journal.NextUsn then
     begin
       AStats.AlreadyCurrent := True;
-      verifyCount := 0;
-      if AVerifySinceFileTime > 0 then
-        verifyCount := UsnCountChangesSince(hVol, journal, journal.UsnJournalID,
-          AVerifySinceFileTime);
-      if verifyCount > 0 then
-      begin
-        AStats.ForceVerifyMode := True;
-        AStats.VerifySinceFileTime := AVerifySinceFileTime;
-        startUsn := journal.LowestValidUsn;
-        minFileTime := AVerifySinceFileTime;
-        AStats.StartUsn := startUsn;
-      end
-      else
-      begin
-        ACheckpoint.JournalId := journal.UsnJournalID;
-        ACheckpoint.LastUsn := journal.NextUsn;
-        AStats.EndUsn := journal.NextUsn;
-        Exit(ucrOk);
-      end;
-    end
-    else
-      minFileTime := 0;
-    accumulated := nil;
+      ACheckpoint.JournalId := journal.UsnJournalID;
+      ACheckpoint.LastUsn := journal.NextUsn;
+      AStats.EndUsn := journal.NextUsn;
+      Exit(ucrOk);
+    end;
     nextUsn := startUsn;
     while nextUsn < journal.NextUsn do
     begin
@@ -396,13 +289,9 @@ begin
         AStats.UsnAdvanced := True;
       if Length(records) > 0 then
       begin
-        if minFileTime > 0 then
-        begin
-          if FilterRecordsSince(records, minFileTime, filtered) > 0 then
-            AppendUsnJournalRecords(accumulated, filtered);
-        end
-        else
-          AppendUsnJournalRecords(accumulated, records);
+        UsnAccumulateStats(records, AStats);
+        if Assigned(AOnRecords) then
+          AOnRecords(ADriveLetter, ADriveIndex, records);
       end;
       if nextUsn <= prevUsn then
         Break;
@@ -412,16 +301,32 @@ begin
         Exit(ucrOpenFailed);
       end;
     end;
-    if Length(accumulated) > 0 then
-    begin
-      UsnAccumulateStats(accumulated, AStats);
-      if Assigned(AOnRecords) then
-        AOnRecords(ADriveLetter, ADriveIndex, accumulated);
-    end;
     ACheckpoint.JournalId := journal.UsnJournalID;
     ACheckpoint.LastUsn := journal.NextUsn;
     AStats.EndUsn := journal.NextUsn;
     Result := ucrOk;
+  finally
+    CloseHandle(hVol);
+  end;
+end;
+
+function UsnQueryCurrentCheckpoint(const ADriveLetter: Char; out ACheckpoint: TUsnCheckpoint): Boolean;
+var
+  hVol: THandle;
+  journal: TUsnJournalData;
+begin
+  FillChar(ACheckpoint, SizeOf(ACheckpoint), 0);
+  EnableVolumeScanPrivileges;
+  hVol := MftOpenVolumeForJournal(ADriveLetter);
+  if hVol = INVALID_HANDLE_VALUE then
+    Exit(False);
+  try
+    Result := QueryUsnJournal(hVol, journal);
+    if Result then
+    begin
+      ACheckpoint.JournalId := journal.UsnJournalID;
+      ACheckpoint.LastUsn := journal.NextUsn;
+    end;
   finally
     CloseHandle(hVol);
   end;

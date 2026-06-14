@@ -1,4 +1,4 @@
-unit UI_InfoListPopup;
+﻿unit UI_InfoListPopup;
 
 {
   信息行列表悬停弹层：独立弹出窗口 + ListBox，可复用于状态栏 IP/天气等多行说明。
@@ -26,7 +26,8 @@ type
   private
     class var
       FInstance: TInfoListPopupUI;
-      FOwnerHwnd: Windows.HWND;
+      FInstanceHwnd: XCGUI.HWINDOW;
+      FOwnerWindow: XCGUI.HWINDOW;
       FListBoxHele: HELE;
       FHoverBinds: TObjectList<TInfoListHoverBind>;
       FIsVisible: Boolean;
@@ -71,7 +72,9 @@ type
     class function OnTargetMouseMove(hEle: XCGUI.HELE; nFlags: Cardinal; pPt: PPoint; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnTargetMouseLeave(hEle: XCGUI.HELE; hEleStay: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnWndTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnWndDestroy(hWindow: XCGUI.HWINDOW; pbHandled: PBOOL): Integer; stdcall; static;
     class function EnsureInstance(const ATargetHandle: HELE): TInfoListPopupUI; static;
+    class procedure ClearInstanceRefs; static;
     class procedure RedrawPopup; static;
     class procedure ClearDisplayList(const ARedraw: Boolean); static;
     class procedure RebuildDisplayList(const ABodyText: string); static;
@@ -562,8 +565,30 @@ end;
 procedure TInfoListPopupUI.Init;
 begin
   inherited;
+  SetTransparentType(window_transparent_shaped);
+  SetTransparentAlpha(240);
+  SetShadowInfo(0, 0, 0, False, 0);
   RegEvent(WM_PAINT, @TInfoListPopupUI.OnWndPaint);
   RegEvent(WM_TIMER, @TInfoListPopupUI.OnWndTimer);
+  RegEvent(WM_DESTROY, @TInfoListPopupUI.OnWndDestroy);
+end;
+
+class function TInfoListPopupUI.OnWndDestroy(hWindow: XCGUI.HWINDOW; pbHandled: PBOOL): Integer; stdcall;
+begin
+  Result := 0;
+  if (FInstanceHwnd <> 0) and (FInstanceHwnd = hWindow) then
+  begin
+    FInstance := nil;
+    FInstanceHwnd := 0;
+    FListBoxHele := 0;
+  end;
+end;
+
+class procedure TInfoListPopupUI.ClearInstanceRefs;
+begin
+  FInstance := nil;
+  FInstanceHwnd := 0;
+  FListBoxHele := 0;
 end;
 
 class procedure TInfoListPopupUI.RedrawPopup;
@@ -660,31 +685,49 @@ const
 var
   exStyle: DWORD;
   style: DWORD;
-  ownerHwnd: Windows.HWND;
+  hOwnerWindow: XCGUI.HWINDOW;
+  oldPopup: TInfoListPopupUI;
 begin
-  ownerHwnd := 0;
+  hOwnerWindow := 0;
   if ATargetHandle <> 0 then
-    ownerHwnd := XWidget_GetHWND(ATargetHandle);
+    hOwnerWindow := XWidget_GetHWINDOW(ATargetHandle);
 
-  if Assigned(FInstance) and FInstance.IsHWINDOW and (NativeUInt(FOwnerHwnd) = NativeUInt(ownerHwnd)) then
+  if (FInstanceHwnd <> 0) and not XC_IsHWINDOW(FInstanceHwnd) then
+    ClearInstanceRefs;
+
+  if Assigned(FInstance) and (FInstanceHwnd <> 0) and FInstance.IsHWINDOW and (FOwnerWindow = hOwnerWindow) then
     Exit(FInstance);
 
-  if Assigned(FInstance) and FInstance.IsHWINDOW then
+  if Assigned(FInstance) then
   begin
-    SetRefreshTimer(False);
-    XWnd_DestroyWindow(FInstance.Handle);
+    if FInstance.IsHWINDOW then
+    begin
+      FInstance.KillTimer(CInfoRefreshTimerId);
+      FInstance.KillTimer(CInfoDeferHoverTimerId);
+      oldPopup := FInstance;
+      ClearInstanceRefs;
+      XWnd_DestroyWindow(oldPopup.Handle);
+    end
+    else
+    begin
+      FreeAndNil(FInstance);
+      ClearInstanceRefs;
+    end;
   end;
-  FInstance := nil;
-  FListBoxHele := 0;
-  FOwnerHwnd := ownerHwnd;
+  FOwnerWindow := hOwnerWindow;
 
   exStyle := WS_EX_TOPMOST or WS_EX_TRANSPARENT or WS_EX_TOOLWINDOW or WS_EX_NOACTIVATE;
   style := WS_POPUP;
 
-  FInstance := TInfoListPopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', ownerHwnd, window_style_nothing);
-
-  XWnd_SetTransparentType(FInstance.Handle, Ord(window_transparent_shaped));
-  XWnd_SetTransparentAlpha(FInstance.Handle, 240);
+  FInstance := TInfoListPopupUI.CreateEx(exStyle, style, nil, 0, 0, 0, 0, '', hOwnerWindow, window_style_nothing);
+  if not Assigned(FInstance) or not FInstance.IsHWINDOW then
+  begin
+    FreeAndNil(FInstance);
+    ClearInstanceRefs;
+    Exit(nil);
+  end;
+  FInstanceHwnd := FInstance.Handle;
+  FInstance.Init;
 
   FListBoxHele := XListBox_Create(CInfoShadowExt, CInfoShadowExt, 200, 80, FInstance.Handle);
   XEle_EnableDrawBorder(FListBoxHele, False);
@@ -704,7 +747,6 @@ begin
 
   XWnd_ShowWindow(FInstance.Handle, SW_HIDE);
   Result := FInstance;
-  Result.Init;
 end;
 
 class procedure TInfoListPopupUI.RebuildDisplayList(const ABodyText: string);
@@ -902,6 +944,7 @@ end;
 
 initialization
   TInfoListPopupUI.FHoverBinds := nil;
+  TInfoListPopupUI.FInstanceHwnd := 0;
   TInfoListPopupUI.FBoundTargetHandle := 0;
   TInfoListPopupUI.FIsVisible := False;
   TInfoListPopupUI.FLastBodyText := '';

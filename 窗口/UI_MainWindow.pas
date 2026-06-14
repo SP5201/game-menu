@@ -1708,7 +1708,7 @@ begin
   inherited;
   CMainHWINDOW := Handle;
   EverythingIndexSetNotifyHwnd(XWnd_GetHWND(Handle));
-  TFormUI.ApplyTitleLogo('pic_main_logo', 50);
+  TFormUI.ApplyTitleLogo('pic_main_logo', 50, Handle);
   try
     CStore := TLibraryStore.Create(TAppConfig.DatabaseFilePath);
     SafeLogStartupAppendStep('数据库', '加载本地数据库', True);

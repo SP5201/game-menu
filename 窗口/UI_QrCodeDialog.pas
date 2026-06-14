@@ -50,7 +50,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TQrCodeDialogUI; reintroduce;
     class procedure ShowDialog(const hParent: XCGUI.HWINDOW = 0; hAttachWnd: XCGUI.HWINDOW = 0);
   end;
 
@@ -81,14 +81,14 @@ const
   ID_BTN_FG_COLOR     = 'btn_qrcode_fgcolor';
   ID_TXT_LABEL_FG_COLOR = 'txt_qrcode_label_fgcolor';
 
-class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TQrCodeDialogUI;
+class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TQrCodeDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TQrCodeDialogUI.FromHandle(h);
 end;
 
 procedure TQrCodeDialogUI.InitPreviewArea;
@@ -149,7 +149,7 @@ var
   desktopPath: array[0..MAX_PATH] of WideChar;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_qrcode_dialog_logo');
+  TFormUI.ApplyTitleLogo('pic_qrcode_dialog_logo', 20, Handle);
 
   TButtonUI.FromXmlName(ID_BTN_DIALOG_CLOSE, BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TQrCodeDialogUI.OnBtnCancel);
   TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TQrCodeDialogUI.OnBtnCancel);
@@ -181,7 +181,7 @@ begin
     FEdtText.RegEvent(XE_EDIT_CHANGED, @TQrCodeDialogUI.OnEditTextChanged);
 
   FEdtPath := TEditUI.FromXmlName(ID_EDIT_PATH);
-  if Succeeded(SHGetFolderPathW(0, CSIDL_DESKTOP, 0, 0, desktopPath)) then
+  if (FEdtPath <> nil) and Succeeded(SHGetFolderPathW(0, CSIDL_DESKTOP, 0, 0, desktopPath)) then
     FEdtPath.Text := desktopPath + '\二维码';
 
   InitSliderBar;
@@ -192,11 +192,15 @@ begin
   InitPreviewArea;
 
   FComboLevel := TComboBoxUI.FromXmlName(ID_COMBO_LEVEL);
-  FComboLevel.InitTextItems(['L 低(7%)', 'M 中(15%)', 'Q 较高(25%)', 'H 高(30%)'], 1);
-  FComboLevel.RegEvent(XE_COMBOBOX_SELECT, @TQrCodeDialogUI.OnComboLevelChanged);
+  if FComboLevel <> nil then
+  begin
+    FComboLevel.InitTextItems(['L 低(7%)', 'M 中(15%)', 'Q 较高(25%)', 'H 高(30%)'], 1);
+    FComboLevel.RegEvent(XE_COMBOBOX_SELECT, @TQrCodeDialogUI.OnComboLevelChanged);
+  end;
 
   FComboFormat := TComboBoxUI.FromXmlName(ID_COMBO_FORMAT);
-  FComboFormat.InitTextItems(['PNG', 'JPG', 'BMP'], 0);
+  if FComboFormat <> nil then
+    FComboFormat.InitTextItems(['PNG', 'JPG', 'BMP'], 0);
 
   hTitle := XC_GetObjectByName(ID_TXT_DIALOG_TITLE);
   XShapeText_SetTextColor(hTitle, UITheme_TextPrimary);
@@ -255,7 +259,7 @@ begin
   if FEdtPath = nil then
     Exit;
 
-  if BrowseForFolderPath('选择保存文件夹', Windows.HWND(XWidget_GetHWND(hEle)), folderPath) then
+  if BrowseForFolderPath('选择保存文件夹', XWidget_GetHWND(hEle), folderPath) then
     FEdtPath.Text := folderPath;
 end;
 
@@ -437,7 +441,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   r := FBgR; g := FBgG; b := FBgB; a := FBgA;
-  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), 0, r, g, b, a) then
+  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), XWidget_GetHWND(hEle), r, g, b, a) then
   begin
     FBgR := r; FBgG := g; FBgB := b; FBgA := a;
     RedrawPreview;
@@ -453,7 +457,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   r := FFgR; g := FFgG; b := FFgB; a := FFgA;
-  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), 0, r, g, b, a) then
+  if TColorPickerDialogUI.PickColor(XWidget_GetHWINDOW(hEle), XWidget_GetHWND(hEle), r, g, b, a) then
   begin
     FFgR := r; FFgG := g; FFgB := b; FFgA := a;
     RedrawPreview;
@@ -636,7 +640,7 @@ begin
   FFgR := 0;   FFgG := 0;   FFgB := 0;   FFgA := 255;
   FLiquify := False;
 
-  dlg := TQrCodeDialogUI.LoadLayout('Resource\Layout\QrCodeDialog.xml', hParent, hAttachWnd);
+  dlg := TQrCodeDialogUI.LoadLayout('Resource\Layout\QrCodeDialog.xml', 0, 0);
   if dlg = nil then
     Exit;
 

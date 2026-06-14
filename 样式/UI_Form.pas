@@ -14,13 +14,14 @@ type
     class function OnWndWinProc(hWindow: XCGUI.HWINDOW; Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     class procedure UnregisterModal(hWindow: XCGUI.HWINDOW); static;
   public
+    constructor CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: XCGUI.HWINDOW; XCStyle: Integer); reintroduce;
     procedure ApplyDefault;
     destructor Destroy; override;
     class function LoadLayout(const LayoutFile: PWideChar): TFormUI;
     class function TopModal: XCGUI.HWINDOW; static;
     class procedure ReleaseModalStack; static;
     class procedure HandleWndSize(const hWindow: XCGUI.HWINDOW; const Msg: UINT; const wParam: WPARAM); static;
-    class procedure ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer = 20); static;
+    class procedure ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer = 20; hWindow: XCGUI.HWINDOW = 0); static;
   protected
     procedure Init; override;
   end;
@@ -30,7 +31,7 @@ implementation
 uses
   ShellHelper;
 
-class procedure TFormUI.ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer);
+class procedure TFormUI.ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer; hWindow: XCGUI.HWINDOW);
 var
   hLogo: HXCGUI;
   hLogoImg: HIMAGE;
@@ -41,7 +42,10 @@ begin
   logoSide := ALogoSide;
   if logoSide < 1 then
     logoSide := 20;
-  hLogo := XC_GetObjectByName(PWideChar(ALogoXmlName));
+  if XC_IsHWINDOW(hWindow) then
+    hLogo := XC_GetObjectByIDName(hWindow, PWideChar(ALogoXmlName))
+  else
+    hLogo := XC_GetObjectByName(PWideChar(ALogoXmlName));
   if XC_GetObjectType(hLogo) = XC_SHAPE_PICTURE then
   begin
     hLogoImg := LoadApplicationIconToHImage(logoSide, logoSide);
@@ -98,6 +102,17 @@ begin
     SetLength(FModalStack, Length(FModalStack) + 1);
     FModalStack[High(FModalStack)] := Handle;
   end;
+end;
+
+constructor TFormUI.CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: XCGUI.HWINDOW; XCStyle: Integer);
+var
+  hParentWnd: Windows.HWND;
+begin
+  if hWndParent <> 0 then
+    hParentWnd := XWnd_GetHWND(hWndParent)
+  else
+    hParentWnd := 0;
+  inherited CreateEx(dwExStyle, dwStyle, lpClassName, x, y, cx, cy, pTitle, hParentWnd, XCStyle);
 end;
 
 destructor TFormUI.Destroy;

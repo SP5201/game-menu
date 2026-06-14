@@ -33,7 +33,7 @@ type
   protected
     procedure Init; override;
   public
-    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): TEditItemDialogUI; reintroduce;
+    class function LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hwndAttach: Windows.HWND = 0): TEditItemDialogUI; reintroduce;
     class function EditItem(const AFilePath: string; const AIcon: HIMAGE; var ATitle, AParams, AWorkingDir: string;
       var AShowCmd: Integer; var AIconPath: string; out AIconChanged: Boolean; const hParent: XCGUI.HWINDOW): Boolean;
   end;
@@ -66,11 +66,11 @@ begin
   Result := 0;
 end;
 
-class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TEditItemDialogUI;
+class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hwndAttach: Windows.HWND): TEditItemDialogUI;
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := XC_LoadLayout(LayoutFile, hParent, hwndAttach);
   if h = 0 then
     Exit(nil);
   Result := FromHandle(h);
@@ -84,7 +84,7 @@ var
   btnPathHint: TButtonUI;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_edititem_dialog_logo');
+  TFormUI.ApplyTitleLogo('pic_edititem_dialog_logo', 20, Handle);
   TButtonUI.FromXmlName('btn_edititem_close', BB_NONE, 'Resource\close.svg');
   btnPathHint := TButtonUI.FromXmlName('btn_edititem_path_hint_icon', BB_NONE, 'Resource\hint.svg');
   if btnPathHint <> nil then
@@ -263,7 +263,7 @@ var
 begin
   AIconChanged := False;
   hIcon := ResolveEditItemPreviewIcon(AIcon, AIconPath, AFilePath);
-  dlg := TEditItemDialogUI.LoadLayout('Resource\Layout\EditItemDialog.xml', hParent);
+  dlg := TEditItemDialogUI.LoadLayout('Resource\Layout\EditItemDialog.xml', 0, 0);
   if XC_GetObjectType(hIcon) = XC_IMAGE then
   begin
     XImage_AddRef(hIcon);

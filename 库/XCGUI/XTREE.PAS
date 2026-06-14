@@ -25,8 +25,8 @@ type
     procedure SetDrawItemBkFlags(nFlags: Integer);
 
     function SetItemTemplateXML(pXmlFile: PWideChar): BOOL;
-    function SetItemTemplateXMLFromMem(data, length: Integer): BOOL;
-    function SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: Integer = 0): BOOL;
+    function SetItemTemplateXMLFromMem(data: Pointer; length: Integer): BOOL;
+    function SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: HMODULE = 0): BOOL;
     function SetItemTemplateXMLFromString(pStringXML: PChar): BOOL;
     function SetItemTemplateXMLSel(pXmlFile: PWideChar): BOOL;
     function SetItemTemplateXMLSelFromString(pStringXML: PChar): BOOL;
@@ -106,8 +106,8 @@ procedure TXTree.SetDragInsertPositionColor(color: Integer); begin XTree_SetDrag
 procedure TXTree.SetDrawItemBkFlags(nFlags: Integer); begin XTree_SetDrawItemBkFlags(Handle, nFlags); end;
 
 function TXTree.SetItemTemplateXML(pXmlFile: PWideChar): BOOL; begin Result := XTree_SetItemTemplateXML(Handle, pXmlFile); end;
-function TXTree.SetItemTemplateXMLFromMem(data, length: Integer): BOOL; begin Result := XTree_SetItemTemplateXMLFromMem(Handle, data, length); end;
-function TXTree.SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: Integer = 0): BOOL; begin Result := XTree_SetItemTemplateXMLFromZipRes(Handle, id, pFileName, pPassword, hModule); end;
+function TXTree.SetItemTemplateXMLFromMem(data: Pointer; length: Integer): BOOL; begin Result := XTree_SetItemTemplateXMLFromMem(Handle, data, length); end;
+function TXTree.SetItemTemplateXMLFromZipRes(id: Integer; pFileName, pPassword: PWideChar; hModule: HMODULE = 0): BOOL; begin Result := XTree_SetItemTemplateXMLFromZipRes(Handle, id, pFileName, pPassword, hModule); end;
 function TXTree.SetItemTemplateXMLFromString(pStringXML: PChar): BOOL; begin Result := XTree_SetItemTemplateXMLFromString(Handle, pStringXML); end;
 function TXTree.SetItemTemplateXMLSel(pXmlFile: PWideChar): BOOL; begin Result := XTree_SetItemTemplateXMLSel(Handle, pXmlFile); end;
 function TXTree.SetItemTemplateXMLSelFromString(pStringXML: PChar): BOOL; begin Result := XTree_SetItemTemplateXMLSelFromString(Handle, pStringXML); end;

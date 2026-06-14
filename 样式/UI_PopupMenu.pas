@@ -160,7 +160,7 @@ procedure TPopupMenuUI.Popup(const hHostEle: HELE; var PtClient: TPoint; const n
 var
   hWnd: Windows.HWND;
 begin
-  hWnd := Windows.HWND(XWidget_GetHWND(hHostEle));
+  hWnd := XWidget_GetHWND(hHostEle);
   XEle_PointClientToWndClient(hHostEle, PtClient);
   Windows.ClientToScreen(hWnd, PtClient);
   inherited Popup(hWnd, PtClient.X, PtClient.Y, hHostEle, nPosition);

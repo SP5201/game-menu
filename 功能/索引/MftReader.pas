@@ -29,11 +29,11 @@ procedure MftRebuildFolderFrnMap(const ADB: TEverythingDB;
 function MftRebuildFileFrnMapFromUsn(const ADriveLetter: Char; ADriveIndex: Byte;
   const ADB: TEverythingDB; AFrnToFolder: TDictionary<UInt64, Cardinal>;
   AFrnToFile: TDictionary<UInt64, Cardinal>; var AFileFrnKeys: TFileFrnKeyArray): Boolean;
-procedure MftBuildFileParentNameMap(const ADB: TEverythingDB; AMap: TDictionary<string, Integer>);
+procedure MftBuildFileParentNameMap(const ADB: TEverythingDB; AMap: TDictionary<AnsiString, Integer>);
 function MftApplyUsnRecords(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARecords: TUsnJournalRecordArray; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
   AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<string, Integer>; out AStats: TMftApplyUsnStats;
+  AFileLookup: TDictionary<AnsiString, Integer>; out AStats: TMftApplyUsnStats;
   var AChanges: TIndexHitChangeArray): Boolean;
 
 implementation
@@ -77,7 +77,7 @@ const
   FILE_NAME_DOS = 2;
   FILE_NAME_WIN32_AND_DOS = 3;
 
-  cMftReadChunk = 2 * 1024 * 1024;
+  cMftReadChunk = 8 * 1024 * 1024;
   cFaDirectory = $00000010;
   cFaReparsePoint = $00000400;
   INVALID_SET_FILE_POINTER = DWORD(-1);
@@ -728,6 +728,9 @@ begin
     if not ResolveParentFolderOffset(AItems[i].DriveIndex, AItems[i].ParentFRN, AFrnToFolder,
       segToFolder, parentOff) then
       parentOff := cRootParentOffset;
+    frnKey := FrnMapKey(AItems[i].DriveIndex, AItems[i].FRN);
+    if (AFrnToFile <> nil) and AFrnToFile.ContainsKey(frnKey) then
+      Continue;
     GrowFiles(ADB);
     fileRec.ParentOffset := parentOff;
     fileRec.NamePoolOffset := AItems[i].NameOffset;
@@ -737,7 +740,6 @@ begin
     extPtr := ExtractExtUtf8(nameUtf8);
     fileRec.ExtID := FindOrAddExt(ADB, extPtr);
     ADB.Files[ADB.FileCount] := fileRec;
-    frnKey := FrnMapKey(AItems[i].DriveIndex, AItems[i].FRN);
     if AFrnToFile <> nil then
       AFrnToFile.Add(frnKey, Cardinal(ADB.FileCount));
     if Length(AFileFrnKeys) <= ADB.FileCount then
@@ -950,6 +952,9 @@ begin
     if not ResolveParentFolderOffset(AItems[i].DriveIndex, AItems[i].ParentFRN, AFrnToFolder,
       segToFolder, parentOff) then
       parentOff := cRootParentOffset;
+    frnKey := FrnMapKey(AItems[i].DriveIndex, AItems[i].FRN);
+    if (AFrnToFile <> nil) and AFrnToFile.ContainsKey(frnKey) then
+      Continue;
     GrowFiles(ADB);
     fileRec.ParentOffset := parentOff;
     fileRec.NamePoolOffset := AItems[i].NamePoolOffset;
@@ -959,7 +964,6 @@ begin
     extPtr := ExtractExtUtf8(nameUtf8);
     fileRec.ExtID := FindOrAddExt(ADB, extPtr);
     ADB.Files[ADB.FileCount] := fileRec;
-    frnKey := FrnMapKey(AItems[i].DriveIndex, AItems[i].FRN);
     if AFrnToFile <> nil then
       AFrnToFile.Add(frnKey, Cardinal(ADB.FileCount));
     if Length(AFileFrnKeys) <= ADB.FileCount then
@@ -1246,27 +1250,53 @@ begin
     USN_REASON_BASIC_INFO_CHANGE or USN_REASON_CLOSE)) <> 0;
 end;
 
-function FileLookupKey(AParentOff: Cardinal; const ANameUtf8: AnsiString): string;
+function FileLookupKey(AParentOff: Cardinal; const ANameUtf8: AnsiString): AnsiString;
+var
+  nameLen: Integer;
 begin
-  Result := IntToStr(AParentOff) + #1 + string(ANameUtf8);
+  nameLen := Length(ANameUtf8);
+  SetLength(Result, 4 + 1 + nameLen);
+  Move(AParentOff, Result[1], 4);
+  Result[5] := #1;
+  if nameLen > 0 then
+    Move(ANameUtf8[1], Result[6], nameLen);
 end;
 
-function FileLookupKeyWide(AParentOff: Cardinal; const AFileName: string): string;
+function FileLookupKeyWide(AParentOff: Cardinal; const AFileName: string): AnsiString;
 begin
   Result := FileLookupKey(AParentOff, MftWideNameToUtf8Lower(AFileName));
 end;
 
-function FileLookupKeyFromPool(const ADB: TEverythingDB; AParentOff, ANameOff: Cardinal): string;
+function FileLookupKeyFromPool(const ADB: TEverythingDB; AParentOff, ANameOff: Cardinal): AnsiString;
+var
+  src: PAnsiChar;
+  i, nameLen: Integer;
+  ch: AnsiChar;
 begin
-  Result := FileLookupKey(AParentOff, Utf8ToLowerAnsi(NamePoolPtrAt(ADB, ANameOff)));
+  Result := '';
+  src := NamePoolPtrAt(ADB, ANameOff);
+  if src = nil then
+    Exit;
+  nameLen := AnsiStrLen(src);
+  SetLength(Result, 4 + 1 + nameLen);
+  Move(AParentOff, Result[1], 4);
+  Result[5] := #1;
+  for i := 0 to nameLen - 1 do
+  begin
+    ch := src[i];
+    if (ch >= 'A') and (ch <= 'Z') then
+      Result[6 + i] := AnsiChar(Ord(ch) + 32)
+    else
+      Result[6 + i] := ch;
+  end;
 end;
 
 function FindFileIndexByParentAndName(const ADB: TEverythingDB; AParentOff: Cardinal;
-  const AFileName: string; AFileLookup: TDictionary<string, Integer>): Integer;
+  const AFileName: string; AFileLookup: TDictionary<AnsiString, Integer>): Integer;
 var
   i: Integer;
   nameUtf8: AnsiString;
-  lookupKey: string;
+  lookupKey: AnsiString;
 begin
   Result := -1;
   if AFileLookup <> nil then
@@ -1290,7 +1320,7 @@ begin
   end;
 end;
 
-procedure MftBuildFileParentNameMap(const ADB: TEverythingDB; AMap: TDictionary<string, Integer>);
+procedure MftBuildFileParentNameMap(const ADB: TEverythingDB; AMap: TDictionary<AnsiString, Integer>);
 var
   i: Integer;
 begin
@@ -1341,27 +1371,27 @@ function MftRebuildFileFrnMapFromUsn(const ADriveLetter: Char; ADriveIndex: Byte
 var
   items: TArray<TUsnTempItem>;
   enumDetail: string;
-  fileKeyMap: TDictionary<string, Integer>;
+  fileKeyMap: TDictionary<AnsiString, Integer>;
   parentOff: Cardinal;
   segToFolder: TDictionary<UInt64, Cardinal>;
   tempDb: TEverythingDB;
   i, fileIdx: Integer;
   frnKey: UInt64;
-  lookupKey: string;
+  lookupKey: AnsiString;
   nameUtf8: AnsiString;
 begin
   Result := False;
   FillChar(tempDb, SizeOf(tempDb), 0);
   if not EnumVolumeUsnItems(ADriveLetter, ADriveIndex, tempDb, items, enumDetail) then
     Exit;
-  fileKeyMap := TDictionary<string, Integer>.Create;
+  fileKeyMap := TDictionary<AnsiString, Integer>.Create;
   segToFolder := TDictionary<UInt64, Cardinal>.Create;
   try
     BuildSegmentFolderMap(AFrnToFolder, segToFolder);
     for i := 0 to ADB.FileCount - 1 do
     begin
       parentOff := ADB.Files[i].ParentOffset;
-      lookupKey := FileLookupKey(parentOff, NamePoolToAnsi(ADB, ADB.Files[i].NamePoolOffset));
+      lookupKey := FileLookupKeyFromPool(ADB, parentOff, ADB.Files[i].NamePoolOffset);
       fileKeyMap.AddOrSetValue(lookupKey, i);
     end;
     SetLength(AFileFrnKeys, ADB.FileCount);
@@ -1408,11 +1438,11 @@ end;
 
 procedure RemoveFileAtIndex(var ADB: TEverythingDB; AIndex: Integer;
   AFrnToFile: TDictionary<UInt64, Cardinal>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<string, Integer>; var AChanges: TIndexHitChangeArray);
+  AFileLookup: TDictionary<AnsiString, Integer>; var AChanges: TIndexHitChangeArray);
 var
   lastIdx: Integer;
   movedFrn: UInt64;
-  lookupKey: string;
+  lookupKey: AnsiString;
 begin
   if (AIndex < 0) or (AIndex >= ADB.FileCount) then
     Exit;
@@ -1484,7 +1514,7 @@ end;
 
 procedure RemoveFilesUnderFolder(var ADB: TEverythingDB; AFolderOff: Cardinal;
   AFrnToFile: TDictionary<UInt64, Cardinal>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<string, Integer>; var AChanges: TIndexHitChangeArray);
+  AFileLookup: TDictionary<AnsiString, Integer>; var AChanges: TIndexHitChangeArray);
 var
   i, parentOff: Integer;
 begin
@@ -1502,7 +1532,7 @@ end;
 procedure UpsertFolderRecord(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARec: TUsnJournalRecord; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
   AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray; ANameOff: Cardinal;
-  const ARenameOldName: string; AFileLookup: TDictionary<string, Integer>;
+  const ARenameOldName: string; AFileLookup: TDictionary<AnsiString, Integer>;
   ASegToFolder: TDictionary<UInt64, Cardinal>; var AChanges: TIndexHitChangeArray);
 var
   frnKey: UInt64;
@@ -1577,7 +1607,7 @@ end;
 
 procedure RemoveFileByUsnRecord(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARec: TUsnJournalRecord; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
-  var AFileFrnKeys: TFileFrnKeyArray; AFileLookup: TDictionary<string, Integer>;
+  var AFileFrnKeys: TFileFrnKeyArray; AFileLookup: TDictionary<AnsiString, Integer>;
   ASegToFolder: TDictionary<UInt64, Cardinal>; var AStats: TMftApplyUsnStats;
   var AChanges: TIndexHitChangeArray);
 var
@@ -1608,7 +1638,7 @@ end;
 procedure UpsertFileRecord(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARec: TUsnJournalRecord; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
   AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray; ANameOff: Cardinal;
-  const ARenameOldName: string; AFileLookup: TDictionary<string, Integer>;
+  const ARenameOldName: string; AFileLookup: TDictionary<AnsiString, Integer>;
   ASegToFolder: TDictionary<UInt64, Cardinal>; var AStats: TMftApplyUsnStats;
   var AChanges: TIndexHitChangeArray);
 var
@@ -1620,7 +1650,7 @@ var
   extPtr: PAnsiChar;
   parentKey: UInt64;
   foundIdx: Integer;
-  lookupKey: string;
+  lookupKey: AnsiString;
 begin
   parentKey := FrnMapKey(ADriveIndex, ARec.ParentFRN);
   if (AExcludedFrn <> nil) and AExcludedFrn.ContainsKey(parentKey) then
@@ -1700,7 +1730,7 @@ end;
 function MftApplyUsnRecords(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARecords: TUsnJournalRecordArray; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
   AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<string, Integer>; out AStats: TMftApplyUsnStats;
+  AFileLookup: TDictionary<AnsiString, Integer>; out AStats: TMftApplyUsnStats;
   var AChanges: TIndexHitChangeArray): Boolean;
 var
   i: Integer;

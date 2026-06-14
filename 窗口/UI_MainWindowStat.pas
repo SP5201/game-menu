@@ -1,4 +1,4 @@
-unit UI_MainWindowStat;
+﻿unit UI_MainWindowStat;
 
 interface
 
