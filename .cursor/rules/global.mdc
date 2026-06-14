@@ -1,15 +1,13 @@
 ---
-description: QDesktop 全局约定；多线程 PostMessage 回 UI；性能优先；复杂任务先 MD 方案
+description: QDesktop 全局约定；UI和功能分离；性能优先；复杂任务先 MD 方案
 alwaysApply: true
 ---
 
 # QDesktop 全局约定
 
 ## 1. 基础与 Agent（无人值守）
-- **Delphi**：`D:\办公软件\Delphi Xe2\bin\bds.exe`；**栈**：Delphi XE2（Win32+Win64）+ XCGUI；**回复中文**。
-- **全权推进**：文件/终端/网络/工具均视为已批准；**禁止**问「是否继续/需要批准吗」，多步任务一气呵成。
-- **复杂任务先方案**：架构变动、跨多模块重构、性能敏感热路径大改、新子系统引入等，须先输出 **Markdown 方案**（目标、步骤、风险、取舍），**待用户确认后再动代码**；此条优先于「全权推进」。
-- **须确认**：用户单次明确禁止、不可逆操作（如 force push）、访问 `__history/`。
+- **技术栈**：Delphi XE2（Win32 + Win64）+ XCGUI。**依赖**：能复用不手写，优先 GitHub 开源库（须已验证兼容 XE2）；禁止引入仅支持高版本 Delphi 的单元。**回复中文**。
+- **复杂任务先方案**：架构变动、跨多模块重构、性能敏感热路径大改、新子系统引入等，须先输出 **Markdown 方案**（目标、步骤、风险、取舍），**待用户确认后再动代码**。
 
 ## 2. 工程与源码
 - **联动**：`*.pas` 增删改名须同步 `QDesktop.dproj`、`QDesktop.dpr`。
@@ -33,13 +31,13 @@ alwaysApply: true
 - 对话框：`功能/Shell/ShellHelper.pas`（WinAPI `CommDlg`）。
 
 ## 5. 炫彩句柄与 WinAPI 句柄
-三种句柄，**禁止混用**：
 
 | 类型 | 适用 API / 场景 | 获取方式 | 约束 |
 |------|----------------|----------|------|
-| `XCGUI.HWINDOW` | 炫彩窗口；`XWnd_*`、`XModalWnd_*`、`XFloatWnd_*`、`XFrameWnd_*`、`XC_PostMessage` | `XWidget_GetHWINDOW`、`TFormUI.Handle`、`XC_LoadLayout` 的 `hParent`/`hAttachWnd` | 不得传 `Windows.HWND`，不得传 `HELE` |
-| `XCGUI.HELE` | 炫彩组件；`XEle_*`、`XBtn_*`、`XList_*`、`XEdit_*` 等（按钮、列表、编辑框等，非窗口） | 事件 `hSender`、布局 `XC_GetObjectByName`/`XC_GetObjectByID` | — |
-| `Windows.HWND` | WinAPI / Shell（`MessageBoxW`、`ShellExecute*`、`OpenFileDialog*`、`BrowseForFolderPath`、`PostMessageW`、`IsZoomed` 等）；`XWnd_Create`/`XWnd_CreateEx` 的 `hWndParent`（Win32 popup owner，非炫彩 `HWINDOW`） | `XWnd_GetHWND`、`XWidget_GetHWND`、`TXWidget.HWND` | 须经上述函数转换；禁止把 `HWINDOW` 直接当 `HWND`；变量/字段写 `Windows.HWND`，禁止裸 `HWND` |
+| `XCGUI.HWINDOW` | **默认**炫彩窗口；`XWnd_Create`/`XWnd_CreateEx`、`XWnd_*`、`XModalWnd_*`、`XFloatWnd_*`、`XFrameWnd_*`、`XC_PostMessage` 等 | `XWidget_GetHWINDOW`、`TFormUI.Handle`、`XC_LoadLayout` 的 `hParent`/`hAttachWnd` | 炫彩 API 窗口参数均用此类型；不得传 `Windows.HWND`/`HELE` |
+| `XCGUI.HELE` | 炫彩组件；`XEle_*`、`XBtn_*`、`XList_*`、`XEdit_*`、`XLayout_*` 等 | `XC_GetObjectByName`/`XC_GetObjectByID` | 刷新 `XEle_Redraw` |
+| `XCGUI.HXCGUI` | 炫彩形状；`XShape_*`、`XShapePicture_*`、`XShapeRect_*` 等 | `XC_GetObjectByName`/`XC_GetObjectByID` | 刷新 `XShape_Redraw` |
+| `Windows.HWND` | **Win32 窗口**；WinAPI / Shell（`MessageBoxW`、`ShellExecute*`、`OpenFileDialog*`、`BrowseForFolderPath`、`PostMessageW`、`IsZoomed` 等） | `XWnd_GetHWND`、`XWidget_GetHWND`、`TXWidget.HWND` | 变量/字段写 `Windows.HWND`，禁止裸 `HWND` |
 
 ## 6. 多线程与 UI
 - **禁止 VCL 线程 UI 模型**：不得 `TThread.Synchronize`、`TThread.Queue`、`CheckSynchronize` 回主线程改界面。
