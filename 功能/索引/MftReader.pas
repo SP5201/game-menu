@@ -1210,14 +1210,6 @@ begin
   end;
 end;
 
-const
-  USN_REASON_FILE_CREATE = $00000100;
-  USN_REASON_FILE_DELETE = $00000200;
-  USN_REASON_RENAME_OLD_NAME = $00001000;
-  USN_REASON_RENAME_NEW_NAME = $00002000;
-  USN_REASON_BASIC_INFO_CHANGE = $00000080;
-  USN_REASON_CLOSE = $80000000;
-
 function IsUsnDirectory(AAttributes: DWORD): Boolean;
 begin
   Result := (AAttributes and cFaDirectory) <> 0;

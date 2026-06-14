@@ -253,28 +253,8 @@ const
   cShellTaskbarPollIntervalMs = 50;
   cShellTaskbarStablePollCount = 2;
 
-type
-  TGetTickCount64 = function: ULONGLONG; stdcall;
-
-// 兼容旧版本 Delphi 的安全时间戳获取函数
-function SafeGetTickCount64: UInt64;
-var
-  Kernel: HMODULE;
-  GetTick64: TGetTickCount64;
-begin
-  Kernel := GetModuleHandle('kernel32.dll');
-  if Kernel <> 0 then
-  begin
-    @GetTick64 := GetProcAddress(Kernel, 'GetTickCount64');
-    if Assigned(GetTick64) then
-    begin
-      Result := GetTick64();
-      Exit;
-    end;
-  end;
-  // 备用降级方案
-  Result := GetTickCount;
-end;
+function GetTickCount64: UInt64; stdcall;
+  external 'kernel32.dll' name 'GetTickCount64';
 
 // 获取当前任务栏句柄
 function GetShellTaskbarHwnd: HWND;
@@ -370,8 +350,8 @@ begin
   begin
     PostMessage(hTaskbar, WM_USER_EXITEXPLORER, 0, 0);
 
-    t0 := SafeGetTickCount64;
-    while SafeGetTickCount64 - t0 < cExplorerGracefulExitWaitMs do
+    t0 := GetTickCount64;
+    while GetTickCount64 - t0 < cExplorerGracefulExitWaitMs do
     begin
       if GetShellTaskbarHwnd = HWND(0) then
         Break;
@@ -382,8 +362,8 @@ begin
   // 第二步：Win10/11 每个文件夹窗口可能是独立 explorer 进程，须全部清掉
   Result := TerminateAllExplorerProcesses;
 
-  t0 := SafeGetTickCount64;
-  while EnumExplorerProcessExists and (SafeGetTickCount64 - t0 < cExplorerProcessGoneTimeoutMs) do
+  t0 := GetTickCount64;
+  while EnumExplorerProcessExists and (GetTickCount64 - t0 < cExplorerProcessGoneTimeoutMs) do
     Sleep(cShellTaskbarPollIntervalMs);
   Result := Result and not EnumExplorerProcessExists;
 end;
@@ -446,8 +426,8 @@ function WaitForShellTaskbarGone(ATimeoutMs: Cardinal): Boolean;
 var
   t0: UInt64;
 begin
-  t0 := SafeGetTickCount64;
-  while SafeGetTickCount64 - t0 < ATimeoutMs do
+  t0 := GetTickCount64;
+  while GetTickCount64 - t0 < ATimeoutMs do
   begin
     if GetShellTaskbarHwnd = HWND(0) then
       Exit(True);
@@ -464,8 +444,8 @@ var
 begin
   Result := False;
   stableCount := 0;
-  t0 := SafeGetTickCount64;
-  while SafeGetTickCount64 - t0 < ATimeoutMs do
+  t0 := GetTickCount64;
+  while GetTickCount64 - t0 < ATimeoutMs do
   begin
     hTaskbar := GetShellTaskbarHwnd;
     if (hTaskbar <> HWND(0)) and (hTaskbar <> AOldHwnd) and IsTaskbarWindowReady(hTaskbar) then

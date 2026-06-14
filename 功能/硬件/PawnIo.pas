@@ -102,6 +102,7 @@ var
   GLastLoadError: DWORD;
   GLastLoadStage: string;
   GLastModuleName: string;
+  GLastDevicePath: string;
 
 procedure CpuIdLeaf(const AFunc: Cardinal; out ARegs: TCpuIdRegs); assembler;
 asm
@@ -175,7 +176,38 @@ begin
     GLastLoadError := GetLastError;
 end;
 
+function PawnIoWin32ErrorName(AError: DWORD): string;
+begin
+  case AError of
+    ERROR_FILE_NOT_FOUND: Result := 'ERROR_FILE_NOT_FOUND';
+    ERROR_ACCESS_DENIED: Result := 'ERROR_ACCESS_DENIED';
+    ERROR_NOT_SUPPORTED: Result := 'ERROR_NOT_SUPPORTED';
+    ERROR_SERVICE_EXISTS: Result := 'ERROR_SERVICE_EXISTS';
+    ERROR_SERVICE_ALREADY_RUNNING: Result := 'ERROR_SERVICE_ALREADY_RUNNING';
+  else
+    Result := '';
+  end;
+end;
+
+function PawnIoFormatWin32Error(AError: DWORD): string;
+var
+  sysMsg, codeName: string;
+begin
+  if AError = 0 then
+    Exit('未知错误（错误码 0）');
+  sysMsg := SysErrorMessage(AError);
+  if sysMsg = '' then
+    sysMsg := '未知系统错误';
+  codeName := PawnIoWin32ErrorName(AError);
+  if codeName <> '' then
+    Result := Format('%s（%s，%d）', [sysMsg, codeName, AError])
+  else
+    Result := Format('%s（Win32 错误 %d）', [sysMsg, AError]);
+end;
+
 function PawnIoLoadErrorHint(AError: DWORD): string;
+var
+  devPath: string;
 begin
   case AError of
     ERROR_FILE_NOT_FOUND:
@@ -183,7 +215,16 @@ begin
         if GLastLoadStage = '检查驱动' then
           Result := 'Bin\PawnIO.sys 未找到'
         else if GLastLoadStage = '打开设备' then
-          Result := 'PawnIO 驱动未运行，请以管理员权限启动一次'
+        begin
+          if GLastDevicePath <> '' then
+            devPath := GLastDevicePath
+          else
+            devPath := '\\.\PawnIO';
+          Result := Format(
+            'CreateFile("%s") 失败：内核设备对象不存在，PawnIO 驱动未加载或未成功创建设备节点；' +
+            '若首次使用请用管理员权限运行一次，若已安装请检查服务 PawnIO 是否正在运行、驱动是否被安全软件或内核隔离拦截',
+            [devPath]);
+        end
         else
           Result := GLastModuleName + ' 未找到';
       end;
@@ -193,24 +234,45 @@ begin
       else
         Result := GLastModuleName + ' 与当前 PawnIO 驱动不兼容';
     ERROR_ACCESS_DENIED:
-      Result := '需要管理员权限安装 PawnIO 驱动';
+      if GLastLoadStage = '打开设备' then
+      begin
+        if GLastDevicePath <> '' then
+          devPath := GLastDevicePath
+        else
+          devPath := '\\.\PawnIO';
+        Result := Format('CreateFile("%s") 失败：当前进程无权打开 PawnIO 设备', [devPath]);
+      end
+      else
+        Result := '需要管理员权限安装或启动 PawnIO 驱动服务';
   else
-    Result := SysErrorMessage(AError);
-    if Result = '' then
-      Result := '未知错误';
+    if GLastLoadStage = '打开设备' then
+    begin
+      if GLastDevicePath <> '' then
+        devPath := GLastDevicePath
+      else
+        devPath := '\\.\PawnIO';
+      Result := Format('CreateFile("%s") 失败', [devPath]);
+    end
+    else
+      Result := GLastLoadStage + ' 失败';
   end;
 end;
 
 function PawnIoLoadFailureDetail: string;
+var
+  hint, win32: string;
 begin
+  if (GLastLoadStage = '') and (GLastLoadError = 0) then
+    Exit('PawnIO 不可用');
+
+  hint := PawnIoLoadErrorHint(GLastLoadError);
+  win32 := PawnIoFormatWin32Error(GLastLoadError);
+
   if GLastLoadStage <> '' then
-    Result := Format('PawnIO 不可用（%s）：%s（错误 %d）',
-      [GLastLoadStage, PawnIoLoadErrorHint(GLastLoadError), GLastLoadError])
-  else if GLastLoadError <> 0 then
-    Result := Format('PawnIO 不可用：%s（错误 %d）',
-      [PawnIoLoadErrorHint(GLastLoadError), GLastLoadError])
+    Result := Format('PawnIO 不可用（%s）：%s；%s',
+      [GLastLoadStage, hint, win32])
   else
-    Result := 'PawnIO 不可用';
+    Result := Format('PawnIO 不可用：%s；%s', [hint, win32]);
 end;
 
 function PawnIoBackend: TPawnIoBackend;
@@ -235,8 +297,10 @@ const
 var
   i: Integer;
   h: THandle;
+  err: DWORD;
 begin
   Result := INVALID_HANDLE_VALUE;
+  GLastDevicePath := '';
   for i := Low(cPaths) to High(cPaths) do
   begin
     h := CreateFile(
@@ -249,9 +313,13 @@ begin
       0);
     if h <> INVALID_HANDLE_VALUE then
     begin
+      GLastDevicePath := string(cPaths[i]);
       Result := h;
       Exit;
     end;
+    err := GetLastError;
+    GLastDevicePath := string(cPaths[i]);
+    GLastLoadError := err;
   end;
 end;
 
@@ -508,7 +576,7 @@ begin
     Exit(False);
   Result := PawnIoTryOpenDevice <> INVALID_HANDLE_VALUE;
   if not Result then
-    PawnIoSetLoadFailure('打开设备', 0);
+    PawnIoSetLoadFailure('打开设备', GLastLoadError);
 end;
 
 function PawnIoEnsureLoaded: Boolean;
@@ -528,7 +596,7 @@ begin
   GDeviceHandle := PawnIoTryOpenDevice;
   if GDeviceHandle = INVALID_HANDLE_VALUE then
   begin
-    PawnIoSetLoadFailure('打开设备', 0);
+    PawnIoSetLoadFailure('打开设备', GLastLoadError);
     GInitFailed := True;
     Exit(False);
   end;
@@ -545,6 +613,7 @@ begin
 
   GLastLoadError := 0;
   GLastLoadStage := '';
+  GLastDevicePath := '';
   GInitialized := True;
   Result := True;
 end;
@@ -729,6 +798,7 @@ begin
   GLastLoadError := 0;
   GLastLoadStage := '';
   GLastModuleName := '';
+  GLastDevicePath := '';
 end;
 
 initialization

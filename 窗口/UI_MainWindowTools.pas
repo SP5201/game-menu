@@ -29,6 +29,7 @@ const
   ID_SETTINGS_ABOUT = 402;
   ID_SETTINGS_DONATE = 403;
   ID_SETTINGS_SHORTCUT = 404;
+  ID_SETTINGS_FEEDBACK = 405;
 
 function MainWindowTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer; stdcall;
 function MainWindowTools_OnMenuSelect(hEle: HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
@@ -41,7 +42,7 @@ implementation
 
 uses
    SysUtils, ShellAPI, UI_PopupMenu, ShellHelper, UI_QrCodeDialog,
-   UI_SettingsDialog;
+   UI_SettingsDialog, UI_FeedbackDialog;
 
 function MainWindowTools_OnButtonClick(hEle: HELE; pbHandled: PBOOL): Integer;
 var
@@ -141,6 +142,7 @@ begin
     Menu.AddItemIcon(ID_SETTINGS_CONFIG, '设置', 0, '', 0);
     Menu.AddItemIcon(ID_SETTINGS_DONATE, '赞助作者', 0, '', 0);
     Menu.AddItemIcon(ID_SETTINGS_SHORTCUT, '快捷键', 0, '', 0);
+    Menu.AddItemIcon(ID_SETTINGS_FEEDBACK, '反馈', 0, '', 0);
     Menu.AddItemIcon(ID_SETTINGS_ABOUT, '关于', 0, '', 0);
     XEle_GetRect(hEle, rc);
     pt.X := (rc.Left + rc.Right) div 2;
@@ -167,6 +169,8 @@ begin
       ShellExecuteDefaultVerb(hParentWnd, 'https://github.com/sponsors', '', '', SW_SHOWNORMAL);
     ID_SETTINGS_SHORTCUT:
       MessageBoxW(hParentWnd, '快捷键功能待实现', '快捷键', MB_OK or MB_ICONINFORMATION);
+    ID_SETTINGS_FEEDBACK:
+      TFeedbackDialogUI.ShowDialog(hParentWnd);
   end;
 end;
 

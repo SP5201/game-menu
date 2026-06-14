@@ -42,8 +42,8 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<DCC_DependencyCheckOutputName>QMovie.exe</DCC_DependencyCheckOutputName>
-			<SanitizedProjectName>QMovie</SanitizedProjectName>
+			<DCC_DependencyCheckOutputName>QDesktop.exe</DCC_DependencyCheckOutputName>
+			<SanitizedProjectName>QDesktop</SanitizedProjectName>
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=13.1.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
 			<Manifest_File>QDesktop.manifest</Manifest_File>
 			<VerInfo_Locale>2052</VerInfo_Locale>
@@ -103,6 +103,7 @@
 			<None Include="功能\硬件\GPU\GpuInfo.pas"/>
 			<None Include="功能\HardwareMonitor.pas"/>
 			<None Include="功能\网络\NetHttpWorker.pas"/>
+			<None Include="功能\网络\FeedbackMailer.pas"/>
 			<None Include="功能\天气IP\IpCityCoords.pas"/>
 			<None Include="功能\天气IP\WeatherParser.pas"/>
 			<None Include="功能\天气IP\ExternalIpFetcher.pas"/>
@@ -164,6 +165,7 @@
 			<None Include="窗口\UI_HintPopup.pas"/>
 			<None Include="窗口\UI_CategoryDialog.pas"/>
 			<None Include="窗口\UI_QrCodeDialog.pas"/>
+			<None Include="窗口\UI_FeedbackDialog.pas"/>
 			<None Include="窗口\UI_QrCodeRender.pas"/>
 			<None Include="窗口\UI_SettingsDialog.pas"/>
 			<None Include="窗口\UI_ColorPickerDialog.pas"/>
@@ -178,6 +180,7 @@
 			<None Include="Debug\Resource\Layout\ComboBox_Item.xml"/>
 			<None Include="Debug\Resource\Layout\CategoryDialog.xml"/>
 			<None Include="Debug\Resource\Layout\QrCodeDialog.xml"/>
+			<None Include="Debug\Resource\Layout\FeedbackDialog.xml"/>
 			<None Include="Debug\Resource\Layout\IconListView_Item.xml"/>
 			<None Include="Debug\Resource\Layout\SettingsDialog.xml"/>
 			<None Include="Debug\Resource\Layout\ColorPickerDialog.xml"/>
@@ -256,20 +259,12 @@
 					<Platform value="Win32">True</Platform>
 				</Platforms>
 				<Deployment>
-					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QMovie.exe">
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QDesktop.exe">
 						<Platform Name="Win32"/>
 					</DeployFile>
-					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QYvideo.rsm">
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QDesktop.rsm">
 						<Platform Name="Win32">
-							<RemoteName>QYvideo.rsm</RemoteName>
-						</Platform>
-					</DeployFile>
-					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\QYvideo.exe">
-						<Platform Name="Win32"/>
-					</DeployFile>
-					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\QMovie.rsm">
-						<Platform Name="Win32">
-							<RemoteName>QMovie.rsm</RemoteName>
+							<RemoteName>QDesktop.rsm</RemoteName>
 						</Platform>
 					</DeployFile>
 					<DeployClass Name="DependencyPackage" Required="true">

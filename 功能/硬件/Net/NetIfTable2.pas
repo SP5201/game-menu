@@ -2,7 +2,7 @@ unit NetIfTable2;
 
 {
   GetIfTable2 / GetIfEntry2 / GetBestInterface 共用类型与网卡过滤。
-  网速采样用 NetIfCollectDefaultRouteBytes（默认路由单网卡）；汇总接口保留供其它场景。
+  网速采样用 NetIfCollectDefaultRouteBytes（默认路由单网卡）。
 }
 
 interface
@@ -100,7 +100,6 @@ function NetIfReadEntry2Row(const AIfIndex: DWORD; out AIfRow: MIB_IF_ROW2): Boo
 function NetIfGetDefaultRouteIfIndex: DWORD;
 function NetIfPickFallbackActiveIfIndex: DWORD;
 function NetIfCollectDefaultRouteBytes(out AIfIndex: DWORD; out AInOctets, AOutOctets: UInt64): Boolean;
-function NetIfCollectPhysActiveBytes(out AInOctets, AOutOctets: UInt64): Boolean;
 function NetIfHasPhysActiveAdapter: Boolean;
 
 implementation
@@ -268,39 +267,6 @@ begin
     Exit(False);
   AInOctets := ifRow.InOctets;
   AOutOctets := ifRow.OutOctets;
-  Result := True;
-end;
-
-function NetIfCollectPhysActiveBytes(out AInOctets, AOutOctets: UInt64): Boolean;
-var
-  buf: PMIB_IF_TABLE2;
-  err: DWORD;
-  i: DWORD;
-  row: PMIB_IF_ROW2;
-  p: PByte;
-begin
-  AInOctets := 0;
-  AOutOctets := 0;
-  Result := False;
-  buf := nil;
-  err := GetIfTable2(buf);
-  if err <> NO_ERROR then
-    Exit;
-  try
-    p := PByte(@buf.Table[0]);
-    for i := 0 to buf.NumEntries - 1 do
-    begin
-      row := PMIB_IF_ROW2(p);
-      if NetIfShouldSumTrafficRow(row^) then
-      begin
-        Inc(AInOctets, row.InOctets);
-        Inc(AOutOctets, row.OutOctets);
-      end;
-      Inc(p, SizeOf(MIB_IF_ROW2));
-    end;
-  finally
-    FreeMibTable(buf);
-  end;
   Result := True;
 end;
 

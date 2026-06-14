@@ -57,12 +57,13 @@ function CpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  CpuInfoNative, CpuInfoPawnIo, CpuInfoFan, HardwarePdh;
+  AppPaths, CpuInfoNative, CpuInfoPawnIo, CpuInfoFan, HardwarePdh;
 
 const
   cCpuSensorRefreshMs = 3000;
   cCpuSensorRetryMs = 30000;
   cCpuInstrPerLine = 5;
+  cCpuTooltipSvgPrefix = '#svg:';
 
 var
   GStaticLoaded: Boolean;
@@ -277,6 +278,46 @@ begin
   end;
 end;
 
+function CpuVendorSvgRelPath(const AVendor: string): string;
+begin
+  Result := '';
+  if SameText(AVendor, 'Intel') or SameText(AVendor, 'GenuineIntel') then
+    Result := 'Resource\CpuVendor\intel.svg'
+  else if SameText(AVendor, 'AMD') or SameText(AVendor, 'AuthenticAMD') then
+    Result := 'Resource\CpuVendor\amd.svg'
+  else if SameText(AVendor, 'Apple') then
+    Result := 'Resource\CpuVendor\apple.svg'
+  else if SameText(AVendor, 'Qualcomm') then
+    Result := 'Resource\CpuVendor\qualcomm.svg';
+end;
+
+function CpuVendorTooltipSize(const AVendor: string): string;
+begin
+  if SameText(AVendor, 'Intel') or SameText(AVendor, 'GenuineIntel') then
+    Result := '@96x38'
+  else if SameText(AVendor, 'AMD') or SameText(AVendor, 'AuthenticAMD') then
+    Result := '@72x38'
+  else if SameText(AVendor, 'Apple') then
+    Result := '@64x38'
+  else if SameText(AVendor, 'Qualcomm') then
+    Result := '@88x38'
+  else
+    Result := '';
+end;
+
+function CpuVendorTooltipValue(const AVendor: string): string;
+var
+  svgPath: string;
+begin
+  svgPath := CpuVendorSvgRelPath(AVendor);
+  if (svgPath <> '') and FileExists(AppExeDirectory + svgPath) then
+    Result := cCpuTooltipSvgPrefix + svgPath + CpuVendorTooltipSize(AVendor)
+  else if AVendor <> '' then
+    Result := AVendor
+  else
+    Result := cCpuDash;
+end;
+
 function CpuFormatInstructionsLines(const AInstructions: string): string;
 var
   tokens: TStringList;
@@ -342,9 +383,7 @@ begin
   info.CurrentSpeedMhz := CpuNativeQueryCurrentSpeedMhz;
   sensors := CpuQuerySensorInfo;
 
-  vendorLine := info.Vendor;
-  if vendorLine = '' then
-    vendorLine := cCpuDash;
+  vendorLine := CpuVendorTooltipValue(info.Vendor);
   brandLine := info.Brand;
   if brandLine = '' then
     brandLine := cCpuDash;

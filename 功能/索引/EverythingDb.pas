@@ -8,7 +8,6 @@ uses
 const
   cEverythingDbMagic = $45564944; // 'EVID'
   cEverythingDbVersion = 5;
-  cEverythingDbVersionLegacy = 3;
 
 function EverythingDbFilePath: string;
 function EverythingDbSave(const ADB: TEverythingDB;
@@ -146,7 +145,7 @@ begin
     fs.ReadBuffer(hdr, SizeOf(hdr));
     if hdr.Magic <> cEverythingDbMagic then
       Exit;
-    if (hdr.Version < cEverythingDbVersionLegacy) or (hdr.Version > cEverythingDbVersion) then
+    if hdr.Version <> cEverythingDbVersion then
       Exit;
 
     folderBytes := Integer(hdr.FolderCount) * SizeOf(TFolderEntry);
@@ -154,24 +153,11 @@ begin
     poolBytes := Integer(hdr.NamePoolUsed);
     extBytes := hdr.ExtCount * SizeOf(TExtEntry);
     frnBytes := Integer(hdr.FileCount) * SizeOf(UInt64);
-    checkpointBytes := 0;
-    if hdr.Version >= cEverythingDbVersion then
-      checkpointBytes := SizeOf(TUsnCheckpointArray);
-    minSize := Int64(SizeOf(hdr) + folderBytes + fileBytes + poolBytes + extBytes);
+    checkpointBytes := SizeOf(TUsnCheckpointArray);
+    minSize := Int64(SizeOf(hdr) + folderBytes + fileBytes + poolBytes + extBytes +
+      frnBytes + checkpointBytes);
     if fs.Size < minSize then
       Exit;
-    if hdr.Version >= 4 then
-    begin
-      minSize := minSize + frnBytes;
-      if fs.Size < minSize then
-        Exit;
-    end;
-    if checkpointBytes > 0 then
-    begin
-      minSize := minSize + checkpointBytes;
-      if fs.Size < minSize then
-        Exit;
-    end;
 
     ADB.FolderCount := Integer(hdr.FolderCount);
     ADB.FileCount := Integer(hdr.FileCount);
@@ -199,13 +185,12 @@ begin
     end;
     if extBytes > 0 then
       fs.ReadBuffer(ADB.ExtTable[0], extBytes);
-    if (hdr.Version >= 4) and (frnBytes > 0) then
+    if frnBytes > 0 then
     begin
       SetLength(AFileFrnKeys, ADB.FileCount);
       fs.ReadBuffer(AFileFrnKeys[0], frnBytes);
     end;
-    if checkpointBytes > 0 then
-      fs.ReadBuffer(AUsnCheckpoints[0], checkpointBytes);
+    fs.ReadBuffer(AUsnCheckpoints[0], checkpointBytes);
     Result := True;
   finally
     fs.Free;

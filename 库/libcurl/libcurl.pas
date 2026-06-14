@@ -21,6 +21,8 @@ type
     AUserData: Pointer): NativeUInt; cdecl;
   TCurlXferInfoCallback = function(AClientp: Pointer; ADlTotal, ADlNow, AUlTotal,
     AUlNow: Int64): Integer; cdecl;
+  TCurlReadCallback = function(ptr: PAnsiChar; size, nmemb: NativeUInt;
+    userdata: Pointer): NativeUInt; cdecl;
 
 const
   CURL_GLOBAL_SSL = 1;
@@ -38,6 +40,18 @@ const
   CURLOPT_NOSIGNAL = 99;
   CURLOPT_NOPROGRESS = 43;
   CURLOPT_HTTPGET = 80;
+  CURLOPT_POST = 47;
+  CURLOPT_POSTFIELDS = 10015;
+  CURLOPT_HTTPHEADER = 10023;
+  CURLOPT_UPLOAD = 46;
+  CURLOPT_READDATA = 10009;
+  CURLOPT_READFUNCTION = 20012;
+  CURLOPT_USERNAME = 10173;
+  CURLOPT_PASSWORD = 10174;
+  CURLOPT_MAIL_FROM = 10186;
+  CURLOPT_MAIL_RCPT = 10187;
+  CURLOPT_USE_SSL = 119;
+  CURLOPT_LOGIN_OPTIONS = 10224;
   CURLOPT_SSL_VERIFYPEER = 64;
   CURLOPT_SSL_VERIFYHOST = 81;
   CURLOPT_XFERINFODATA = 10057;

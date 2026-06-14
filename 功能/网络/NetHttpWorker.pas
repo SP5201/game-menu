@@ -30,6 +30,8 @@ type
     Url: string;
     Kind: TNetHttpRequestKind;
     SaveToFile: string;
+    PostBody: AnsiString;
+    PostContentType: string;
     Options: TNetHttpGetOptions;
     UserData: NativeInt;
   end;
@@ -301,6 +303,7 @@ type
     FUserAgentAnsi: AnsiString;
     FProxyAnsi: AnsiString;
     FResolveSlist: PCurlSlist;
+    FHeaderSlist: PCurlSlist;
     function ApplyOptions: TCURLcode;
     function OnWrite(AData: PAnsiChar; ASize: NativeUInt): NativeUInt;
     procedure ReadResponseInfo;
@@ -345,6 +348,7 @@ begin
   FOpts := NetHttpMergeOptions(ARequest.Options);
   FCurl := nil;
   FResolveSlist := nil;
+  FHeaderSlist := nil;
   FRawBody := '';
   FContentType := '';
   FillChar(FResponse, SizeOf(FResponse), 0);
@@ -358,6 +362,11 @@ end;
 
 procedure TNetHttpCurlCtx.CloseResources;
 begin
+  if FHeaderSlist <> nil then
+  begin
+    curl_slist_free_all(FHeaderSlist);
+    FHeaderSlist := nil;
+  end;
   if FResolveSlist <> nil then
   begin
     curl_slist_free_all(FResolveSlist);
@@ -387,6 +396,8 @@ end;
 function TNetHttpCurlCtx.ApplyOptions: TCURLcode;
 var
   totalMs: LongInt;
+  contentType: AnsiString;
+  headerLine: AnsiString;
 begin
   totalMs := FOpts.ResolveMs + FOpts.ConnectMs + FOpts.SendMs + FOpts.ReceiveMs +
     cDeadlineSlackMs;
@@ -394,7 +405,27 @@ begin
   if Result = CURLE_OK then
     Result := curl_easy_setopt_str(FCurl, CURLOPT_URL, PAnsiChar(FUrlAnsi));
   if Result = CURLE_OK then
-    Result := curl_easy_setopt_long(FCurl, CURLOPT_HTTPGET, 1);
+  begin
+    if FRequest.PostBody <> '' then
+    begin
+      Result := curl_easy_setopt_long(FCurl, CURLOPT_POST, 1);
+      if Result = CURLE_OK then
+        Result := curl_easy_setopt_str(FCurl, CURLOPT_POSTFIELDS, PAnsiChar(FRequest.PostBody));
+      if Result = CURLE_OK then
+      begin
+        contentType := AnsiString(UTF8Encode(FRequest.PostContentType));
+        if contentType = '' then
+          contentType := 'application/json';
+        headerLine := 'Content-Type: ' + contentType;
+        FHeaderSlist := curl_slist_append(FHeaderSlist, PAnsiChar(headerLine));
+        FHeaderSlist := curl_slist_append(FHeaderSlist, 'Accept: application/json');
+        if FHeaderSlist <> nil then
+          Result := curl_easy_setopt_ptr(FCurl, CURLOPT_HTTPHEADER, FHeaderSlist);
+      end;
+    end
+    else
+      Result := curl_easy_setopt_long(FCurl, CURLOPT_HTTPGET, 1);
+  end;
   if Result = CURLE_OK then
     Result := curl_easy_setopt_str(FCurl, CURLOPT_USERAGENT, PAnsiChar(FUserAgentAnsi));
   if Result = CURLE_OK then
