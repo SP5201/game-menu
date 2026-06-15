@@ -130,7 +130,8 @@ begin
   if XC_GetObjectType(ALayoutOut) <> XC_ELE_LAYOUT then
     Exit;
   XEle_EnableMouseThrough(ALayoutOut, False);
-  TInfoListPopupUI.BindHover(ALayoutOut, AHint, True, 12);
+  { PopupAbove：悬停时在目标上方弹出；OffsetY=-2：相对锚点再上移 2px }
+  TInfoListPopupUI.BindHover(ALayoutOut, AHint, True, -2);
 end;
 
 procedure StatNetBridge(const sDown, sUp: string);

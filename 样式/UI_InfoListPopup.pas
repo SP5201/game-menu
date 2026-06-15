@@ -96,8 +96,8 @@ uses
   AppPaths;
 
 const
-  CInfoPadX = 12;
-  CInfoPadY = 8;
+  CInfoPadX = 2;
+  CInfoPadY = 0;
   CInfoItemHeight = 22;
   CInfoRowSpace = 0;
   CInfoMinWidth = 160;
@@ -105,7 +105,7 @@ const
   CInfoTextMeasureWrapWidth = 8192;
   CInfoTextMeasureAlign = textAlignFlag_left or textAlignFlag_vcenter or textFormatFlag_NoWrap;
   CInfoTextDrawAlignRight = textAlignFlag_right or textAlignFlag_vcenter or textFormatFlag_NoWrap;
-  CInfoShadowExt = 8;
+  CInfoShadowExt = 4;
   CInfoTargetGap = 4;
   CInfoWndEdgeMargin = 4;
   CInfoLabelColMin = 72;
@@ -566,7 +566,7 @@ procedure TInfoListPopupUI.Init;
 begin
   inherited;
   SetTransparentType(window_transparent_shaped);
-  SetTransparentAlpha(240);
+  SetTransparentAlpha(255);
   SetShadowInfo(0, 0, 0, False, 0);
   RegEvent(WM_PAINT, @TInfoListPopupUI.OnWndPaint);
   RegEvent(WM_TIMER, @TInfoListPopupUI.OnWndTimer);

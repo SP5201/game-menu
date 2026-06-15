@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+        <ProjectVersion>16.1</ProjectVersion>
+        <MainSource>SensorDiag.dpr</MainSource>
+        <FrameworkType>None</FrameworkType>
+        <AppType>Console</AppType>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <DCC_DCCCompiler>DCC64</DCC_DCCCompiler>
+        <DCC_DcuOutput>..\Dcu\Win64</DCC_DcuOutput>
+        <DCC_ExeOutput>..\Debug\Win64</DCC_ExeOutput>
+        <DCC_UnitSearchPath>..\库\SQLite3;..\库\libcurl;..\库\XCGUI;..\库\ZXingQRCode;..\功能\Shell;..\功能\索引;..\功能;..\功能\硬件;..\功能\硬件\CPU;..\功能\硬件\Mem;..\功能\硬件\GPU;..\功能\硬件\Net;..\功能\天气IP;..\功能\网络;..\功能\日志;..\功能\数据库;..\功能\配置;..\样式;..\窗口;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_CodePage>65001</DCC_CodePage>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="SensorDiag.dpr"/>
+    </ItemGroup>
+    <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+</Project>

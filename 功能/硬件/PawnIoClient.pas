@@ -156,28 +156,32 @@ function PawnIoLoadErrorHint(AError: DWORD): string;
 var
   devPath: string;
 begin
-  if (GLastLoadStage = '恢复驱动') or (AError = ERROR_SERVICE_MARKED_FOR_DELETE) or
-    PawnIoDriverNeedsReboot then
+  if (GLastLoadStage = '恢复驱动') or (GLastLoadStage = '等待服务删除') or
+    (AError = ERROR_SERVICE_MARKED_FOR_DELETE) or PawnIoDriverNeedsReboot then
     Exit(
-      '上次退出时 PawnIO 驱动未完全卸载，服务已标记删除但内核仍在占用（僵死状态），' +
-      'Windows 只能重启后清除；请重启电脑一次，再以管理员运行 QDesktop（修复后不会再反复出现）');
+      'PawnIO 服务处于「待删除」僵死状态（多为旧版退出时强删驱动所致）。' +
+      '请以管理员打开 CMD 执行 sc delete PawnIO 后重启一次；重启后由 QDesktop 自动重装，之后不会再僵死');
 
   case AError of
     ERROR_FILE_NOT_FOUND:
       begin
         if GLastLoadStage = '检查驱动' then
           Result := Format('Bin\PawnIO.sys 未找到（查找目录：%s）', [AppBinDirectory])
-        else if GLastLoadStage = '打开设备' then
+        else if (GLastLoadStage = '打开设备') or (GLastLoadStage = '安装驱动') then
         begin
           if GLastDevicePath <> '' then
             devPath := GLastDevicePath
           else
             devPath := '\\.\PawnIO';
-          if PawnIoDriverDeviceZombieSuspected then
+          if PawnIoDriverNeedsReboot or PawnIoDriverServiceDeletePending then
             Result :=
-              '服务 PawnIO 显示 RUNNING 但设备节点不存在（已尝试重启服务未恢复）；' +
-              '可能原因：1) 内核隔离（HVCI）阻止了驱动加载；2) 驱动签名被拒绝；3) PawnIO.sys 文件损坏。' +
-              '请尝试：关闭 Windows 安全中心 > 设备安全性 > 内核隔离，或以管理员执行 sc stop PawnIO && sc delete PawnIO 后重启'
+              'PawnIO 服务处于僵死/待删除状态（旧版 CreateService 直挂 .sys 所致）。' +
+              '请以管理员执行 sc delete PawnIO 后重启一次，重启后由 QDesktop 经 INF 自动安装'
+          else if PawnIoDriverDeviceZombieSuspected then
+            Result :=
+              'PawnIO 服务显示 RUNNING 但设备节点不存在；' +
+              '可能原因：1) 内核隔离（HVCI）拦截；2) 驱动签名被拒绝；3) 僵死服务未清除。' +
+              '请关闭内核隔离，或以管理员执行 sc delete PawnIO 后重启一次'
           else
             Result := Format(
               'CreateFile("%s") 失败：内核设备对象不存在，PawnIO 驱动未加载或未成功创建设备节点；' +
@@ -193,12 +197,12 @@ begin
       else
         Result := GLastModuleName + ' 与当前 PawnIO 驱动不兼容';
     ERROR_ACCESS_DENIED:
-      if GLastLoadStage = '打开设备' then
+      if (GLastLoadStage = '打开设备') or (GLastLoadStage = '安装驱动') then
       begin
         if GLastDevicePath <> '' then
           devPath := GLastDevicePath
         else
-          devPath := '\\.\PawnIO';
+          devPath := cPawnIoDevicePath;
         Result := Format('CreateFile("%s") 失败：当前进程无权打开 PawnIO 设备', [devPath]);
       end
       else
