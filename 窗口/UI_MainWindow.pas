@@ -42,6 +42,10 @@ type
       CActiveListGroupIndex: Integer;
       { 程序同步选中「搜索」项时不重复加载列表 }
       CSuppressCategorySelectReload: Boolean;
+      { 最近一次成功搜索的关键字与命中，供分组→搜索即时恢复 }
+      CLastSearchNeedle: string;
+      CLastSearchHitIndices: TEverythingHitArray;
+      CLastSearchCacheValid: Boolean;
     { 从数据库加载分类到左侧列表框 }
     class procedure LoadListBoxFromStore;
     { 按指定分组索引加载右侧列表项（含排序与图标） }
@@ -59,6 +63,9 @@ type
     class procedure ApplySearchSortDone(const AData: PSearchSortDoneMsg);
     class procedure ScheduleSearchHitSort(AGeneration: Cardinal);
     class procedure StopSearchHitSortThread;
+    class procedure SaveSearchResultCache(const ANeedle: string; const AHits: TEverythingHitArray);
+    class procedure ApplySearchViewState(const AHits: TEverythingHitArray;
+      out ABindMs, APaintMs, AFilterBtnMs, AFilterCountMs: Cardinal);
     class procedure ApplyListIconLoadResult(AData: PShellIconLoadResult);
     class procedure HandleDiskSearchError(const AData: PDiskSearchErrorMsg);
     class procedure ShowDiskSearchError(const AError: TDiskSearchError);
@@ -873,9 +880,7 @@ class procedure TMainFormUI.ApplyDiskSearchResults(const AData: PDiskSearchResul
 var
   hitCount: Integer;
   editNeedle: string;
-  assignStart, filterBtnStart, bindStart, paintStart: Cardinal;
-  assignMs, filterBtnMs, bindMs, paintMs, filterCountMs, uiTotalMs: Cardinal;
-  rowMap: array of Integer;
+  bindMs, paintMs, filterBtnMs, filterCountMs, uiTotalMs: Cardinal;
   logDetail: string;
   grp: Integer;
 begin
@@ -904,31 +909,10 @@ begin
     Exit;
   end;
 
-  assignStart := GetTickCount;
   hitCount := Length(AData.HitIndices);
-  CSearchHitIndices := AData.HitIndices;
-  SetLength(CListFilterSourceItems, 0);
-  CActiveListGroupIndex := -1;
-  CListFilterIndex := 0;
-  assignMs := GetTickCount - assignStart;
-
-  filterBtnStart := GetTickCount;
-  UpdateListFilterButtonStyles;
-  filterBtnMs := GetTickCount - filterBtnStart;
-
-  bindStart := GetTickCount;
-  SetLength(rowMap, 0);
-  CListViewUI.BindSearchHits(CSearchHitIndices, rowMap, True);
-  bindMs := GetTickCount - bindStart;
-
-  paintStart := GetTickCount;
-  CListViewUI.RefreshVisibleItems;
-  paintMs := GetTickCount - paintStart;
-
-  filterBtnStart := GetTickCount;
-  RefreshListFilterButtonCounts;
-  filterCountMs := GetTickCount - filterBtnStart;
-  uiTotalMs := assignMs + filterBtnMs + bindMs + paintMs + filterCountMs;
+  SaveSearchResultCache(AData.Needle, AData.HitIndices);
+  ApplySearchViewState(AData.HitIndices, bindMs, paintMs, filterBtnMs, filterCountMs);
+  uiTotalMs := bindMs + paintMs + filterBtnMs + filterCountMs;
 
   if Cardinal(hitCount) < AData.TotalCount then
     logDetail := Format('搜索关键字：%s%s匹配项数：%d个%s已载入列表：%d个',
@@ -945,9 +929,8 @@ begin
        SafeLogFormatElapsed(AData.SearchTiming.SanitizeMs), sLineBreak,
        IfThen(AData.SearchTiming.SortMs > 0, SafeLogFormatElapsed(AData.SearchTiming.SortMs),
          '0ms（后台）')]) + sLineBreak +
-    Format('搜索总耗时：%s%s准备数据：%s%s绑定列表：%s%s首屏绘制：%s%s筛选按钮：%s%s更新计数：%s%sUI总耗时：%s',
+    Format('搜索总耗时：%s%s绑定列表：%s%s首屏绘制：%s%s筛选按钮：%s%s更新计数：%s%sUI总耗时：%s',
       [SafeLogFormatElapsed(AData.QueryElapsedMs), sLineBreak,
-       SafeLogFormatElapsed(assignMs), sLineBreak,
        SafeLogFormatElapsed(bindMs), sLineBreak,
        SafeLogFormatElapsed(paintMs), sLineBreak,
        SafeLogFormatElapsed(filterBtnMs), sLineBreak,
@@ -970,6 +953,38 @@ begin
   if oldThread = nil then
     Exit;
   oldThread.Terminate;
+end;
+
+class procedure TMainFormUI.SaveSearchResultCache(const ANeedle: string; const AHits: TEverythingHitArray);
+begin
+  CLastSearchNeedle := ANeedle;
+  CLastSearchHitIndices := AHits;
+  CLastSearchCacheValid := True;
+end;
+
+class procedure TMainFormUI.ApplySearchViewState(const AHits: TEverythingHitArray;
+  out ABindMs, APaintMs, AFilterBtnMs, AFilterCountMs: Cardinal);
+var
+  bindStart, paintStart, filterBtnStart: Cardinal;
+  rowMap: array of Integer;
+begin
+  CSearchHitIndices := AHits;
+  SetLength(CListFilterSourceItems, 0);
+  CActiveListGroupIndex := -1;
+  CListFilterIndex := 0;
+  filterBtnStart := GetTickCount;
+  UpdateListFilterButtonStyles;
+  AFilterBtnMs := GetTickCount - filterBtnStart;
+  bindStart := GetTickCount;
+  SetLength(rowMap, 0);
+  CListViewUI.BindSearchHits(CSearchHitIndices, rowMap, True);
+  ABindMs := GetTickCount - bindStart;
+  paintStart := GetTickCount;
+  CListViewUI.RefreshVisibleItems;
+  APaintMs := GetTickCount - paintStart;
+  filterBtnStart := GetTickCount;
+  RefreshListFilterButtonCounts;
+  AFilterCountMs := GetTickCount - filterBtnStart;
 end;
 
 class procedure TMainFormUI.ScheduleSearchHitSort(AGeneration: Cardinal);
@@ -996,6 +1011,8 @@ begin
       Exit;
     CSearchHitIndices := AData.HitIndices;
     SetLength(AData.HitIndices, 0);
+    if CLastSearchCacheValid and SameText(CLastSearchNeedle, CSearchBox.GetTrimmedText) then
+      CLastSearchHitIndices := CSearchHitIndices;
     ApplyListFilterToView;
     SafeLogRecord('搜索', '搜索', '搜索后台排序', True,
       Format('排序耗时：%s', [SafeLogFormatElapsed(sortMs)]));
@@ -1073,13 +1090,50 @@ end;
 class procedure TMainFormUI.ReloadListForCategoryIndex(const iItem: Integer);
 var
   groupListIdx: Integer;
+  needle: string;
+  bindMs, paintMs, filterBtnMs, filterCountMs, uiMs, requestMs: Cardinal;
+  emptyHits: TEverythingHitArray;
+  detail: string;
 begin
   if iItem < 0 then
     Exit;
   if iItem = cCategorySearchListIndex then
   begin
-    CActiveListGroupIndex := -1;
+    needle := CSearchBox.GetTrimmedText;
+    if CLastSearchCacheValid and SameText(needle, CLastSearchNeedle) then
+    begin
+      ApplySearchViewState(CLastSearchHitIndices, bindMs, paintMs, filterBtnMs, filterCountMs);
+      uiMs := bindMs + paintMs + filterBtnMs + filterCountMs;
+      detail := Format('来源=缓存%s关键字=%s%s命中数=%d%s绑定列表：%s%s首屏绘制：%s%s筛选按钮：%s%s更新计数：%s%sUI总耗时：%s',
+        [sLineBreak, needle, sLineBreak, Length(CLastSearchHitIndices), sLineBreak,
+         SafeLogFormatElapsed(bindMs), sLineBreak, SafeLogFormatElapsed(paintMs), sLineBreak,
+         SafeLogFormatElapsed(filterBtnMs), sLineBreak, SafeLogFormatElapsed(filterCountMs), sLineBreak,
+         SafeLogFormatElapsed(uiMs)]);
+      SearchUiDebug('分类切搜索', detail);
+      Exit;
+    end;
+    if needle = '' then
+    begin
+      SetLength(emptyHits, 0);
+      ApplySearchViewState(emptyHits, bindMs, paintMs, filterBtnMs, filterCountMs);
+      uiMs := bindMs + paintMs + filterBtnMs + filterCountMs;
+      detail := Format('来源=空关键字%s绑定列表：%s%s首屏绘制：%s%s筛选按钮：%s%s更新计数：%s%sUI总耗时：%s',
+        [sLineBreak, SafeLogFormatElapsed(bindMs), sLineBreak, SafeLogFormatElapsed(paintMs), sLineBreak,
+         SafeLogFormatElapsed(filterBtnMs), sLineBreak, SafeLogFormatElapsed(filterCountMs), sLineBreak,
+         SafeLogFormatElapsed(uiMs)]);
+      SearchUiDebug('分类切搜索', detail);
+      Exit;
+    end;
+    SetLength(emptyHits, 0);
+    ApplySearchViewState(emptyHits, bindMs, paintMs, filterBtnMs, filterCountMs);
+    uiMs := bindMs + paintMs + filterBtnMs + filterCountMs;
+    requestMs := GetTickCount;
     PerformDiskSearchFromBox(False);
+    requestMs := GetTickCount - requestMs;
+    detail := Format('来源=异步搜索%s关键字=%s%s占位UI：%s%s发起搜索：%s',
+      [sLineBreak, needle, sLineBreak, SafeLogFormatElapsed(uiMs), sLineBreak,
+       SafeLogFormatElapsed(requestMs)]);
+    SearchUiDebug('分类切搜索', detail);
     Exit;
   end;
   groupListIdx := iItem - 1;
@@ -1102,12 +1156,26 @@ begin
 end;
 
 class function TMainFormUI.OnCategorySelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
+var
+  totalStart, stopStart, reloadStart: Cardinal;
+  stopMs, reloadMs, totalMs: Cardinal;
 begin
   Result := 0;
   if CSuppressCategorySelectReload then
     Exit;
-  DiskSearchStopAndWait;
+  totalStart := GetTickCount;
+  stopStart := GetTickCount;
+  DiskSearchStop;
+  StopSearchHitSortThread;
+  stopMs := GetTickCount - stopStart;
+  reloadStart := GetTickCount;
   ReloadListForCategoryIndex(iItem);
+  reloadMs := GetTickCount - reloadStart;
+  totalMs := GetTickCount - totalStart;
+  if iItem = cCategorySearchListIndex then
+    SearchUiDebug('分类切换', Format('目标=搜索%s停止后台：%s%s重载列表：%s%s事件总耗时：%s',
+      [sLineBreak, SafeLogFormatElapsed(stopMs), sLineBreak, SafeLogFormatElapsed(reloadMs), sLineBreak,
+       SafeLogFormatElapsed(totalMs)]));
 end;
 
 class function TMainFormUI.OnCategoryMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHandled: PBOOL): Integer; stdcall;
@@ -1453,6 +1521,8 @@ begin
   if needle = '' then
     Exit;
   EverythingIndexPatchSearchHits(CSearchHitIndices, needle, AData^.Changes);
+  if CLastSearchCacheValid and SameText(needle, CLastSearchNeedle) then
+    CLastSearchHitIndices := CSearchHitIndices;
   ApplySearchHitsToViewPreserveScroll;
   RefreshListFilterButtonCounts;
 end;
@@ -1762,6 +1832,9 @@ begin
   CSearchGeneration := 0;
   CSearchLogGeneration := 0;
   CSearchSortThread := nil;
+  CLastSearchNeedle := '';
+  CLastSearchCacheValid := False;
+  SetLength(CLastSearchHitIndices, 0);
   CShapeSearchIndexStatus := XC_GetObjectByName('txt_main_search_index_status');
   CLastSearchIndexStatusText := '';
   CLastSearchIndexBuilding := not EverythingIndexIsBuilding;
