@@ -2,7 +2,7 @@ unit CpuInfo;
 
 {
   CPU 悬停提示：静态信息由 CpuInfoNative（CPUID + NT API）提供；
-  温度/功耗由 CpuInfoSensors（PawnIO MSR RAPL）按 TTL 缓存刷新。
+  温度/功耗由 CpuInfoSensors（PawnIO MSR RAPL）按 TTL 缓存刷新；PawnIO 无温度时回退 HardwarePdh（ACPI 热区）。
   当前频率由 Native 实时采样。
 }
 
@@ -58,11 +58,12 @@ function CpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  AppPaths, CpuInfoNative, CpuInfoSensors, CpuInfoFan;
+  AppPaths, CpuInfoNative, CpuInfoSensors, CpuInfoFan, HardwarePdh;
 
 const
   cCpuSensorRefreshMs = 3000;
   cCpuSensorRetryMs = 30000;
+  cCpuPowerRetryMs = 1000;
   cCpuInstrPerLine = 5;
   cCpuTooltipSvgPrefix = '#svg:';
 
@@ -92,23 +93,29 @@ begin
     Result := (High(DWORD) - ALastTick) + ANowTick + 1;
 end;
 
-procedure CpuRefreshSensorsIfStale;
+procedure CpuRefreshSensorsIfStale(AForce: Boolean = False);
 var
   nowTick: DWORD;
   elapsed, retryMs: Integer;
   fresh: TCpuSensorInfo;
   hasData: Boolean;
+  tempC: Double;
 begin
   nowTick := GetTickCount;
   EnterCriticalSection(GSensorsLock);
   try
     if GSensorsLoading then
       Exit;
-    if GSensorsValid then
+    if GSensorsValid and not AForce then
     begin
       elapsed := CpuSensorsTickElapsed(nowTick, GSensorsLastTick);
       if GSensorsHasData then
-        retryMs := cCpuSensorRefreshMs
+      begin
+        if GSensorsInfo.HasPower then
+          retryMs := cCpuSensorRefreshMs
+        else
+          retryMs := cCpuPowerRetryMs;
+      end
       else
         retryMs := cCpuSensorRetryMs;
       if elapsed < retryMs then
@@ -121,6 +128,15 @@ begin
 
   CpuInitSensorInfo(fresh);
   CpuSensorsQuery(fresh);
+  if not fresh.HasCoreTemp and not fresh.HasPackageTemp then
+  begin
+    tempC := HardwarePdhSampleCpuPackageTempC;
+    if tempC >= 0 then
+    begin
+      fresh.HasPackageTemp := True;
+      fresh.PackageTempC := tempC;
+    end;
+  end;
   if CpuFanQueryRpm(fresh.FanSpeedRpm) then
     fresh.HasFanSpeed := True;
   hasData := CpuSensorHasData(fresh);
@@ -186,18 +202,16 @@ begin
 end;
 
 procedure CpuPreloadSensors;
+const
+  cCpuRaplWarmupMs = 250;
+  cCpuSpeedPrimeGapMs = 700;
 begin
   CpuRefreshSensorsIfStale;
   CpuNativeQueryCurrentSpeedMhz;
-  { AMD/Intel RAPL 需两次能量计数差分；预热后首次 tooltip 即可显示功耗 }
-  Sleep(250);
-  EnterCriticalSection(GSensorsLock);
-  try
-    GSensorsValid := False;
-  finally
-    LeaveCriticalSection(GSensorsLock);
-  end;
-  CpuRefreshSensorsIfStale;
+  Sleep(cCpuRaplWarmupMs);
+  CpuRefreshSensorsIfStale(True);
+  Sleep(cCpuSpeedPrimeGapMs);
+  CpuNativeQueryCurrentSpeedMhz;
 end;
 
 function CpuQueryStaticInfo: TCpuStaticInfo;
@@ -385,7 +399,6 @@ var
   sensors: TCpuSensorInfo;
   vendorLine, brandLine, usageText, coreThreadText, steppingLine, virtLine: string;
   staticLoaded: Boolean;
-  speedMhz: DWORD;
 begin
   info := CpuPeekStaticInfo(staticLoaded);
   if not staticLoaded then
@@ -396,10 +409,7 @@ begin
       usageText := cCpuDash;
     Exit('使用率：' + usageText + sLineBreak + '（详细信息加载中…）');
   end;
-  speedMhz := info.CurrentSpeedMhz;
-  if speedMhz = 0 then
-    speedMhz := CpuNativePeekCurrentSpeedMhz;
-  info.CurrentSpeedMhz := speedMhz;
+  info.CurrentSpeedMhz := CpuNativeQueryCurrentSpeedMhz;
   sensors := CpuQuerySensorInfo;
 
   vendorLine := CpuVendorTooltipValue(info.Vendor);

@@ -40,7 +40,6 @@ const
   cNct6687FanRpmRegs: array[0..16] of Word = (
     $140, $142, $144, $146, $148, $14A, $14C, $14E,
     $150, $152, $154, $156, $158, $15A, $15C, $15E, $852);
-  cNct6687FanCountReg = $852;
   cNct6687InitReg = $180;
   cIt87FanTachRegs: array[0..2] of Byte = ($0D, $0E, $0F);
   cIt87FanTachExtRegs: array[0..2] of Byte = ($18, $19, $1A);
@@ -309,58 +308,40 @@ begin
     CpuFanNctBarWriteByte(ABar, cNct6687InitReg, data or $80);
 end;
 
-function CpuFanReadNct6687FanRpm(ABar: Word; AReg: Word): Integer;
-var
-  hi, lo: Byte;
-  count, rpm16: Integer;
-begin
-  Result := 0;
-  if not CpuFanNctBarReadByte(ABar, AReg, hi) then
-    Exit;
-  if not CpuFanNctBarReadByte(ABar, AReg + 1, lo) then
-    Exit;
-  if AReg = cNct6687FanCountReg then
-  begin
-    if (hi = $FF) and (lo = $F8) then
-      Exit;
-    count := (Integer(hi) shl 5) or (Integer(lo) and $1F);
-    Exit(CpuFanRpmFrom13BitCount(count));
-  end;
-  rpm16 := (Integer(hi) shl 8) or lo;
-  if rpm16 > cIt87MinTach then
-    Result := rpm16;
-end;
-
-function CpuFanReadNct6687Fans(const ACtx: TCpuFanSioContext; out ACpuRpm, AMaxRpm: Integer): Boolean;
-var
-  i: Integer;
-  rpm: Integer;
-begin
-  Result := False;
-  ACpuRpm := 0;
-  AMaxRpm := 0;
-  CpuFanInitNct6687(ACtx.BarBase);
-  for i := Low(cNct6687FanRpmRegs) to High(cNct6687FanRpmRegs) do
-  begin
-    rpm := CpuFanReadNct6687FanRpm(ACtx.BarBase, cNct6687FanRpmRegs[i]);
-    if rpm <= 0 then
-      Continue;
-    if i = 0 then
-      ACpuRpm := rpm;
-    if rpm > AMaxRpm then
-      AMaxRpm := rpm;
-    Result := True;
-  end;
-end;
-
-function CpuFanReadNct679xFans(const ACtx: TCpuFanSioContext; out ACpuRpm, AMaxRpm: Integer): Boolean;
+function CpuFanReadNct6687Fans(const ACtx: TCpuFanSioContext; out AMaxRpm: Integer): Boolean;
 var
   i: Integer;
   hi, lo: Byte;
   count, rpm: Integer;
 begin
   Result := False;
-  ACpuRpm := 0;
+  AMaxRpm := 0;
+  CpuFanInitNct6687(ACtx.BarBase);
+  for i := Low(cNct6687FanRpmRegs) to High(cNct6687FanRpmRegs) do
+  begin
+    if not CpuFanNctBarReadByte(ACtx.BarBase, cNct6687FanRpmRegs[i], hi) then
+      Continue;
+    if not CpuFanNctBarReadByte(ACtx.BarBase, cNct6687FanRpmRegs[i] + 1, lo) then
+      Continue;
+    if (hi = $FF) and (lo = $F8) then
+      Continue;
+    count := (Integer(hi) shl 5) or (Integer(lo) and $1F);
+    rpm := CpuFanRpmFrom13BitCount(count);
+    if rpm > AMaxRpm then
+    begin
+      AMaxRpm := rpm;
+      Result := True;
+    end;
+  end;
+end;
+
+function CpuFanReadNct679xFans(const ACtx: TCpuFanSioContext; out AMaxRpm: Integer): Boolean;
+var
+  i: Integer;
+  hi, lo: Byte;
+  count, rpm: Integer;
+begin
+  Result := False;
   AMaxRpm := 0;
   for i := Low(cNct679FanCountRegs) to High(cNct679FanCountRegs) do
   begin
@@ -370,17 +351,15 @@ begin
       Continue;
     count := (Integer(hi) shl 5) or (Integer(lo) and $1F);
     rpm := CpuFanRpmFrom13BitCount(count);
-    if rpm <= 0 then
-      Continue;
-    if i = 0 then
-      ACpuRpm := rpm;
     if rpm > AMaxRpm then
+    begin
       AMaxRpm := rpm;
-    Result := True;
+      Result := True;
+    end;
   end;
 end;
 
-function CpuFanReadNct677xFans(const ACtx: TCpuFanSioContext; out ACpuRpm, AMaxRpm: Integer): Boolean;
+function CpuFanReadNct677xFans(const ACtx: TCpuFanSioContext; out AMaxRpm: Integer): Boolean;
 var
   i: Integer;
   addr: Word;
@@ -388,7 +367,6 @@ var
   value, rpm, count: Integer;
 begin
   Result := False;
-  ACpuRpm := 0;
   AMaxRpm := 0;
   for i := 0 to 4 do
   begin
@@ -407,17 +385,15 @@ begin
       count := (Integer(hi) shl 5) or (Integer(lo) and $1F);
       rpm := CpuFanRpmFrom13BitCount(count);
     end;
-    if rpm <= 0 then
-      Continue;
-    if i = 0 then
-      ACpuRpm := rpm;
     if rpm > AMaxRpm then
+    begin
       AMaxRpm := rpm;
-    Result := True;
+      Result := True;
+    end;
   end;
 end;
 
-function CpuFanReadIt87Fans(const ACtx: TCpuFanSioContext; out ACpuRpm, AMaxRpm: Integer): Boolean;
+function CpuFanReadIt87Fans(const ACtx: TCpuFanSioContext; out AMaxRpm: Integer): Boolean;
 var
   i: Integer;
   lo, hi: Byte;
@@ -425,7 +401,6 @@ var
   use16Bit: Boolean;
 begin
   Result := False;
-  ACpuRpm := 0;
   AMaxRpm := 0;
   use16Bit := (ACtx.ChipId <> $8705) or (ACtx.It87Version >= 3);
   if not use16Bit then
@@ -438,13 +413,11 @@ begin
       Continue;
     tach := Integer(lo) or (Integer(hi) shl 8);
     rpm := CpuFanRpmFrom16BitTach(tach);
-    if rpm <= 0 then
-      Continue;
-    if i = 0 then
-      ACpuRpm := rpm;
     if rpm > AMaxRpm then
+    begin
       AMaxRpm := rpm;
-    Result := True;
+      Result := True;
+    end;
   end;
   if Result then
     Exit;
@@ -456,13 +429,11 @@ begin
       Continue;
     tach := Integer(lo) or (Integer(hi) shl 8);
     rpm := CpuFanRpmFrom16BitTach(tach);
-    if rpm <= 0 then
-      Continue;
-    if ACpuRpm = 0 then
-      ACpuRpm := rpm;
     if rpm > AMaxRpm then
+    begin
       AMaxRpm := rpm;
-    Result := True;
+      Result := True;
+    end;
   end;
 end;
 
@@ -560,63 +531,46 @@ begin
   end;
 end;
 
-function CpuFanPickRpm(ACpuRpm, AMaxRpm: Integer): Integer;
-begin
-  if ACpuRpm > 0 then
-    Result := ACpuRpm
-  else
-    Result := AMaxRpm;
-end;
-
 function CpuFanTrySlot(ASlot: Integer; out ARpm: Integer): Boolean;
 var
   ctx: TCpuFanSioContext;
-  cpuRpm, maxRpm, slotRpm: Integer;
+  rpm: Integer;
+  maxRpm: Integer;
 begin
   Result := False;
   ARpm := 0;
-  cpuRpm := 0;
   maxRpm := 0;
   if CpuFanDetectIt87(ASlot, ctx) then
   begin
-    if CpuFanReadIt87Fans(ctx, cpuRpm, maxRpm) then
-      slotRpm := CpuFanPickRpm(cpuRpm, maxRpm)
-    else
-      slotRpm := 0;
-    if slotRpm > ARpm then
-      ARpm := slotRpm;
-    if slotRpm > 0 then
-      Result := True;
+    if CpuFanReadIt87Fans(ctx, rpm) and (rpm > maxRpm) then
+      maxRpm := rpm;
   end;
   if CpuFanDetectNuvoton(ASlot, ctx) then
   begin
-    cpuRpm := 0;
-    maxRpm := 0;
-    slotRpm := 0;
     case ctx.Kind of
       fskNct6687:
         begin
-          if CpuFanReadNct6687Fans(ctx, cpuRpm, maxRpm) then
-            slotRpm := CpuFanPickRpm(cpuRpm, maxRpm);
+          if CpuFanReadNct6687Fans(ctx, rpm) and (rpm > maxRpm) then
+            maxRpm := rpm;
         end;
       fskNct679x:
         begin
-          if CpuFanReadNct679xFans(ctx, cpuRpm, maxRpm) then
-            slotRpm := CpuFanPickRpm(cpuRpm, maxRpm);
+          if CpuFanReadNct679xFans(ctx, rpm) and (rpm > maxRpm) then
+            maxRpm := rpm;
         end;
       fskNct677x:
         begin
-          if CpuFanReadNct677xFans(ctx, cpuRpm, maxRpm) then
-            slotRpm := CpuFanPickRpm(cpuRpm, maxRpm);
+          if CpuFanReadNct677xFans(ctx, rpm) and (rpm > maxRpm) then
+            maxRpm := rpm;
         end;
     end;
-    if slotRpm > ARpm then
-      ARpm := slotRpm;
-    if slotRpm > 0 then
-      Result := True;
   end;
-  if Result then
-    CpuFanDiag(Format('slot%d=%dRPM', [ASlot, ARpm]));
+  if maxRpm > 0 then
+  begin
+    ARpm := maxRpm;
+    Result := True;
+    CpuFanDiag(Format('slot%d=%dRPM', [ASlot, maxRpm]));
+  end;
 end;
 
 function CpuFanQueryRpm(out ARpm: Integer): Boolean;

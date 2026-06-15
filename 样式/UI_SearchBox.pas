@@ -1,9 +1,12 @@
-﻿unit UI_SearchBox;
+unit UI_SearchBox;
 
 interface
 
 uses
   Windows, SysUtils, XCGUI, UI_Edit, UI_Button;
+
+const
+  CDefaultSearchSvg = 'Resource\search.svg';
 
 type
   TSearchBoxInputChangedProc = procedure;
@@ -32,9 +35,6 @@ type
   end;
 
 implementation
-
-const
-  CDefaultSearchSvg = 'Resource\search.svg';
 
 class procedure TSearchBoxUI.AttachSearchButton(var ABox: TSearchBoxUI; const ASvgFile: PWideChar;
   const AIconW, AIconH: Integer);

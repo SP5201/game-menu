@@ -96,24 +96,30 @@ uses
   AppPaths;
 
 const
-  CInfoPadX = 2;
-  CInfoPadY = 0;
-  CInfoItemHeight = 22;
-  CInfoRowSpace = 0;
-  CInfoMinWidth = 160;
-  CInfoMaxWidth = 1024;
-  CInfoTextMeasureWrapWidth = 8192;
-  CInfoTextMeasureAlign = textAlignFlag_left or textAlignFlag_vcenter or textFormatFlag_NoWrap;
-  CInfoTextDrawAlignRight = textAlignFlag_right or textAlignFlag_vcenter or textFormatFlag_NoWrap;
-  CInfoShadowExt = 4;
-  CInfoTargetGap = 4;
-  CInfoWndEdgeMargin = 4;
-  CInfoLabelColMin = 72;
-  CInfoSvgValuePrefix = '#svg:';
-  CInfoRefreshTimerId = 1;
-  CInfoRefreshTimerMs = 1000;
-  CInfoDeferHoverTimerId = 2;
-  CInfoDeferHoverTimerMs = 1;
+  // 列表内边距与行布局
+  CInfoPadX = 0;                   // 左右内边距（算宽、行绘制缩进）
+  CInfoPadY = 0;                   // 上下内边距（算高、ListBox 留白）
+  CInfoItemHeight = 22;            // 单行高度（ListBox 项高）
+  CInfoRowSpace = 0;               // ListBox 行间距
+  // 弹层尺寸
+  CInfoMinWidth = 160;             // 最小宽度
+  CInfoMaxWidth = 1024;            // 最大宽度
+  // 文本测量与绘制
+  CInfoTextMeasureWrapWidth = 8192;  // 测宽虚拟换行宽（配合 NoWrap 取单行宽）
+  CInfoTextMeasureAlign = textAlignFlag_left or textAlignFlag_vcenter or textFormatFlag_NoWrap;    // 标签列对齐
+  CInfoTextDrawAlignRight = textAlignFlag_right or textAlignFlag_vcenter or textFormatFlag_NoWrap; // 值列右对齐
+  // 定位与边距
+  CInfoShadowExt = 6;              // 四周阴影留白（ListBox 偏移、窗口宽高）
+  CInfoTargetGap = 4;              // 弹层与悬停锚点的纵向间距
+  CInfoWndEdgeMargin = 0;          // 相对主窗客户区左右贴边避让
+  // 列宽与 SVG
+  CInfoLabelColMin = 72;           // 标签列最小宽度（含「标签：」）
+  CInfoSvgValuePrefix = '#svg:';   // 值列 SVG 前缀，格式 #svg:路径[@宽x高]
+  // 定时器
+  CInfoRefreshTimerId = 1;         // 弹层可见时周期刷新正文
+  CInfoRefreshTimerMs = 1000;      // 刷新间隔（毫秒）
+  CInfoDeferHoverTimerId = 2;      // MouseMove 防抖，延后弹出/切换目标
+  CInfoDeferHoverTimerMs = 1;      // 延后等待（毫秒）
 
 class procedure TInfoListPopupUI.EnsureHoverBinds;
 begin
@@ -566,7 +572,7 @@ procedure TInfoListPopupUI.Init;
 begin
   inherited;
   SetTransparentType(window_transparent_shaped);
-  SetTransparentAlpha(255);
+  SetTransparentAlpha(250);
   SetShadowInfo(0, 0, 0, False, 0);
   RegEvent(WM_PAINT, @TInfoListPopupUI.OnWndPaint);
   RegEvent(WM_TIMER, @TInfoListPopupUI.OnWndTimer);

@@ -25,11 +25,9 @@ const
   cMsrAmdK7ThermStatus = $C0010004;
   cMsrAmdZenTctl = $C0010058;
   cSmnZenCurTemp = $00059800;
-  cSmnZenCcdTempBase = $00059954;
-  cSmnZenCcdTempBaseZen4 = $00059B08;
   cSmnZenSviBase = $0005A000;
   cZenTempRangeSelMask = $80000;
-  cZenCurTempMask = $7FF;
+  cZenTempTjSelMask = $30000;
   cMsrIa32PerfStatus = $198;
   cMsrRaplPowerUnit = $606;
   cMsrPkgEnergyStatus = $611;
@@ -46,12 +44,10 @@ const
 type
   TCpuEnergySample = record
     HasLast: Boolean;
-    HasLastPower: Boolean;
     UnitReady: Boolean;
     EnergyUnitJ: Double;
     LastEnergy: UInt32;
     LastTick: DWORD;
-    LastPowerW: Double;
   end;
 
 var
@@ -117,21 +113,12 @@ begin
   end;
   elapsedMs := CpuSensorsEnergyTickElapsed(nowTick, ASample.LastTick);
   if elapsedMs < cCpuEnergyMinElapsedMs then
-  begin
-    if ASample.HasLastPower then
-      Result := ASample.LastPowerW;
     Exit;
-  end;
   if energyNow >= ASample.LastEnergy then
     energyDelta := energyNow - ASample.LastEnergy
   else
     energyDelta := (UInt64($100000000) - ASample.LastEnergy) + energyNow;
   Result := ASample.EnergyUnitJ * energyDelta / (elapsedMs / 1000.0);
-  if CpuSensorsIsPlausiblePowerW(Result) then
-  begin
-    ASample.HasLastPower := True;
-    ASample.LastPowerW := Result;
-  end;
   ASample.LastEnergy := energyNow;
   ASample.LastTick := nowTick;
 end;
@@ -329,49 +316,18 @@ function CpuSensorsAmdZenSmnTemp: Double;
 var
   raw: DWORD;
   tempMilli: Integer;
+  offsetFlag: Boolean;
 begin
   Result := -1;
   if not PawnIoReadSmn(cSmnZenCurTemp, raw) or (raw = 0) then
     Exit;
-  tempMilli := Integer((raw shr 21) and cZenCurTempMask) * 125;
-  if (raw and cZenTempRangeSelMask) <> 0 then
+  offsetFlag := ((raw and cZenTempRangeSelMask) <> 0) or
+    ((raw and cZenTempTjSelMask) = cZenTempTjSelMask);
+  tempMilli := Integer(raw shr 21) * 125;
+  if offsetFlag then
     Dec(tempMilli, 49000);
   if tempMilli > 0 then
     Result := tempMilli / 1000.0;
-end;
-
-function CpuSensorsAmdZenMaxCcdTemp: Double;
-var
-  model: Cardinal;
-  baseOff: DWORD;
-  i: Integer;
-  ccdRaw: DWORD;
-  ccdTemp, maxTemp: Double;
-begin
-  Result := -1;
-  if PawnIoBackend <> pbAmdFamily17 then
-    Exit;
-  model := CpuSensorsAmdModel;
-  if model in [$61, $44] then
-    baseOff := cSmnZenCcdTempBaseZen4
-  else if model in [$21, $71, $31] then
-    baseOff := cSmnZenCcdTempBase
-  else
-    Exit;
-  maxTemp := -1;
-  for i := 0 to 7 do
-  begin
-    if not PawnIoReadSmn(baseOff + DWORD(i) * 4, ccdRaw) then
-      Continue;
-    ccdRaw := ccdRaw and $FFF;
-    if ccdRaw = 0 then
-      Continue;
-    ccdTemp := (Integer(ccdRaw) * 125 - 305000) / 1000.0;
-    if (ccdTemp > 0) and (ccdTemp < 125) and (ccdTemp > maxTemp) then
-      maxTemp := ccdTemp;
-  end;
-  if maxTemp >= 0 then
-    Result := maxTemp;
 end;
 
 function CpuSensorsAmdZenSviPlaneOffsets(out APlane0Off, APlane1Off: DWORD): Boolean;
@@ -404,50 +360,23 @@ begin
   Result := True;
 end;
 
-function CpuSensorsAmdVoltageFromPlane(APlane: DWORD): Double;
-var
-  vddCor: Cardinal;
-  vcc: Double;
-begin
-  Result := -1;
-  vddCor := (APlane shr 16) and $FF;
-  vcc := cAmdSviVidBase - (cAmdSviVidStep * vddCor);
-  if (vcc >= 0.4) and (vcc <= 1.65) then
-    Result := vcc;
-end;
-
 function CpuSensorsAmdCoreVoltage: Double;
 var
-  sviTfn, plane0, plane1: DWORD;
+  sviTfn, plane0: DWORD;
   plane0Off, plane1Off: DWORD;
-  vCore, vAlt: Double;
+  vddCor: Cardinal;
 begin
   Result := -1;
   if not CpuSensorsAmdZenSviPlaneOffsets(plane0Off, plane1Off) then
     Exit;
   if not PawnIoReadSmn(cSmnZenSviBase + $8, sviTfn) then
-    sviTfn := 0;
-  if (sviTfn and $01) = 0 then
-  begin
-    if PawnIoReadSmn(plane0Off, plane0) then
-    begin
-      vCore := CpuSensorsAmdVoltageFromPlane(plane0);
-      if vCore > 0 then
-        Exit(vCore);
-    end;
-  end;
-  if PawnIoReadSmn(plane0Off, plane0) then
-  begin
-    vCore := CpuSensorsAmdVoltageFromPlane(plane0);
-    if vCore > 0 then
-      Exit(vCore);
-  end;
-  if PawnIoReadSmn(plane1Off, plane1) then
-  begin
-    vAlt := CpuSensorsAmdVoltageFromPlane(plane1);
-    if vAlt > 0 then
-      Result := vAlt;
-  end;
+    Exit;
+  if (sviTfn and $01) <> 0 then
+    Exit;
+  if not PawnIoReadSmn(plane0Off, plane0) then
+    Exit;
+  vddCor := (plane0 shr 16) and $FF;
+  Result := cAmdSviVidBase - (cAmdSviVidStep * vddCor);
 end;
 
 function CpuSensorsIntelVoltage: Double;
@@ -456,7 +385,6 @@ var
   i: Integer;
   mask: ULONG_PTR;
   eax, edx: DWORD;
-  msr: UInt64;
   vid, maxVid: Cardinal;
 begin
   Result := -1;
@@ -471,8 +399,9 @@ begin
       Break;
     if not PawnIoReadMsrTx(cMsrIa32PerfStatus, mask, eax, edx) then
       Continue;
-    msr := UInt64(eax) or (UInt64(edx) shl 32);
-    vid := Cardinal((msr shr 32) and $FFFF);
+    vid := edx and $FFFF;
+    if vid = 0 then
+      vid := eax and $FFFF;
     if vid > maxVid then
       maxVid := vid;
   end;
@@ -485,28 +414,13 @@ var
   eax, edx: DWORD;
   family: Cardinal;
   raw: Integer;
-  ccdTemp: Double;
 begin
   Result := -1;
   family := CpuSensorsFamilyModel shr 4;
   if family >= $17 then
   begin
     if PawnIoBackend = pbAmdFamily17 then
-      Result := CpuSensorsAmdZenSmnTemp;
-    if Result < 0 then
-    begin
-      ccdTemp := CpuSensorsAmdZenMaxCcdTemp;
-      if ccdTemp >= 0 then
-        Result := ccdTemp;
-    end
-    else
-    begin
-      ccdTemp := CpuSensorsAmdZenMaxCcdTemp;
-      if ccdTemp > Result then
-        Result := ccdTemp;
-    end;
-    if Result >= 0 then
-      Exit;
+      Exit(CpuSensorsAmdZenSmnTemp);
     if not PawnIoIsMsrSupported then
       Exit;
     if not PawnIoReadMsr(cMsrAmdZenTctl, eax, edx) then

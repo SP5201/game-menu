@@ -22,6 +22,7 @@ type
   private
     FItems: array of TListBoxCategoryItem;
     FItemCount: Integer;
+    FProtectedHeadCount: Integer;
     class function OnListDrawItem(hList: XCGUI.HELE; hCanvas: HDRAW; var pItem: TlistBox_item_; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnListButtonDown(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnListRButtonUp(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall; static;
@@ -29,6 +30,7 @@ type
   protected
     procedure Init; override;
   public
+    procedure SetProtectedHeadCount(const ACount: Integer);
     procedure ClearItems;
     function AddItem(const ATitle, AIconFile: string): Integer;
     function GetItemTitle(const AIndex: Integer): string;
@@ -39,7 +41,7 @@ type
 implementation
 
 uses
-  AppConfig;
+  AppConfig, AppPaths;
 
 procedure TListBoxUI.Init;
 begin
@@ -127,12 +129,16 @@ end;
 class function TListBoxUI.OnListRButtonUp(hList: XCGUI.HELE; nFlags: UINT; var pPt: TPoint; pbHandled: PBOOL): Integer; stdcall;
 var
   Menu: TPopupMenuUI;
+  ListBox: TListBoxUI;
+  hitIdx: Integer;
 begin
   Result := 0;
+  ListBox := TListBoxUI(XEle_GetUserData(hList));
   Menu := TPopupMenuUI.Create(hList);
   try
     Menu.AddItem(ID_LISTBOX_CATEGORY_ADD, UI_Utf8Src(UTF8String('添加新分类')));
-    if XListBox_HitTestOffset(hList, pPt) >= 0 then
+    hitIdx := XListBox_HitTestOffset(hList, pPt);
+    if (hitIdx >= 0) and ((ListBox = nil) or (hitIdx >= ListBox.FProtectedHeadCount)) then
     begin
       Menu.AddItemIcon(ID_LISTBOX_CATEGORY_EDIT, '修改分类', 0, 'Resource\menu_edit.svg', 0);
       Menu.AddItem(ID_LISTBOX_CATEGORY_DELETE, '删除分类', 0);
@@ -148,11 +154,35 @@ begin
   end;
 end;
 
+procedure TListBoxUI.SetProtectedHeadCount(const ACount: Integer);
+begin
+  if ACount < 0 then
+    FProtectedHeadCount := 0
+  else
+    FProtectedHeadCount := ACount;
+end;
+
 function TListBoxUI.LoadCategorySvg(const AIconFile: string): HSVG;
 var
   iconPath: string;
+  s, exePath: string;
 begin
-  iconPath := TAppConfig.ResolveGroupIconFile(AIconFile);
+  s := Trim(AIconFile);
+  if s <> '' then
+  begin
+    if FileExists(s) then
+      iconPath := s
+    else
+    begin
+      exePath := IncludeTrailingPathDelimiter(AppExeDirectory) + s;
+      if FileExists(exePath) then
+        iconPath := exePath
+      else
+        iconPath := TAppConfig.ResolveGroupIconFile(s);
+    end;
+  end
+  else
+    iconPath := TAppConfig.ResolveGroupIconFile(s);
   Result := XSvg_LoadFile(PWideChar(iconPath));
   if XC_GetObjectType(Result) <> XC_SVG then
     Result := 0;
@@ -176,15 +206,12 @@ begin
 end;
 
 function TListBoxUI.AddItem(const ATitle, AIconFile: string): Integer;
-var
-  iconFileName: string;
 begin
   Result := FItemCount;
   Inc(FItemCount);
   SetLength(FItems, FItemCount);
   FItems[Result].Title := ATitle;
-  iconFileName := ExtractFileName(Trim(AIconFile));
-  FItems[Result].SvgHandle := LoadCategorySvg(iconFileName);
+  FItems[Result].SvgHandle := LoadCategorySvg(AIconFile);
   if IsHELE then
     SetVirtualRowCount(FItemCount);
 end;

@@ -1,10 +1,7 @@
-﻿unit PawnIoDriver;
+unit PawnIoDriver;
 
 {
-  PawnIO 内核驱动：经 INF（Root\PawnIO）安装，不用 CreateService 直挂 .sys（无设备节点、易僵死）。
-  不调用 PawnIOSetup 等安装 exe；包文件暂存到 %LOCALAPPDATA%\QDesktop\Bin\。
-  若系统已存在官方 PawnIO（Program Files），仅打开设备。
-  退出不 stop/delete（NOT_STOPPABLE，强删会僵死）。
+  PawnIO 内核驱动服务生命周期：注册/启动/探测设备；仅在本进程新建服务时退出卸载（策略 A）。
 }
 
 interface
@@ -14,12 +11,7 @@ uses
 
 const
   cPawnIoSysFileName = 'PawnIO.sys';
-  cPawnIoInfFileName = 'PawnIO.inf';
-  cPawnIoCatFileName = 'PawnIO.cat';
   cPawnIoServiceName = 'PawnIO';
-  cPawnIoDevicePath = '\\?\GLOBALROOT\Device\PawnIO';
-  cPawnIoDevicePathAlt = '\\.\PawnIO';
-  cPawnIoHardwareId = 'Root\PawnIO';
 
 function PawnIoDriverTryOpenDevice(out ADevicePath: string): THandle;
 function PawnIoDriverEnsureRunning: Boolean;
@@ -28,8 +20,6 @@ procedure PawnIoDriverUnloadIfOwned;
 function PawnIoDriverLastError: DWORD;
 function PawnIoDriverLastStage: string;
 function PawnIoDriverServiceIsRunning: Boolean;
-function PawnIoDriverServiceExists: Boolean;
-function PawnIoDriverServiceDeletePending: Boolean;
 function PawnIoDriverDeviceZombieSuspected: Boolean;
 function PawnIoDriverNeedsReboot: Boolean;
 
@@ -42,45 +32,27 @@ const
   ERROR_SERVICE_EXISTS = 1073;
   ERROR_SERVICE_ALREADY_RUNNING = 1056;
   ERROR_SERVICE_MARKED_FOR_DELETE = 1072;
+  ERROR_SERVICE_CANNOT_ACCEPT_CTRL = 1052;
   SERVICE_KERNEL_DRIVER = $00000001;
   SERVICE_DEMAND_START = 3;
   SERVICE_ERROR_NORMAL = 1;
+  SERVICE_CONTROL_STOP = 1;
   SERVICE_RUNNING = 4;
   SERVICE_STOPPED = 1;
   SC_MANAGER_ALL_ACCESS = $F003F;
   SC_MANAGER_CONNECT = $0001;
   SERVICE_ALL_ACCESS = $F01FF;
   SERVICE_QUERY_STATUS = $0004;
+  SERVICE_STOP = $0020;
   SERVICE_START = $0010;
-  cDeviceOpenRetries = 20;
-  cDeviceOpenRetryMs = 250;
-  cDeletePendingWaitLoops = 5;
-  cDeletePendingWaitMs = 1000;
-  cStableBinSubDir = 'QDesktop\Bin\';
-  cExternalPawnIoLib = 'PawnIO\PawnIOLib.dll';
-  cOurManualImageMarker = 'qdesktop\bin\';
-  cOfficialImageMarker = 'system32\drivers\pawnio.sys';
+  cDeviceOpenRetries = 10;
+  cDeviceOpenRetryMs = 200;
   HKEY_LOCAL_MACHINE = NativeUInt($80000002);
   KEY_READ = $20019;
   ERROR_SUCCESS = 0;
-  ERROR_DEVINST_ALREADY_EXISTS = DWORD($E0000209);
-  INSTALLFLAG_FORCE = $00000001;
-  INSTALLFLAG_NONINTERACTIVE = $00000004;
-  DICD_GENERATE_ID = $00000001;
-  DIF_REGISTERDEVICE = $00000019;
-  SPDRP_HARDWAREID = $00000001;
-  cPawnIoClassGuid: TGUID = '{62f9c741-b25a-46ce-b54c-9bccce08b6f2}';
 
 type
   TPawnRegKeyHandle = NativeUInt;
-  HDEVINFO = NativeUInt;
-  SP_DEVINFO_DATA = record
-    cbSize: DWORD;
-    ClassGuid: TGUID;
-    DevInst: DWORD;
-    Reserved: NativeUInt;
-  end;
-  PSPDevInfoData = ^SP_DEVINFO_DATA;
   SC_HANDLE = THandle;
   SERVICE_STATUS = record
     dwServiceType: DWORD;
@@ -94,30 +66,22 @@ type
 
 function OpenSCManager(lpMachineName, lpDatabaseName: PChar;
   dwDesiredAccess: DWORD): SC_HANDLE; stdcall; external advapi32 name 'OpenSCManagerW';
+function CreateService(hSCManager: SC_HANDLE; lpServiceName, lpDisplayName: PChar;
+  dwDesiredAccess, dwServiceType, dwStartType, dwErrorControl: DWORD;
+  lpBinaryPathName, lpLoadOrderGroup: PChar; lpdwTagId: PDWORD;
+  lpDependencies, lpServiceStartName, lpPassword: PChar): SC_HANDLE; stdcall;
+  external advapi32 name 'CreateServiceW';
 function OpenService(hSCManager: SC_HANDLE; lpServiceName: PChar;
   dwDesiredAccess: DWORD): SC_HANDLE; stdcall; external advapi32 name 'OpenServiceW';
 function StartService(hService: SC_HANDLE; dwNumServiceArgs: DWORD;
   lpServiceArgVectors: PChar): BOOL; stdcall; external advapi32 name 'StartServiceW';
+function ControlService(hService: SC_HANDLE; dwControl: DWORD;
+  var lpServiceStatus: SERVICE_STATUS): BOOL; stdcall; external advapi32 name 'ControlService';
 function DeleteService(hService: SC_HANDLE): BOOL; stdcall; external advapi32 name 'DeleteService';
 function QueryServiceStatus(hService: SC_HANDLE; var lpServiceStatus: SERVICE_STATUS): BOOL; stdcall;
   external advapi32 name 'QueryServiceStatus';
 function CloseServiceHandle(hSCObject: SC_HANDLE): BOOL; stdcall;
   external advapi32 name 'CloseServiceHandle';
-function UpdateDriverForPlugAndPlayDevicesW(hwndParent: HWND; HardwareId, FullInfPath: PWideChar;
-  InstallFlags: DWORD; bRebootRequired: PBOOL): BOOL; stdcall;
-  external 'newdev.dll' name 'UpdateDriverForPlugAndPlayDevicesW';
-function SetupDiCreateDeviceInfoList(ClassGuid: PGUID; hwndParent: HWND): HDEVINFO; stdcall;
-  external 'setupapi.dll' name 'SetupDiCreateDeviceInfoList';
-function SetupDiCreateDeviceInfoW(DeviceInfoSet: HDEVINFO; DeviceName: PWideChar;
-  ClassGuid: PGUID; DeviceDescription: PWideChar; hwndParent: HWND; CreationFlags: DWORD;
-  DeviceInfoData: PSPDevInfoData): BOOL; stdcall; external 'setupapi.dll' name 'SetupDiCreateDeviceInfoW';
-function SetupDiSetDeviceRegistryPropertyW(DeviceInfoSet: HDEVINFO; DeviceInfoData: PSPDevInfoData;
-  Property_: DWORD; PropertyBuffer: PByte; PropertyBufferSize: DWORD): BOOL; stdcall;
-  external 'setupapi.dll' name 'SetupDiSetDeviceRegistryPropertyW';
-function SetupDiCallClassInstaller(InstallFunction: DWORD; DeviceInfoSet: HDEVINFO;
-  DeviceInfoData: PSPDevInfoData): BOOL; stdcall; external 'setupapi.dll' name 'SetupDiCallClassInstaller';
-function SetupDiDestroyDeviceInfoList(DeviceInfoSet: HDEVINFO): BOOL; stdcall;
-  external 'setupapi.dll' name 'SetupDiDestroyDeviceInfoList';
 function PawnRegOpenKeyExW(AKey: TPawnRegKeyHandle; ASubKey: PWideChar; AOptions: DWORD;
   ASamDesired: LongWord; var AResultKey: TPawnRegKeyHandle): Longint; stdcall;
   external advapi32 name 'RegOpenKeyExW';
@@ -152,140 +116,6 @@ begin
   Result := GNeedsReboot;
 end;
 
-function PawnIoDriverLastStage: string;
-begin
-  Result := GLastStage;
-end;
-
-function PawnIoDriverLastError: DWORD;
-begin
-  Result := GLastError;
-end;
-
-function PawnIoDriverInstalledByUs: Boolean;
-begin
-  Result := GDriverOwnedByUs;
-end;
-
-function PawnIoDriverFileExists(const APath: string): Boolean;
-var
-  attrs: DWORD;
-begin
-  attrs := GetFileAttributesW(PWideChar(APath));
-  Result := (attrs <> INVALID_FILE_ATTRIBUTES) and
-    ((attrs and FILE_ATTRIBUTE_DIRECTORY) = 0);
-end;
-
-function PawnIoDriverNormalizePath(const APath: string): string;
-var
-  path: string;
-begin
-  path := APath;
-  if (Length(path) >= 4) and SameText(Copy(path, 1, 4), '\??\') then
-    path := Copy(path, 5, MaxInt);
-  Result := AnsiLowerCase(ExcludeTrailingPathDelimiter(ExpandFileName(path)));
-end;
-
-function PawnIoDriverProgramFilesPath: string;
-var
-  buf: array[0..MAX_PATH] of WideChar;
-  len: DWORD;
-begin
-  len := GetEnvironmentVariableW('ProgramFiles', buf, MAX_PATH);
-  if len > 0 then
-    Result := IncludeTrailingPathDelimiter(string(buf))
-  else
-    Result := 'C:\Program Files\';
-end;
-
-function PawnIoDriverExternalInstalled: Boolean;
-begin
-  Result := PawnIoDriverFileExists(PawnIoDriverProgramFilesPath + cExternalPawnIoLib);
-end;
-
-function PawnIoDriverStableBinDir: string;
-var
-  localApp: string;
-  len: DWORD;
-  buf: array[0..MAX_PATH] of WideChar;
-begin
-  len := GetEnvironmentVariableW('LOCALAPPDATA', buf, MAX_PATH);
-  if len = 0 then
-    localApp := IncludeTrailingPathDelimiter(GetEnvironmentVariable('USERPROFILE')) + 'AppData\Local'
-  else
-    SetString(localApp, buf, len);
-  Result := IncludeTrailingPathDelimiter(localApp) + cStableBinSubDir;
-end;
-
-function PawnIoDriverResolvePackageFile(const AFileName: string; out AResolvedPath: string): Boolean;
-const
-  cSysCandidates: array[0..1] of string = ('PawnIO.sys', 'PawnIO64.sys');
-var
-  i: Integer;
-  path: string;
-begin
-  Result := False;
-  AResolvedPath := '';
-  if SameText(AFileName, cPawnIoSysFileName) or SameText(AFileName, 'PawnIO64.sys') then
-  begin
-    for i := Low(cSysCandidates) to High(cSysCandidates) do
-    begin
-      path := AppBinDllPath(cSysCandidates[i]);
-      if PawnIoDriverFileExists(path) then
-      begin
-        AResolvedPath := path;
-        GSysPathTried := path;
-        Exit(True);
-      end;
-    end;
-    GSysPathTried := AppBinDirectory + cPawnIoSysFileName;
-    Exit;
-  end;
-  path := AppBinDllPath(AFileName);
-  if PawnIoDriverFileExists(path) then
-  begin
-    AResolvedPath := path;
-    Exit(True);
-  end;
-end;
-
-function PawnIoDriverStagePackage(out AStagedInfPath: string): Boolean;
-var
-  srcSys, srcInf, srcCat, destDir, destSys, destInf, destCat: string;
-begin
-  Result := False;
-  AStagedInfPath := '';
-  if not PawnIoDriverResolvePackageFile(cPawnIoSysFileName, srcSys) then
-    Exit;
-  if not PawnIoDriverResolvePackageFile(cPawnIoInfFileName, srcInf) then
-    Exit;
-  if not PawnIoDriverResolvePackageFile(cPawnIoCatFileName, srcCat) then
-    Exit;
-  destDir := PawnIoDriverStableBinDir;
-  destSys := destDir + cPawnIoSysFileName;
-  destInf := destDir + cPawnIoInfFileName;
-  destCat := destDir + cPawnIoCatFileName;
-  if not ForceDirectories(destDir) then
-    Exit;
-  if PawnIoDriverFileExists(destSys) and PawnIoDriverFileExists(destInf) and
-    PawnIoDriverFileExists(destCat) then
-  begin
-    AStagedInfPath := destInf;
-    Exit(True);
-  end;
-  if not CopyFileW(PWideChar(srcSys), PWideChar(destSys), False) and
-    not PawnIoDriverFileExists(destSys) then
-    Exit;
-  if not CopyFileW(PWideChar(srcInf), PWideChar(destInf), False) and
-    not PawnIoDriverFileExists(destInf) then
-    Exit;
-  if not CopyFileW(PWideChar(srcCat), PWideChar(destCat), False) and
-    not PawnIoDriverFileExists(destCat) then
-    Exit;
-  AStagedInfPath := destInf;
-  Result := True;
-end;
-
 function PawnIoDriverServiceExists: Boolean;
 var
   scm, svc: SC_HANDLE;
@@ -303,50 +133,6 @@ begin
     end;
   finally
     CloseServiceHandle(scm);
-  end;
-end;
-
-function PawnIoDriverServiceDeletePending: Boolean;
-const
-  cServiceKey = 'SYSTEM\CurrentControlSet\Services\' + cPawnIoServiceName;
-var
-  hKey: TPawnRegKeyHandle;
-  deleteFlag: DWORD;
-  dataType, cb: DWORD;
-begin
-  Result := False;
-  if PawnRegOpenKeyExW(HKEY_LOCAL_MACHINE, PChar(cServiceKey), 0, KEY_READ, hKey) <> ERROR_SUCCESS then
-    Exit;
-  try
-    cb := SizeOf(deleteFlag);
-    if PawnRegQueryValueExW(hKey, 'DeleteFlag', nil, dataType, PByte(@deleteFlag), cb) = ERROR_SUCCESS then
-      Result := deleteFlag <> 0;
-  finally
-    PawnRegCloseKey(hKey);
-  end;
-end;
-
-function PawnIoDriverGetServiceImagePath(out AImagePath: string): Boolean;
-const
-  cServiceKey = 'SYSTEM\CurrentControlSet\Services\' + cPawnIoServiceName;
-var
-  hKey: TPawnRegKeyHandle;
-  dataType, cb: DWORD;
-  buf: array[0..1023] of WideChar;
-begin
-  Result := False;
-  AImagePath := '';
-  if PawnRegOpenKeyExW(HKEY_LOCAL_MACHINE, PChar(cServiceKey), 0, KEY_READ, hKey) <> ERROR_SUCCESS then
-    Exit;
-  try
-    cb := SizeOf(buf) - SizeOf(WideChar);
-    if PawnRegQueryValueExW(hKey, 'ImagePath', nil, dataType, PByte(@buf[0]), cb) <> ERROR_SUCCESS then
-      Exit;
-    buf[cb div SizeOf(WideChar)] := #0;
-    AImagePath := string(buf);
-    Result := AImagePath <> '';
-  finally
-    PawnRegCloseKey(hKey);
   end;
 end;
 
@@ -374,22 +160,50 @@ begin
   end;
 end;
 
-function PawnIoDriverServiceIsStopped: Boolean;
+function PawnIoDriverServiceDeletePending: Boolean;
+const
+  cServiceKey = 'SYSTEM\CurrentControlSet\Services\' + cPawnIoServiceName;
+var
+  hKey: TPawnRegKeyHandle;
+  deleteFlag: DWORD;
+  dataType, cb: DWORD;
+begin
+  Result := False;
+  if PawnRegOpenKeyExW(HKEY_LOCAL_MACHINE, PChar(cServiceKey), 0, KEY_READ, hKey) <> ERROR_SUCCESS then
+    Exit;
+  try
+    cb := SizeOf(deleteFlag);
+    if PawnRegQueryValueExW(hKey, 'DeleteFlag', nil, dataType, PByte(@deleteFlag), cb) = ERROR_SUCCESS then
+      Result := deleteFlag <> 0;
+  finally
+    PawnRegCloseKey(hKey);
+  end;
+end;
+
+function PawnIoDriverTryStopService: Boolean;
 var
   scm, svc: SC_HANDLE;
   status: SERVICE_STATUS;
+  err: DWORD;
 begin
   Result := False;
   scm := OpenSCManager(nil, nil, SC_MANAGER_CONNECT);
   if scm = 0 then
     Exit;
   try
-    svc := OpenService(scm, PChar(cPawnIoServiceName), SERVICE_QUERY_STATUS);
+    svc := OpenService(scm, PChar(cPawnIoServiceName),
+      SERVICE_STOP or SERVICE_QUERY_STATUS);
     if svc = 0 then
-      Exit(True);
+      Exit;
     try
-      if QueryServiceStatus(svc, status) then
-        Result := status.dwCurrentState = SERVICE_STOPPED;
+      if QueryServiceStatus(svc, status) and
+        (status.dwCurrentState = SERVICE_STOPPED) then
+        Exit(True);
+      if ControlService(svc, SERVICE_CONTROL_STOP, status) then
+        Exit(True);
+      err := GetLastError;
+      Result := (err = ERROR_SERVICE_CANNOT_ACCEPT_CTRL) or
+        (err = ERROR_SERVICE_MARKED_FOR_DELETE);
     finally
       CloseServiceHandle(svc);
     end;
@@ -398,62 +212,209 @@ begin
   end;
 end;
 
-function PawnIoDriverIsManualServiceImage(const AImagePath: string): Boolean;
+function PawnIoDriverWaitServiceStopped(svc: SC_HANDLE): Boolean;
+var
+  status: SERVICE_STATUS;
+  i: Integer;
 begin
-  Result := Pos(cOurManualImageMarker, PawnIoDriverNormalizePath(AImagePath)) > 0;
+  Result := False;
+  for i := 0 to 49 do
+  begin
+    if not QueryServiceStatus(svc, status) then
+      Exit;
+    if status.dwCurrentState = SERVICE_STOPPED then
+      Exit(True);
+    Sleep(100);
+  end;
 end;
 
-function PawnIoDriverIsOfficialServiceImage(const AImagePath: string): Boolean;
+function PawnIoDriverRemoveService: Boolean;
+var
+  scm, svc: SC_HANDLE;
+  status: SERVICE_STATUS;
+  err: DWORD;
 begin
-  Result := Pos(cOfficialImageMarker, PawnIoDriverNormalizePath(AImagePath)) > 0;
+  Result := False;
+  if PawnIoDriverServiceDeletePending then
+  begin
+    PawnIoDriverSetError(ERROR_SERVICE_MARKED_FOR_DELETE);
+    Exit;
+  end;
+  scm := OpenSCManager(nil, nil, SC_MANAGER_ALL_ACCESS);
+  if scm = 0 then
+  begin
+    PawnIoDriverSetError(0);
+    Exit;
+  end;
+  try
+    svc := OpenService(scm, PChar(cPawnIoServiceName), SERVICE_ALL_ACCESS);
+    if svc = 0 then
+    begin
+      err := GetLastError;
+      if err = ERROR_SERVICE_MARKED_FOR_DELETE then
+      begin
+        GNeedsReboot := True;
+        PawnIoDriverSetError(err);
+      end;
+      Exit(True);
+    end;
+    try
+      if not ControlService(svc, SERVICE_CONTROL_STOP, status) then
+      begin
+        err := GetLastError;
+        if (err = ERROR_SERVICE_CANNOT_ACCEPT_CTRL) or
+          (err = ERROR_SERVICE_MARKED_FOR_DELETE) then
+          GNeedsReboot := True;
+      end;
+      if not PawnIoDriverWaitServiceStopped(svc) then
+        Exit;
+      if DeleteService(svc) then
+        Exit(True);
+      err := GetLastError;
+      if err = ERROR_SERVICE_MARKED_FOR_DELETE then
+        GNeedsReboot := True;
+      PawnIoDriverSetError(err);
+    finally
+      CloseServiceHandle(svc);
+    end;
+  finally
+    CloseServiceHandle(scm);
+  end;
 end;
 
-function PawnIoDriverTryOpenDevicePath(const APath: string): THandle;
+function PawnIoDriverLastStage: string;
 begin
-  Result := CreateFile(
-    PChar(APath),
-    GENERIC_READ or GENERIC_WRITE,
-    FILE_SHARE_READ or FILE_SHARE_WRITE,
-    nil,
-    OPEN_EXISTING,
-    FILE_ATTRIBUTE_NORMAL,
-    0);
+  Result := GLastStage;
+end;
+
+function PawnIoDriverFileExists(const APath: string): Boolean;
+var
+  attrs: DWORD;
+begin
+  attrs := GetFileAttributesW(PWideChar(APath));
+  Result := (attrs <> INVALID_FILE_ATTRIBUTES) and
+    ((attrs and FILE_ATTRIBUTE_DIRECTORY) = 0);
+end;
+
+function PawnIoDriverResolveSysPath(out AResolvedPath: string): Boolean;
+const
+  cCandidates: array[0..1] of string = ('PawnIO.sys', 'PawnIO64.sys');
+var
+  i: Integer;
+  path: string;
+begin
+  Result := False;
+  AResolvedPath := '';
+  GSysPathTried := AppBinDirectory + 'PawnIO.sys';
+  for i := Low(cCandidates) to High(cCandidates) do
+  begin
+    path := AppBinDllPath(cCandidates[i]);
+    if PawnIoDriverFileExists(path) then
+    begin
+      AResolvedPath := path;
+      GSysPathTried := path;
+      Exit(True);
+    end;
+  end;
+end;
+
+function PawnIoDriverLastError: DWORD;
+begin
+  Result := GLastError;
+end;
+
+function PawnIoDriverInstalledByUs: Boolean;
+begin
+  Result := GDriverOwnedByUs;
 end;
 
 function PawnIoDriverTryOpenDevice(out ADevicePath: string): THandle;
 const
-  cPaths: array[0..1] of string = (cPawnIoDevicePath, cPawnIoDevicePathAlt);
+  cPaths: array[0..1] of PChar = (
+    '\\.\PawnIO',
+    '\\?\GLOBALROOT\Device\PawnIO');
 var
   i: Integer;
+  h: THandle;
 begin
-  ADevicePath := cPawnIoDevicePath;
+  Result := INVALID_HANDLE_VALUE;
+  ADevicePath := '';
   for i := Low(cPaths) to High(cPaths) do
   begin
-    Result := PawnIoDriverTryOpenDevicePath(cPaths[i]);
-    if Result <> INVALID_HANDLE_VALUE then
+    h := CreateFile(
+      cPaths[i],
+      GENERIC_READ or GENERIC_WRITE,
+      FILE_SHARE_READ or FILE_SHARE_WRITE,
+      nil,
+      OPEN_EXISTING,
+      FILE_ATTRIBUTE_NORMAL,
+      0);
+    if h <> INVALID_HANDLE_VALUE then
     begin
-      ADevicePath := cPaths[i];
+      ADevicePath := string(cPaths[i]);
+      Result := h;
       Exit;
     end;
+    PawnIoDriverSetError(0);
+    ADevicePath := string(cPaths[i]);
   end;
-  PawnIoDriverSetError(0);
 end;
 
-function PawnIoDriverTryOpenDeviceWait(out ADevicePath: string): THandle;
+function PawnIoDriverInstall(const ADriverPath: string): Boolean;
 var
-  i: Integer;
+  scm, svc: SC_HANDLE;
+  err: DWORD;
 begin
-  for i := 0 to cDeviceOpenRetries - 1 do
+  Result := False;
+  scm := OpenSCManager(nil, nil, SC_MANAGER_ALL_ACCESS);
+  if scm = 0 then
   begin
-    Result := PawnIoDriverTryOpenDevice(ADevicePath);
-    if Result <> INVALID_HANDLE_VALUE then
+    PawnIoDriverSetError(0);
+    Exit;
+  end;
+  try
+    svc := CreateService(
+      scm,
+      PChar(cPawnIoServiceName),
+      PChar(cPawnIoServiceName),
+      SERVICE_ALL_ACCESS,
+      SERVICE_KERNEL_DRIVER,
+      SERVICE_DEMAND_START,
+      SERVICE_ERROR_NORMAL,
+      PChar(ADriverPath),
+      nil, nil, nil, nil, nil);
+    if svc <> 0 then
+    begin
+      CloseServiceHandle(svc);
+      GDriverOwnedByUs := True;
+      Result := True;
       Exit;
-    if i < cDeviceOpenRetries - 1 then
-      Sleep(cDeviceOpenRetryMs);
+    end;
+    err := GetLastError;
+    if err = ERROR_SERVICE_EXISTS then
+    begin
+      svc := OpenService(scm, PChar(cPawnIoServiceName), SERVICE_ALL_ACCESS);
+      if svc <> 0 then
+      begin
+        CloseServiceHandle(svc);
+        Result := True;
+      end
+      else
+        PawnIoDriverSetError(0);
+    end
+    else if err = ERROR_SERVICE_MARKED_FOR_DELETE then
+    begin
+      GNeedsReboot := True;
+      PawnIoDriverSetError(err);
+    end
+    else
+      PawnIoDriverSetError(err);
+  finally
+    CloseServiceHandle(scm);
   end;
 end;
 
-function PawnIoDriverStartService: Boolean;
+function PawnIoDriverStart: Boolean;
 var
   scm, svc: SC_HANDLE;
   err: DWORD;
@@ -480,6 +441,11 @@ begin
         err := GetLastError;
         if err = ERROR_SERVICE_ALREADY_RUNNING then
           Result := True
+        else if err = ERROR_SERVICE_MARKED_FOR_DELETE then
+        begin
+          GNeedsReboot := True;
+          PawnIoDriverSetError(err);
+        end
         else
           PawnIoDriverSetError(err);
       end;
@@ -491,22 +457,70 @@ begin
   end;
 end;
 
-function PawnIoDriverDeleteStoppedService: Boolean;
+function PawnIoDriverTryOpenDeviceWait(out ADevicePath: string): THandle;
 var
-  scm, svc: SC_HANDLE;
+  i: Integer;
+begin
+  for i := 0 to cDeviceOpenRetries - 1 do
+  begin
+    Result := PawnIoDriverTryOpenDevice(ADevicePath);
+    if Result <> INVALID_HANDLE_VALUE then
+      Exit;
+    if i < cDeviceOpenRetries - 1 then
+      Sleep(cDeviceOpenRetryMs);
+  end;
+end;
+
+function PawnIoDriverHandleDeletePending: Boolean;
+var
+  h: THandle;
+  devPath: string;
 begin
   Result := False;
-  if PawnIoDriverServiceDeletePending or not PawnIoDriverServiceIsStopped then
-    Exit;
-  scm := OpenSCManager(nil, nil, SC_MANAGER_ALL_ACCESS);
+  GNeedsReboot := True;
+  GLastError := ERROR_SERVICE_MARKED_FOR_DELETE;
+  PawnIoDriverTryStopService;
+  Sleep(cDeviceOpenRetryMs);
+  h := PawnIoDriverTryOpenDeviceWait(devPath);
+  if h <> INVALID_HANDLE_VALUE then
+  begin
+    CloseHandle(h);
+    GNeedsReboot := False;
+    GLastError := 0;
+    Exit(True);
+  end;
+  GDeviceZombieSuspected := PawnIoDriverServiceIsRunning;
+  GLastStage := '恢复驱动';
+end;
+
+function PawnIoDriverRestartService: Boolean;
+var
+  scm, svc: SC_HANDLE;
+  status: SERVICE_STATUS;
+begin
+  Result := False;
+  scm := OpenSCManager(nil, nil, SC_MANAGER_CONNECT);
   if scm = 0 then
     Exit;
   try
-    svc := OpenService(scm, PChar(cPawnIoServiceName), SERVICE_ALL_ACCESS);
+    svc := OpenService(scm, PChar(cPawnIoServiceName),
+      SERVICE_STOP or SERVICE_START or SERVICE_QUERY_STATUS);
     if svc = 0 then
       Exit;
     try
-      Result := DeleteService(svc);
+      if not QueryServiceStatus(svc, status) then
+        Exit;
+      if status.dwCurrentState = SERVICE_RUNNING then
+      begin
+        ControlService(svc, SERVICE_CONTROL_STOP, status);
+        PawnIoDriverWaitServiceStopped(svc);
+        if not QueryServiceStatus(svc, status) then
+          Exit;
+        if status.dwCurrentState <> SERVICE_STOPPED then
+          Exit;
+      end;
+      if StartService(svc, 0, nil) then
+        Result := True;
     finally
       CloseServiceHandle(svc);
     end;
@@ -515,231 +529,11 @@ begin
   end;
 end;
 
-function PawnIoDriverWaitDeletePendingClear: Boolean;
-var
-  i: Integer;
-  h: THandle;
-  devPath: string;
-begin
-  Result := False;
-  GLastStage := '等待服务删除';
-  for i := 0 to cDeletePendingWaitLoops - 1 do
-  begin
-    h := PawnIoDriverTryOpenDevice(devPath);
-    if h <> INVALID_HANDLE_VALUE then
-    begin
-      CloseHandle(h);
-      Exit(True);
-    end;
-    if not PawnIoDriverServiceDeletePending then
-      Exit(not PawnIoDriverServiceExists);
-    Sleep(cDeletePendingWaitMs);
-  end;
-  if PawnIoDriverServiceDeletePending then
-  begin
-    GNeedsReboot := True;
-    PawnIoDriverSetError(ERROR_SERVICE_MARKED_FOR_DELETE);
-  end;
-end;
-
-function PawnIoDriverRegisterRootDevice: Boolean;
-var
-  devInfo: SP_DEVINFO_DATA;
-  devInfoSet: HDEVINFO;
-  hwId: array[0..11] of WideChar;
-  err: DWORD;
-begin
-  Result := False;
-  devInfoSet := SetupDiCreateDeviceInfoList(@cPawnIoClassGuid, 0);
-  if devInfoSet = HDEVINFO(NativeInt(-1)) then
-  begin
-    PawnIoDriverSetError(0);
-    Exit;
-  end;
-  try
-    FillChar(devInfo, SizeOf(devInfo), 0);
-    devInfo.cbSize := SizeOf(devInfo);
-    if not SetupDiCreateDeviceInfoW(devInfoSet, 'PawnIO', @cPawnIoClassGuid, 'PawnIO', 0,
-      DICD_GENERATE_ID, @devInfo) then
-    begin
-      err := GetLastError;
-      if err = ERROR_DEVINST_ALREADY_EXISTS then
-        Exit(True);
-      PawnIoDriverSetError(err);
-      Exit;
-    end;
-    StrPCopy(hwId, 'Root\PawnIO');
-    hwId[10] := #0;
-    hwId[11] := #0;
-    if not SetupDiSetDeviceRegistryPropertyW(devInfoSet, @devInfo, SPDRP_HARDWAREID,
-      PByte(@hwId[0]), SizeOf(hwId)) then
-    begin
-      PawnIoDriverSetError(0);
-      Exit;
-    end;
-    if not SetupDiCallClassInstaller(DIF_REGISTERDEVICE, devInfoSet, @devInfo) then
-    begin
-      PawnIoDriverSetError(0);
-      Exit;
-    end;
-    Result := True;
-  finally
-    SetupDiDestroyDeviceInfoList(devInfoSet);
-  end;
-end;
-
-function PawnIoDriverInstallViaInf(const AInfPath: string): Boolean;
-var
-  rebootRequired: BOOL;
-begin
-  Result := False;
-  rebootRequired := False;
-  if UpdateDriverForPlugAndPlayDevicesW(
-    0,
-    PChar(cPawnIoHardwareId),
-    PChar(AInfPath),
-    INSTALLFLAG_FORCE or INSTALLFLAG_NONINTERACTIVE,
-    @rebootRequired) then
-  begin
-    GDriverOwnedByUs := True;
-    if rebootRequired then
-      GNeedsReboot := True;
-    Exit(True);
-  end;
-  PawnIoDriverSetError(0);
-end;
-
-function PawnIoDriverDetectZombieState: Boolean;
-var
-  imagePath: string;
-begin
-  Result := False;
-  if not PawnIoDriverServiceIsRunning then
-    Exit;
-  if PawnIoDriverTryOpenDevicePath(cPawnIoDevicePath) <> INVALID_HANDLE_VALUE then
-    Exit;
-  if PawnIoDriverTryOpenDevicePath(cPawnIoDevicePathAlt) <> INVALID_HANDLE_VALUE then
-    Exit;
-  Result := True;
-  GDeviceZombieSuspected := True;
-  if PawnIoDriverServiceDeletePending then
-  begin
-    GNeedsReboot := True;
-    Exit;
-  end;
-  if PawnIoDriverGetServiceImagePath(imagePath) and
-    PawnIoDriverIsManualServiceImage(imagePath) then
-    GNeedsReboot := True;
-end;
-
-function PawnIoDriverTryStartAndOpen(out ADevPath: string): Boolean;
-var
-  h: THandle;
-begin
-  Result := False;
-  if PawnIoDriverServiceExists and not PawnIoDriverServiceIsRunning then
-  begin
-    if not PawnIoDriverStartService then
-      Exit;
-  end;
-  h := PawnIoDriverTryOpenDeviceWait(ADevPath);
-  if h <> INVALID_HANDLE_VALUE then
-  begin
-    CloseHandle(h);
-    Exit(True);
-  end;
-  if PawnIoDriverDetectZombieState then
-    GLastStage := '打开设备';
-end;
-
-function PawnIoDriverEnsureOurService(const AStagedInfPath: string): Boolean;
-var
-  imagePath: string;
-begin
-  Result := False;
-
-  if PawnIoDriverExternalInstalled then
-  begin
-    Result := PawnIoDriverTryStartAndOpen(GSysPathTried);
-    if not Result then
-      GLastStage := '打开设备';
-    Exit;
-  end;
-
-  if PawnIoDriverServiceDeletePending then
-  begin
-    GNeedsReboot := True;
-    GLastStage := '恢复驱动';
-    PawnIoDriverSetError(ERROR_SERVICE_MARKED_FOR_DELETE);
-    Exit;
-  end;
-
-  if PawnIoDriverDetectZombieState then
-  begin
-    GLastStage := '打开设备';
-    PawnIoDriverSetError(ERROR_FILE_NOT_FOUND);
-    Exit;
-  end;
-
-  if PawnIoDriverServiceExists then
-  begin
-    if PawnIoDriverGetServiceImagePath(imagePath) and
-      PawnIoDriverIsManualServiceImage(imagePath) and
-      PawnIoDriverServiceIsStopped then
-      PawnIoDriverDeleteStoppedService;
-
-    if PawnIoDriverServiceExists then
-    begin
-      if PawnIoDriverTryStartAndOpen(GSysPathTried) then
-        Exit(True);
-      if PawnIoDriverDetectZombieState then
-      begin
-        GLastStage := '打开设备';
-        Exit;
-      end;
-    end;
-  end;
-
-  if AStagedInfPath = '' then
-  begin
-    GLastStage := '检查驱动';
-    GLastError := ERROR_FILE_NOT_FOUND;
-    Exit;
-  end;
-
-  if not PawnIoDriverRegisterRootDevice then
-  begin
-    GLastStage := '安装驱动';
-    Exit;
-  end;
-
-  if not PawnIoDriverInstallViaInf(AStagedInfPath) then
-  begin
-    GLastStage := '安装驱动';
-    Exit;
-  end;
-
-  if GNeedsReboot then
-  begin
-    GLastStage := '安装驱动';
-    Exit;
-  end;
-
-  if not PawnIoDriverStartService then
-  begin
-    GLastStage := '启动驱动';
-    Exit;
-  end;
-
-  Result := PawnIoDriverTryStartAndOpen(GSysPathTried);
-  if not Result then
-    GLastStage := '打开设备';
-end;
-
 function PawnIoDriverEnsureRunning: Boolean;
 var
-  stagedInf, devPath: string;
+  sysPath: string;
   h: THandle;
+  devPath: string;
 begin
   Result := False;
   GLastError := 0;
@@ -754,36 +548,106 @@ begin
     Exit(True);
   end;
 
-  if PawnIoDriverExternalInstalled then
-    Exit(PawnIoDriverEnsureOurService(''));
-
-  if PawnIoDriverServiceDeletePending then
-  begin
-    GNeedsReboot := True;
-    GLastStage := '恢复驱动';
-    GLastError := ERROR_SERVICE_MARKED_FOR_DELETE;
-    Exit;
-  end;
-
-  if PawnIoDriverDetectZombieState then
-  begin
-    GLastStage := '打开设备';
-    GLastError := ERROR_FILE_NOT_FOUND;
-    Exit;
-  end;
-
-  if not PawnIoDriverStagePackage(stagedInf) then
+  if not PawnIoDriverResolveSysPath(sysPath) then
   begin
     GLastStage := '检查驱动';
     GLastError := ERROR_FILE_NOT_FOUND;
     Exit;
   end;
 
-  Result := PawnIoDriverEnsureOurService(stagedInf);
+  if PawnIoDriverServiceDeletePending then
+    Exit(PawnIoDriverHandleDeletePending);
+
+  if PawnIoDriverServiceExists then
+  begin
+    if PawnIoDriverServiceIsRunning then
+    begin
+      Sleep(cDeviceOpenRetryMs);
+      h := PawnIoDriverTryOpenDevice(devPath);
+      if h <> INVALID_HANDLE_VALUE then
+      begin
+        CloseHandle(h);
+        Exit(True);
+      end;
+    end;
+
+    if PawnIoDriverRestartService then
+    begin
+      h := PawnIoDriverTryOpenDeviceWait(devPath);
+      if h <> INVALID_HANDLE_VALUE then
+      begin
+        CloseHandle(h);
+        Exit(True);
+      end;
+    end;
+
+    if not PawnIoDriverRemoveService then
+    begin
+      if PawnIoDriverNeedsReboot then
+        GLastStage := '恢复驱动'
+      else
+      begin
+        GDeviceZombieSuspected := PawnIoDriverServiceIsRunning;
+        GLastStage := '打开设备';
+      end;
+      Exit;
+    end;
+    Sleep(200);
+  end;
+
+  if not PawnIoDriverInstall(sysPath) then
+  begin
+    if PawnIoDriverNeedsReboot then
+      GLastStage := '恢复驱动'
+    else
+      GLastStage := '注册服务';
+    Exit;
+  end;
+  if not PawnIoDriverStart then
+  begin
+    if PawnIoDriverNeedsReboot then
+      GLastStage := '恢复驱动'
+    else
+      GLastStage := '启动驱动';
+    Exit;
+  end;
+
+  h := PawnIoDriverTryOpenDeviceWait(devPath);
+  if h <> INVALID_HANDLE_VALUE then
+  begin
+    CloseHandle(h);
+    Exit(True);
+  end;
+  GDeviceZombieSuspected := PawnIoDriverServiceIsRunning;
+  GLastStage := '打开设备';
 end;
 
 procedure PawnIoDriverUnloadIfOwned;
+var
+  scm, svc: SC_HANDLE;
+  status: SERVICE_STATUS;
 begin
+  if not GDriverOwnedByUs then
+    Exit;
+  scm := OpenSCManager(nil, nil, SC_MANAGER_ALL_ACCESS);
+  if scm = 0 then
+    Exit;
+  try
+    svc := OpenService(scm, PChar(cPawnIoServiceName), SERVICE_ALL_ACCESS);
+    if svc = 0 then
+      Exit;
+    try
+      if QueryServiceStatus(svc, status) and
+        (status.dwCurrentState <> SERVICE_STOPPED) then
+        ControlService(svc, SERVICE_CONTROL_STOP, status);
+      if PawnIoDriverWaitServiceStopped(svc) then
+        DeleteService(svc);
+    finally
+      CloseServiceHandle(svc);
+    end;
+  finally
+    CloseServiceHandle(scm);
+  end;
   GDriverOwnedByUs := False;
 end;
 

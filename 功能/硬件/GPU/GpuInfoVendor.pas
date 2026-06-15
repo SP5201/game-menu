@@ -27,6 +27,7 @@ const
   ADL_PMLOG_CLK_MEMCLK = 2;
   ADL_PMLOG_TEMPERATURE_EDGE = 8;
   ADL_PMLOG_FAN_RPM = 14;
+  ADL_PMLOG_FAN_PERCENTAGE = 15;
   ADL_PMLOG_GFX_VOLTAGE = 21;
   ADL_PMLOG_ASIC_POWER = 23;
   ADL_PMLOG_BOARD_POWER = 73;
@@ -34,7 +35,7 @@ const
   NVML_TEMPERATURE_GPU = 0;
   NVML_CLOCK_GRAPHICS = 0;
   NVML_CLOCK_MEM = 2;
-  AMD_VENDOR_ID = $1002;
+  AMD_VENDOR_ID = 1002;
 
 type
   TADLContext = Pointer;
@@ -440,6 +441,12 @@ begin
   Result := ALog.sensors[ASensorId].value;
 end;
 
+function GpuVendorAmdPmLogSupported(const ALog: TADLPMLogDataOutput; const ASensorId: Integer): Boolean;
+begin
+  Result := (ASensorId >= 0) and (ASensorId < ADL_PMLOG_MAX_SENSORS) and
+    (ALog.sensors[ASensorId].supported <> 0);
+end;
+
 procedure GpuVendorAmdApplyPmLog(const ALog: TADLPMLogDataOutput; var AInfo: TGpuSensorInfo);
 var
   raw: Integer;
@@ -462,8 +469,14 @@ begin
     GpuVendorSetMemClock(AInfo, GpuVendorNormalizeClockMhz(raw));
 
   raw := GpuVendorAmdPmLogValue(ALog, ADL_PMLOG_FAN_RPM);
-  if raw <> 0 then
-    GpuVendorSetFan(AInfo, raw);
+  if GpuVendorAmdPmLogSupported(ALog, ADL_PMLOG_FAN_RPM) then
+    GpuVendorSetFan(AInfo, raw)
+  else
+  begin
+    raw := GpuVendorAmdPmLogValue(ALog, ADL_PMLOG_FAN_PERCENTAGE);
+    if GpuVendorAmdPmLogSupported(ALog, ADL_PMLOG_FAN_PERCENTAGE) then
+      GpuVendorSetFan(AInfo, raw);
+  end;
 
   raw := GpuVendorAmdPmLogValue(ALog, ADL_PMLOG_GFX_VOLTAGE);
   if raw <> 0 then
@@ -586,6 +599,7 @@ begin
   if not GpuVendorAmdEnsureContext then
     Exit;
   FillChar(pmLog, SizeOf(pmLog), 0);
+  pmLog.size := SizeOf(pmLog);
   if Assigned(GAmdNewQueryPMLogDataGet) and
     (GAmdNewQueryPMLogDataGet(GAmdContext, GAmdAdapterIndex, pmLog) = ADL_OK) then
     GpuVendorAmdApplyPmLog(pmLog, AInfo);

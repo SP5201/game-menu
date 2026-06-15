@@ -39,6 +39,7 @@ Desktop.ini
 .DS_Store
 *.swp
 *~
+**/__pycache__/
 
 # Cursor (optional local state; rules stay in repo)
 .cursor/**/*.log

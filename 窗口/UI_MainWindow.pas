@@ -40,6 +40,8 @@ type
       CSearchHitIndices: TEverythingHitArray;
       { 右侧列表当前上下文：-1=全盘搜索视图，>=0=库分组 GroupIndex }
       CActiveListGroupIndex: Integer;
+      { 程序同步选中「搜索」项时不重复加载列表 }
+      CSuppressCategorySelectReload: Boolean;
     { 从数据库加载分类到左侧列表框 }
     class procedure LoadListBoxFromStore;
     { 按指定分组索引加载右侧列表项（含排序与图标） }
@@ -66,6 +68,7 @@ type
     class procedure DrainPendingDiskSearchMessages;
     { 内部：切换分类并加载列表（不经过事件 pbHandled） }
     class procedure ReloadListForCategoryIndex(const iItem: Integer);
+    class procedure SelectSearchCategoryItem;
     { 数据库增改分组成功后，从库重载左侧列表并选中指定 group_index }
     class procedure ReloadCategoriesAndSelectGroup(const AGroupIndex: Integer);
     { 拖放前若尚无分类则补一条默认分类并选中 }
@@ -155,6 +158,8 @@ const
   cMainSearchDebounceMs = 20;
   cMainIndexStatusTimerId = 902;
   cMainIndexStatusTimerMs = 500;
+  cCategorySearchListIndex = 0;
+  cCategorySearchTitle = '搜索';
   cListFilterCount = 9;
   cListFilterFolderIndex = 6;
   cListFilterArchiveIndex = 7;
@@ -450,7 +455,7 @@ var
   groupIndex, sel: Integer;
   createOk: Boolean;
 begin
-  if CListBoxUI.GetCount > 0 then
+  if Length(CGroupMap) > 0 then
     Exit;
   createOk := CStore.CreateGroup('默认', '', groupIndex);
   LogGroupDbOp('创建分组', '默认', createOk, groupIndex);
@@ -458,25 +463,24 @@ begin
     Exit;
   LoadListBoxFromStore;
   sel := CListBoxUI.GetSelectItem;
-  if sel >= 0 then
+  if sel > cCategorySearchListIndex then
     ReloadListForCategoryIndex(sel);
 end;
 
 class procedure TMainFormUI.ReloadCategoriesAndSelectGroup(const AGroupIndex: Integer);
 var
-  sel: Integer;
+  i, listIdx: Integer;
 begin
   LoadListBoxFromStore;
-  sel := 0;
-  while sel < Length(CGroupMap) do
+  for i := 0 to High(CGroupMap) do
   begin
-    if CGroupMap[sel] = AGroupIndex then
+    if CGroupMap[i] = AGroupIndex then
     begin
-      XListBox_SetSelectItem(CListBoxUI.Handle, sel);
-      ReloadListForCategoryIndex(sel);
+      listIdx := i + 1;
+      XListBox_SetSelectItem(CListBoxUI.Handle, listIdx);
+      ReloadListForCategoryIndex(listIdx);
       Exit;
     end;
-    Inc(sel);
   end;
 end;
 
@@ -489,6 +493,7 @@ begin
   CListBoxUI.ClearItems;
   SetLength(CGroupMap, 0);
   SetLength(CGroupIconMap, 0);
+  CListBoxUI.AddItem(cCategorySearchTitle, CDefaultSearchSvg);
   groups := CStore.LoadGroups;
   if Length(groups) = 0 then
   begin
@@ -502,10 +507,13 @@ begin
   begin
     iconFile := NormalizeCategoryIconFile(groups[i].iconFile);
     idx := CListBoxUI.AddItem(groups[i].GroupName, iconFile);
-    CGroupMap[idx] := groups[i].GroupIndex;
-    CGroupIconMap[idx] := iconFile;
+    CGroupMap[idx - 1] := groups[i].GroupIndex;
+    CGroupIconMap[idx - 1] := iconFile;
   end;
-  XListBox_SetSelectItem(CListBoxUI.Handle, 0);
+  if CListBoxUI.GetCount > cCategorySearchListIndex + 1 then
+    XListBox_SetSelectItem(CListBoxUI.Handle, cCategorySearchListIndex + 1)
+  else
+    XListBox_SetSelectItem(CListBoxUI.Handle, cCategorySearchListIndex);
   XEle_Redraw(CListBoxUI.Handle);
 end;
 
@@ -852,6 +860,7 @@ begin
   if CListViewUI = nil then
     Exit;
   CActiveListGroupIndex := -1;
+  SelectSearchCategoryItem;
   DiskSearchRequest(CMainHWINDOW, ANeedle, CSearchListSortKind, CSearchListAsc);
   CSearchGeneration := DiskSearchCurrentGeneration;
   if AEnableLog then
@@ -1062,18 +1071,41 @@ begin
 end;
 
 class procedure TMainFormUI.ReloadListForCategoryIndex(const iItem: Integer);
+var
+  groupListIdx: Integer;
 begin
   if iItem < 0 then
     Exit;
-  if iItem < Length(CGroupMap) then
-    LoadListViewFromStore(CGroupMap[iItem])
-  else
-    LoadListViewFromStore(iItem);
+  if iItem = cCategorySearchListIndex then
+  begin
+    CActiveListGroupIndex := -1;
+    PerformDiskSearchFromBox(False);
+    Exit;
+  end;
+  groupListIdx := iItem - 1;
+  if (groupListIdx >= 0) and (groupListIdx < Length(CGroupMap)) then
+    LoadListViewFromStore(CGroupMap[groupListIdx]);
+end;
+
+class procedure TMainFormUI.SelectSearchCategoryItem;
+begin
+  if CListBoxUI = nil then
+    Exit;
+  if CListBoxUI.GetSelectItem = cCategorySearchListIndex then
+    Exit;
+  CSuppressCategorySelectReload := True;
+  try
+    XListBox_SetSelectItem(CListBoxUI.Handle, cCategorySearchListIndex);
+  finally
+    CSuppressCategorySelectReload := False;
+  end;
 end;
 
 class function TMainFormUI.OnCategorySelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
+  if CSuppressCategorySelectReload then
+    Exit;
   DiskSearchStopAndWait;
   ReloadListForCategoryIndex(iItem);
 end;
@@ -1106,11 +1138,11 @@ begin
   if nItem = ID_LISTBOX_CATEGORY_EDIT then
   begin
     sel := CListBoxUI.GetSelectItem;
-    if (sel < 0) or (sel >= Length(CGroupMap)) then
+    if (sel <= cCategorySearchListIndex) or (sel - 1 >= Length(CGroupMap)) then
       Exit;
     oldName := CListBoxUI.GetItemTitle(sel);
-    if sel < Length(CGroupIconMap) then
-      oldIconFile := CGroupIconMap[sel]
+    if sel - 1 < Length(CGroupIconMap) then
+      oldIconFile := CGroupIconMap[sel - 1]
     else
       oldIconFile := '';
     iconFile := oldIconFile;
@@ -1122,7 +1154,7 @@ begin
     iconFile := NormalizeCategoryIconFile(iconFile);
     if (newName = '') or ((newName = oldName) and SameText(Trim(iconFile), Trim(oldIconFile))) then
       Exit;
-    groupIndex := CGroupMap[sel];
+    groupIndex := CGroupMap[sel - 1];
     if CStore.UpdateGroup(groupIndex, newName, iconFile) then
       ReloadCategoriesAndSelectGroup(groupIndex);
     Exit;
@@ -1131,13 +1163,13 @@ begin
   if nItem = ID_LISTBOX_CATEGORY_DELETE then
   begin
     sel := CListBoxUI.GetSelectItem;
-    if (sel < 0) or (sel >= Length(CGroupMap)) then
+    if (sel <= cCategorySearchListIndex) or (sel - 1 >= Length(CGroupMap)) then
       Exit;
     oldName := CListBoxUI.GetItemTitle(sel);
     if not TMessageBoxUI.Confirm('删除分类', '确定删除分类 "' + oldName + '" 吗？该分类下的应用也会被删除。', XWidget_GetHWINDOW(CListBoxUI.Handle)) then
       Exit;
 
-    deleteGroupIndex := CGroupMap[sel];
+    deleteGroupIndex := CGroupMap[sel - 1];
     deleteOk := CStore.DeleteGroup(deleteGroupIndex);
     LogGroupDbOp('删除分组', oldName, deleteOk, deleteGroupIndex);
     if deleteOk then
@@ -1772,6 +1804,7 @@ begin
   CSearchBox.RegOnSearchClick(@TMainFormUI.OnMainSearchButtonClick);
   CSearchBox.RegOnSearchInputChanged(@TMainFormUI.ScheduleDebouncedDiskSearch);
   CListBoxUI := TListBoxUI.FromXmlName('list_main_category');
+  CListBoxUI.SetProtectedHeadCount(1);
   CListViewUI := TListViewUI.FromXmlName('list_main_content');
   ShellIconLoaderInit(Handle);
   CListViewUI.OnPrepareContextMenu := MainWindowListViewPrepareContextMenu;
@@ -1784,7 +1817,10 @@ begin
   CListBoxUI.RegEvent(XE_MENU_SELECT, @TMainFormUI.OnCategoryMenuSelect);
   CListViewUI.RegEvent(XE_MENU_SELECT, @TMainFormUI.OnContentMenuSelect);
   LoadListBoxFromStore;
-  CListBoxUI.SendEvent(XE_LISTBOX_SELECT, 0, 0);
+  if CListBoxUI.GetCount > cCategorySearchListIndex + 1 then
+    CListBoxUI.SendEvent(XE_LISTBOX_SELECT, cCategorySearchListIndex + 1, 0)
+  else
+    CListBoxUI.SendEvent(XE_LISTBOX_SELECT, cCategorySearchListIndex, 0);
   EnableDragFiles(True);
   RegEvent(WM_DROPFILES, @TMainFormUI.OnWndDropFiles);
   RegEvent(WM_TIMER, @TMainFormUI.OnSearchDebounceTimer);

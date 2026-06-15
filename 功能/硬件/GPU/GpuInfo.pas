@@ -70,6 +70,7 @@ uses
 const
   cGpuSensorRefreshMs = 3000;
   cGpuSensorRetryMs = 30000;
+  cGpuFanRetryMs = 1000;
 
 var
   GStaticLoaded: Boolean;
@@ -146,7 +147,7 @@ begin
   end;
 end;
 
-procedure GpuRefreshSensorsIfStale;
+procedure GpuRefreshSensorsIfStale(AForce: Boolean = False);
 var
   nowTick: DWORD;
   elapsed, retryMs: Integer;
@@ -158,11 +159,16 @@ begin
   try
     if GSensorsLoading then
       Exit;
-    if GSensorsValid then
+    if GSensorsValid and not AForce then
     begin
       elapsed := GpuSensorsTickElapsed(nowTick, GSensorsLastTick);
       if GSensorsHasData then
-        retryMs := cGpuSensorRefreshMs
+      begin
+        if GSensorsInfo.HasFanSpeed then
+          retryMs := cGpuSensorRefreshMs
+        else
+          retryMs := cGpuFanRetryMs;
+      end
       else
         retryMs := cGpuSensorRetryMs;
       if elapsed < retryMs then
@@ -184,6 +190,17 @@ begin
     GSensorsValid := True;
     GSensorsLastTick := GetTickCount;
     GSensorsLoading := False;
+  finally
+    LeaveCriticalSection(GSensorsLock);
+  end;
+end;
+
+function GpuQuerySensorInfo: TGpuSensorInfo;
+begin
+  GpuRefreshSensorsIfStale;
+  EnterCriticalSection(GSensorsLock);
+  try
+    Result := GSensorsInfo;
   finally
     LeaveCriticalSection(GSensorsLock);
   end;
@@ -225,7 +242,7 @@ begin
       usageText := cGpuDash;
     Exit('使用率：' + usageText + sLineBreak + '（详细信息加载中…）');
   end;
-  sensors := GpuPeekSensorInfo;
+  sensors := GpuQuerySensorInfo;
 
   deviceLine := info.Device;
   if deviceLine = '' then
