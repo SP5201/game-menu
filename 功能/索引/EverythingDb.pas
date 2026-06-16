@@ -7,7 +7,7 @@ uses
 
 const
   cEverythingDbMagic = $45564944; // 'EVID'
-  cEverythingDbVersion = 5;
+  cEverythingDbVersion = 7;
 
 function EverythingDbFilePath: string;
 function EverythingDbSave(const ADB: TEverythingDB;

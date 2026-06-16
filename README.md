@@ -2,314 +2,194 @@
 
 # 游戏菜单 · QDesktop
 
-**Windows 桌面快捷方式启动器** — Delphi XE2 · Win32 / Win64 · xcgui 自绘界面
+**Windows 桌面快捷方式启动器** — Delphi XE2 · Win32 / Win64 · XCGUI 自绘界面
 
 [![Delphi](https://img.shields.io/badge/Delphi-XE2-ee1f35?style=flat-square)](https://www.embarcadero.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20Win32%20%7C%20Win64-0078d4?style=flat-square)](https://learn.microsoft.com/windows/win32/winprog64/wow64-implementation-details)
-[![UI](https://img.shields.io/badge/UI-xcgui-5c6bc0?style=flat-square)](库/XCGUI/)
+[![UI](https://img.shields.io/badge/UI-XCGUI-5c6bc0?style=flat-square)](库/XCGUI/)
 
 </div>
 
-## 运行告示
+## 这是什么
 
-> **演示程序已经放在 `Debug` 文件夹内**
+QDesktop 把常用程序、文件夹、快捷方式按**分类**收纳在主界面网格里：左侧选分类，右侧点图标即可启动。支持拖放入库、全库搜索、右键编辑；底部状态栏展示外网 IP、天气、网速与 CPU / 内存 / GPU 占用，悬停可看硬件与网卡详情。
+
+## 运行
+
+> 演示程序在 **`Debug/`** 下，无需安装 Delphi。
 >
-> 进入 `Debug/Win32/` 或 `Debug/Win64/`，双击 `QDesktop.exe` 即可运行（无需安装 Delphi、无需先编译）。
+> 进入 `Debug/Win32/` 或 `Debug/Win64/`，双击 **`QDesktop.exe`** 即可。
 
-## 目录
+| 运行期数据 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| 配置 | `Debug/*/Data/QDesktop.ini` | 窗口位置、采样开关、GDI/D2D 等 |
+| 启动项库 | `Debug/*/Data/games.db` | SQLite：分类与条目 |
+| 图标缓存 | `Debug/*/Data/IconCache/` | 程序图标本地缓存 |
+| 搜索索引库 | `Debug/*/Data/Everything.db` | NTFS 全盘索引缓存（本地生成） |
 
-- [运行告示](#运行告示)
-- [快速了解](#快速了解)
-- [界面预览](#界面预览)
-- [软件原理](#软件原理)
-  - [技术栈](#技术栈)
-  - [分层架构](#分层架构)
-  - [界面机制](#界面机制)
-  - [入库与启动](#入库与启动)
-  - [状态栏与后台](#状态栏与后台)
-  - [硬件信息](#硬件信息)
-  - [HTTP 与配置](#http-与配置)
-- [目录结构](#目录结构)
+`games.db`、`Everything.db` 仅本地使用，**不入 Git**。
 
 ---
 
-## 快速了解
+## 功能一览
 
-| | |
+### 启动器
+
+| 能力 | 说明 |
 | :--- | :--- |
-| **定位** | 按分类管理程序 / 文件夹 / 快捷方式，拖放入库、一键启动 |
-| **数据** | SQLite `games.db` + `QDesktop.ini` |
-| **状态栏** | 外网 IP、天气、网速、CPU / 内存 / GPU 实时占用 |
-| **运行目录** | 见上文 [运行告示](#运行告示) |
+| 分类管理 | 自定义名称、图标（`Resource/CategoryIcons/`）、条目宽度、排序方式 |
+| 入库 | 拖放 `.exe`、快捷方式、文件夹到主界面；Shell 提取图标写入 SQLite |
+| 启动 | 双击或右键打开；支持参数、工作目录、管理员运行 |
+| 编辑 | 改显示名、路径、图标；分类对话框、条目编辑对话框 |
+| 系统工具 | 右键菜单快捷打开注册表、设备管理器、服务、磁盘管理等 |
+
+### 搜索
+
+| 能力 | 说明 |
+| :--- | :--- |
+| 库内搜索 | 在当前分类 / 全库中按名称筛选启动项 |
+| 全盘索引 | `功能/索引/`：读取 NTFS MFT 建索引，USN 日志增量更新；结果供主界面搜索框使用 |
+
+### 状态栏
+
+| 显示 | 数据来源 |
+| :--- | :--- |
+| CPU / 内存 / GPU 占用 | 后台采样线程 → `功能/硬件/`（PDH、Native API、PawnIO MSR 等） |
+| 上 / 下行网速 | `GetIfTable2` 汇总 |
+| 外网 IP、归属地 | HTTP → myip.ipip.net |
+| 天气、温度 | HTTP → Open-Meteo |
+| 悬停详情 | CPU 型号、内存条、网卡 MAC、GPU 显存等（按需查询，非采样线程拼接） |
+
+### 其它
+
+| 能力 | 说明 |
+| :--- | :--- |
+| 二维码 | 内置生成器（圆角、颜色、液化），可导出 PNG |
+| 设置 | GDI/D2D、绘制频率、开机启动、状态栏采样开关等 |
+| 反馈 | 邮件反馈对话框 |
+| 单实例 | 重复启动时激活已有窗口 |
 
 ---
 
-## 界面预览
+## 目录与文件
 
-<table>
-<tr>
-<td width="50%" valign="top">
+### 工程根（源码与工程）
 
-#### 主界面 · 拖放入库
+| 路径 | 代表什么 |
+| :--- | :--- |
+| `QDesktop.dpr` | 程序入口：单实例、读配置、初始化 XCGUI、加载主布局、消息循环 |
+| `QDesktop.dproj` | Delphi 工程（Win32 + Win64，UTF-8 源码页 65001） |
+| `QDesktopResource.rc` | 编译进 exe 的资源脚本 |
+| `编译测试.bat` | 一键清理 DCU、编译 Debug Win32/Win64（编码与 Delphi 环境写法见 `.cursor/rules/encoding.mdc`） |
+| `Dcu/` | 编译中间文件（`Win32/`、`Win64/`） |
 
-左侧分类、右侧启动项网格。支持将 `.exe`、快捷方式、文件夹拖入空白区域入库。
+### `窗口/` — 页面与交互
 
-</td>
-<td width="50%" valign="top">
+绑定 `Resource/Layout/*.xml`，注册事件，调用 `功能/`；**不写**磁盘/注册表/驱动等底层 I/O。
 
-![主界面 - 拖放入库](docs/images/main-empty.png)
+| 单元（示例） | 作用 |
+| :--- | :--- |
+| `UI_MainWindow.pas` | 主窗口：分类、列表、拖放、搜索、状态栏编排 |
+| `UI_MainWindowStat.pas` | 状态栏后台线程与 `WM_QD_*` 回 UI |
+| `UI_MainWindowTools.pas` | 系统工具菜单等 |
+| `UI_SettingsDialog.pas` | 设置对话框 |
+| `UI_QrCodeDialog.pas` / `UI_QrCodeRender.pas` | 二维码生成与绘制 |
+| `UI_FeedbackDialog.pas` | 反馈邮件 |
+| `UI_ColorPickerDialog.pas` | 取色 |
+| `UI_ListViewSettingsDialog.pas` | 列表显示选项 |
+| `UI_HintPopup.pas` / `UI_SliderValuePopup.pas` | 提示、滑块弹层 |
+| `UI_SafeLogWindow.pas` | 启动日志窗口 |
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+### `样式/` — 可复用 UI 组件
 
-![GPU 悬停详情](docs/images/gpu-tooltip.png)
+XCGUI 封装、默认样式、主题色；**不含**业务逻辑。
 
-</td>
-<td width="50%" valign="top">
+| 单元（示例） | 作用 |
+| :--- | :--- |
+| `UI_Theme.pas` | **唯一色板**（`UITheme_*`），全程序语义色来源 |
+| `UI_Button.pas` / `UI_Edit.pas` / `UI_ComboBox.pas` | 基础控件 |
+| `UI_Icon_ListView.pas` / `UI_ListBox.pas` / `UI_List.pas` | 图标网格、列表 |
+| `UI_SearchBox.pas` | 搜索框 |
+| `UI_InfoListPopup.pas` | 状态栏悬停详情列表 |
+| `UI_ProgressBar.pas` / `UI_ScrollBar.pas` / `UI_SliderBar.pas` | 进度、滚动、滑块 |
+| `UI_Form.pas` / `UI_Ele.pas` | 窗体、元素基类 |
 
-#### 状态栏 · 硬件详情
+### `功能/` — 业务与系统访问
 
-底部显示外网 IP、天气、网速及 CPU / 内存 / GPU；悬停查看网卡、显卡等详情。
+不调用 `XEle_*` / `XDraw_*` 等 UI API；需刷新界面时发消息，由 `窗口/` 消费。
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+| 子目录 | 代表什么 |
+| :--- | :--- |
+| `功能/配置/` | `AppConfig.pas`、`AppPaths.pas` — `QDesktop.ini`、路径、GDI/D2D、绘制频率、开机启动 |
+| `功能/数据库/` | `LibraryStore.pas` — SQLite 分类与启动项 CRUD |
+| `功能/Shell/` | 图标提取、拖放、启动执行（`ShellExecuteEx`）、打开方式、磁盘路径 |
+| `功能/索引/` | NTFS MFT 索引（`MftReader`、`EverythingDb`、`EverythingIndex`）、USN 增量（`UsnMonitor`）、搜索 VM（`SearchVM`） |
+| `功能/硬件/` | CPU / 内存 / GPU / 网速详情与采样；`PawnIoClient` 驱动传感器 |
+| `功能/硬件/CPU/` · `Mem/` · `GPU/` · `Net/` | 各硬件 `*Info*.pas`、Native / PawnIO 分层 |
+| `功能/天气IP/` | 外网 IP、城市坐标、天气拉取与解析 |
+| `功能/网络/` | `NetHttpWorker.pas`（libcurl）、`FeedbackMailer.pas` |
+| `功能/日志/` | `SafeLog.pas` — 启动与诊断日志 |
+| `ListItemTypes.pas` | 启动项、分类等共享类型 |
 
-#### 启动项 · 系统工具
+### `库/` — 第三方与 API 绑定
 
-分类管理常用程序；右键可打开注册表、设备管理器、服务、磁盘管理等。
+**只读引用**，业务逻辑不要写进此目录。
 
-</td>
-<td width="50%" valign="top">
+| 路径 | 代表什么 |
+| :--- | :--- |
+| `库/XCGUI/` | 炫彩界面库 Delphi 封装 |
+| `库/SQLite3/` | SQLite C API + `SQLite3Wrap` |
+| `库/libcurl/` | libcurl 声明（运行时 DLL 在 `Debug/*/Bin/`） |
+| `库/ZXingQRCode/` | 二维码生成 |
 
-![启动项与系统工具菜单](docs/images/launcher-tools.png)
+### `Debug/Win32/` · `Debug/Win64/` — 编译输出与运行目录
 
-</td>
-</tr>
-<tr>
-<td colspan="2" align="center">
+| 路径 | 代表什么 |
+| :--- | :--- |
+| `QDesktop.exe` | 可执行文件 |
+| `Bin/` | 运行时 DLL：`XCGUI_*.dll`、`Sqlite3.dll`、libcurl、OpenSSL、`PawnIO.sys` 与 CPU 模块（`IntelMSR.bin` 等） |
+| `Resource/` | 界面资源（随 exe 旁加载） |
+| `Resource/Layout/` | 布局 XML 源稿（Win64 与 Win32 同步） |
+| `Resource/CategoryIcons/` | 分类可选 SVG 图标 |
+| `Resource/Category/default.svg` | 默认分类图标 |
+| `Resource/QWeatherIcons/` | 天气图标 |
+| `Resource/CpuVendor/` | CPU 厂商 SVG |
+| `Resource/*.svg` | 工具栏、菜单等界面图标 |
+| `Resource/Resource.res` | 打包进程序的资源（字体、色板等 ID） |
+| `Data/` | 运行期数据（见上文 [运行](#运行)） |
 
-#### 二维码生成
+### 其它
 
-内置生成器：圆角、颜色、液化效果，支持导出 PNG。
-
-![二维码生成与取色](docs/images/qrcode-dialog.png)
-
-</td>
-</tr>
-</table>
+| 路径 | 代表什么 |
+| :--- | :--- |
+| `.cursor/rules/` | Cursor Agent 约定（`global.mdc`、`ui.mdc`、`feature.mdc`、`encoding.mdc`） |
+| `README.md` | 本说明 |
 
 ---
 
-## 软件原理
-
-QDesktop 将启动项按**分组**组织：左侧选分类，右侧点图标即可启动；支持拖放入库、全库搜索、右键编辑，以及状态栏展示网络、硬件、外网 IP 与天气。
-
-### 技术栈
+## 技术概要
 
 | 项 | 说明 |
 | :--- | :--- |
-| 语言 / 位宽 | Delphi XE2，**Win32 / Win64**（Win32 为 WOW64 进程） |
-| UI 框架 | [xcgui](库/XCGUI/) — XML 布局 + 自绘控件，GDI / D2D |
-| 数据 | SQLite（`games.db`）分组 + 启动项 |
-| 配置 | `QDesktop.ini` — 路径、窗口位置、采样开关等 |
-| 单实例 | 命名互斥量；重复启动时激活已有窗口 |
+| 语言 | Delphi XE2，Win32 / Win64（Win32 为 WOW64 进程） |
+| UI | XCGUI：XML 布局 + 自绘，GDI / D2D |
+| 分层 | `窗口/` → `样式/` → `功能/` → `库/`；UI 与业务分离 |
+| 线程 | 采样、索引、HTTP 在后台线程；回 UI 用 `XC_PostMessage` / `PostMessageW` + `WM_QD_*` |
+| 硬件 | 优先驱动（PawnIO）→ Native API → WMI/注册表兜底 |
 
-**启动顺序**
+**启动顺序**：读 `QDesktop.ini` → 初始化 XCGUI → 加载 `Resource.res` 与 `MainWindow.xml` → `XRunXCGUI` 消息循环。
 
-```mermaid
-flowchart LR
-  A[QDesktop.dpr] --> B[读配置]
-  B --> C[初始化 XCGUI]
-  C --> D[加载 Resource.res<br/>MainWindow.xml]
-  D --> E[XRunXCGUI 消息循环]
+**编译**（需本机 Delphi XE2）：
 
-  classDef step fill:#f0f4ff,stroke:#5c6bc0,color:#1a237e
-  class A,B,C,D,E step
+```bat
+cd /d "d:\游戏菜单"
+编译测试.bat nopause
 ```
-
-### 分层架构
-
-```mermaid
-flowchart TB
-  subgraph UI["表现层"]
-    W["窗口/ — 主窗口、对话框、事件绑定"]
-    S["样式/ — 主题、ListBox/ListView、弹层"]
-  end
-  subgraph Core["业务层"]
-    F["功能/ — 配置、SQLite、Shell、硬件、HTTP"]
-  end
-  subgraph Lib["基础层"]
-    L["库/ — XCGUI · SQLite3 · libcurl · ZXing …"]
-  end
-  W --> S --> F --> L
-
-  classDef ui fill:#e3f2fd,stroke:#1976d2
-  classDef core fill:#e8f5e9,stroke:#388e3c
-  classDef lib fill:#fff3e0,stroke:#f57c00
-  class W,S ui
-  class F core
-  class L lib
-```
-
-| 层 | 职责 |
-| :--- | :--- |
-| **窗口** | 绑 XML 名 → 注册事件 → 调功能层，不写重业务 |
-| **样式** | 可复用控件外观，颜色来自 `UI_Theme.pas` |
-| **功能** | 不依赖具体窗口，供多处复用 |
-| **库** | DLL / API 声明，无业务逻辑 |
-
-### 界面机制
-
-1. **布局** — `Resource/Layout/*.xml`（源稿 `Debug/Win32/Resource/Layout/`，Win64 同步），`XC_GetObjectByName` 关联控件。
-2. **绘制** — 样式单元注册 `XE_*` 回调；D2D 需 `XC_IsEnableD2D` 与 DPI 坐标转换。
-3. **列表虚表与图标** — `FItems` 为数据源、绘制零 IO、虚表用 `XEle_Redraw`（见 [docs/列表虚表与图标.md](docs/列表虚表与图标.md)）。
-4. **主题** — 语义色在 `UI_Theme.pas`；窗口 `ApplyDefaultStyles` 仅做 CPU/RAM/GPU 分色。
-
-### 入库与启动
-
-```mermaid
-flowchart TB
-  subgraph ingest["入库"]
-    direction LR
-    A["拖放 / 右键添加"] --> B["ShellHelper 取图标"]
-    B --> C["LibraryStore → SQLite"]
-    C --> D["刷新 ListView"]
-  end
-  subgraph launch["启动"]
-    direction LR
-    E["双击 / 右键打开"] --> F["ShellHelper"]
-    F --> G["ShellExecuteEx / runas"]
-  end
-  D --> E
-
-  classDef ingest fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-  classDef launch fill:#fce4ec,stroke:#c2185b,color:#880e4f
-  class A,B,C,D ingest
-  class E,F,G launch
-```
-
-| 概念 | 说明 |
-| :--- | :--- |
-| **分组** | 名称、图标（`Resource/CategoryIcons/*.svg`，默认 `Resource/Category/default.svg`）、条目宽度、排序（名称 / 时间 / 类型，升/降） |
-| **条目** | 路径、显示名、图标缓存、启动参数、工作目录 |
-| **图标** | 优先 IconCache 流式读取；类型图标独立缓存目录 |
-
-### 状态栏与后台
-
-主窗口 `Init` 中启动后台线程，经回调更新 UI，不阻塞消息循环：
-
-```mermaid
-flowchart LR
-  subgraph threads["后台线程"]
-    T1[HardwareSampler]
-    T2[NetTrafficSampler]
-    T3[ExternalIpFetcher]
-    T4[WeatherFetcher]
-  end
-  subgraph data["数据源"]
-    D1[PDH / 内存 / GPU]
-    D2[GetIfTable2]
-    D3[myip.ipip.net]
-    D4[Open-Meteo]
-  end
-  subgraph ui["状态栏 UI"]
-    U[进度条 · 文案 · 图标]
-  end
-  T1 --> D1 --> U
-  T2 --> D2 --> U
-  T3 --> D3 --> U
-  T4 --> D4 --> U
-
-  classDef thread fill:#ede7f6,stroke:#7e57c2
-  classDef source fill:#fff8e1,stroke:#ffa000
-  class T1,T2,T3,T4 thread
-  class D1,D2,D3,D4 source
-```
-
-| 线程 | 数据来源 | UI 更新 |
-| :--- | :--- | :--- |
-| `THardwareSamplerThread` | 系统时间差 / 内存 / PDH GPU | CPU、RAM、GPU 百分比 |
-| `TNetTrafficSamplerThread` | `GetIfTable2` 汇总 | 上/下行速率 |
-| `TExternalIpFetcherThread` | [myip.ipip.net](https://myip.ipip.net/) | 外网 IP、归属地、运营商 |
-| `TWeatherFetcherThread` | HTTP → Open-Meteo | 温度、天气图标、污染物 |
-
-悬停详情（CPU 型号、内存条、网卡 MAC、GPU 显存等）由 `TInfoListPopupUI` 在悬停时按需调用 `CpuInfo` / `MemInfo` / `NetInfo` / `GpuInfo`，不在采样线程中拼接。
-
-### 硬件信息
-
-```mermaid
-flowchart TD
-  Q[悬停 / 详情查询] --> C[Native 模块查询]
-  C --> W[PawnIO MSR<br/>CPU 温度]
-  C --> S[SMBIOS / PDH / Win32 API]
-  W --> P[静态结构 + TTL 缓存]
-  S --> P
-  P --> U[InfoListPopup 展示]
-
-  classDef query fill:#e1f5fe,stroke:#0288d1
-  classDef ok fill:#e8f5e9,stroke:#43a047
-  classDef ring0 fill:#fff3e0,stroke:#fb8c00
-  class Q query
-  class C ok
-  class W ring0
-```
-
-1. **CPU**：`CpuInfoNative`（CPUID + NT API）+ `CpuInfoPawnIo`（PawnIO MSR）；无温度时回退 `HardwarePdh`（ACPI 热区 PDH）。
-2. **内存**：`MemInfoNative`（`GlobalMemoryStatusEx` + SMBIOS Type 16/17）。
-3. **GPU**：`HardwarePdh`（PDH 利用率）+ `GpuInfoNative`（`EnumDisplayDevicesW` + D3DKMT/注册表显存，无 COM）+ `GpuInfoVendor`（AMD ADL2 / NVIDIA NVML 传感器/显存）。
-4. **网卡**：`GetAdaptersAddresses` + `GetIfEntry2`；传感器字段按 TTL 缓存。
-
-**使用率**（高频）与 **详情 tooltip**（低频）分离：`HardwareMonitor` 刷新百分比，首次悬停详情可能略慢。
-
-### HTTP 与配置
-
-- 所有 HTTP 请求集中在 `功能/网络/NetHttpWorker`（libcurl 同步 GET）。
-- `AppConfig` — INI 与路径；`AppSettings` — 选项持久化、GDI/D2D 与绘制频率。
-
-**Win32 路径约定**：`System32` → `SysWOW64`；真实 64 位目录用 `Sysnative`；注册表须明确 32/64 视图（仅 Win32 构建适用）。
-
----
-
-## 目录结构
-
-<details>
-<summary><b>展开完整目录说明</b></summary>
-
-| 目录 | 说明 |
-| :--- | :--- |
-| `QDesktop.dpr` | 入口：单实例、配置、XCGUI、主布局与消息循环 |
-| `窗口/` | 主窗口、设置、编辑项、分类、二维码、取色、提示等 |
-| `样式/` | 主题色板、按钮、列表、菜单、弹层、进度条、滚动条 |
-| `功能/配置/` | `QDesktop.ini`、GDI/D2D、绘制频率 |
-| `功能/数据库/` | SQLite 分组与启动项 |
-| `功能/` | Shell 图标、拖放、启动执行、打开方式 |
-| `功能/硬件/` | 状态栏采样、PawnIO MSR / SMBIOS / PDH 硬件详情 |
-| `功能/硬件/CPU/` · `Mem/` · `GPU/` · `Net/` | 各硬件详情与网速 |
-| `功能/网络/` | libcurl（`NetHttpWorker`）、后续多线程下载等 |
-| `功能/天气IP/` | 外网 IP、天气解析 |
-| `库/XCGUI/` | 炫彩界面库 Delphi API |
-| `库/SQLite3/` | SQLite C API（[stijnsanders/TSQLite](https://github.com/stijnsanders/TSQLite)，sqlite.h 3.51.3）+ `SQLite3Wrap` |
-| `库/libcurl/` | libcurl Pascal 绑定（运行时 DLL 在 `Debug/Win32/Bin/` 或 `Debug/Win64/Bin/`） |
-| `库/ZXingQRCode/` | 二维码生成 |
-| `Debug/Win32/` · `Debug/Win64/` | 编译输出：`QDesktop.exe`、`Bin/`、`Resource/`、`Data/` |
-| `Debug/*/Resource/` | 静态资源：布局 XML、界面 SVG、`CategoryIcons/`（分类可选图标）、`Category/default.svg`、`QWeatherIcons/`、`CpuVendor/` 等 |
-| `Debug/*/Resource/Layout/` | 界面布局 XML（源稿 `Debug/Win32/Resource/Layout/`，Win64 同步） |
-| `Debug/*/Resource/CategoryIcons/` | 分类对话框图标库；可将自定义 `.svg` 放入此目录，重启后出现在分类编辑列表 |
-| `Debug/*/Data/` | 运行期数据：`games.db`、`QDesktop.ini`、图标缓存 `IconCache/`、`city.json`（本地生成，数据库等不入库） |
-| `docs/` | [列表虚表与图标](docs/列表虚表与图标.md) |
-
-</details>
-
-业务代码经 `样式/`、`功能/` 访问 `库/`，避免在 `窗口/` 直接散落底层调用。
 
 ---
 
 <div align="center">
 
-<sub>文档随目录维护 · 新增子目录请在上表补充说明</sub>
+<sub>文档随仓库维护 · 新增子目录请在上表补充</sub>
 
 </div>

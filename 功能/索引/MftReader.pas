@@ -1,4 +1,4 @@
-﻿unit MftReader;
+unit MftReader;
 
 interface
 
@@ -60,8 +60,11 @@ const
   FILE_ANY_ACCESS = 0;
   FSCTL_GET_NTFS_VOLUME_DATA = (FILE_DEVICE_FILE_SYSTEM shl 16) or
     (FILE_ANY_ACCESS shl 14) or (25 shl 2) or METHOD_BUFFERED;
+  FSCTL_GET_NTFS_FILE_RECORD = (FILE_DEVICE_FILE_SYSTEM shl 16) or
+    (FILE_ANY_ACCESS shl 14) or (26 shl 2) or METHOD_BUFFERED;
   FSCTL_ENUM_USN_DATA = (FILE_DEVICE_FILE_SYSTEM shl 16) or (FILE_ANY_ACCESS shl 14) or
     (45 shl 2) or METHOD_NEITHER;
+  cMftIoctlScanSlop = 64;
   cNtfsRootFrn = UInt64(5);
   cUsnEnumBufferSize = 256 * 1024;
   SE_PRIVILEGE_ENABLED = $00000002;
@@ -284,6 +287,51 @@ begin
   hdr := PMftRecordHeader(ARecord);
   Result := (hdr.Signature[0] = 'F') and (hdr.Signature[1] = 'I') and
     (hdr.Signature[2] = 'L') and (hdr.Signature[3] = 'E');
+end;
+
+function ParseFileNameAttr(AValue: PByte; AValueLen: DWORD; ADriveIndex: Byte;
+  var ADB: TEverythingDB; out AItem: TRawMftItem): Boolean; forward;
+function ParseMftRecord(ARecord: PByte; ARecordSize, ASectorSize: DWORD; ARecordIndex: Int64;
+  ADriveIndex: Byte; var ADB: TEverythingDB; out AItem: TRawMftItem): Boolean; forward;
+
+function LocateMftRecordInBuffer(ABuf: PByte; ABufLen: DWORD): PByte;
+var
+  i: DWORD;
+begin
+  Result := nil;
+  if (ABuf = nil) or (ABufLen < 4) then
+    Exit;
+  i := 0;
+  while i + 4 <= ABufLen do
+  begin
+    if MftRecordSignatureValid(PByte(NativeUInt(ABuf) + i)) then
+      Exit(PByte(NativeUInt(ABuf) + i));
+    Inc(i);
+  end;
+end;
+
+function TryParseMftRecordByIoctl(AHandle: THandle; ARecordIndex: Int64; ARecordSize,
+  ASectorSize: DWORD; ADriveIndex: Byte; var ADB: TEverythingDB; out AItem: TRawMftItem;
+  AFetchBuf: PByte; AFetchBufSize: DWORD): Boolean;
+var
+  frnIn: Int64;
+  bytesReturned: DWORD;
+  recPtr: PByte;
+begin
+  Result := False;
+  FillChar(AItem, SizeOf(AItem), 0);
+  if (AHandle = INVALID_HANDLE_VALUE) or (AFetchBuf = nil) or (ARecordSize = 0) then
+    Exit;
+  frnIn := ARecordIndex and Int64($0000FFFFFFFFFFFF);
+  if not DeviceIoControl(AHandle, FSCTL_GET_NTFS_FILE_RECORD, @frnIn, SizeOf(frnIn),
+    AFetchBuf, AFetchBufSize, bytesReturned, nil) then
+    Exit;
+  if bytesReturned <= SizeOf(DWORD) then
+    Exit;
+  recPtr := LocateMftRecordInBuffer(AFetchBuf, bytesReturned);
+  if recPtr = nil then
+    Exit;
+  Result := ParseMftRecord(recPtr, ARecordSize, ASectorSize, ARecordIndex, ADriveIndex, ADB, AItem);
 end;
 
 function NtfsFrnNormalize(const AFrn: UInt64): UInt64; overload;
@@ -954,7 +1002,12 @@ begin
       parentOff := cRootParentOffset;
     frnKey := FrnMapKey(AItems[i].DriveIndex, AItems[i].FRN);
     if (AFrnToFile <> nil) and AFrnToFile.ContainsKey(frnKey) then
+    begin
+      if (parentOff <> cRootParentOffset) and AFrnToFile.TryGetValue(frnKey, folderOff) then
+        if ADB.Files[folderOff].ParentOffset = cRootParentOffset then
+          ADB.Files[folderOff].ParentOffset := parentOff;
       Continue;
+    end;
     GrowFiles(ADB);
     fileRec.ParentOffset := parentOff;
     fileRec.NamePoolOffset := AItems[i].NamePoolOffset;
@@ -1022,8 +1075,8 @@ var
   recordSize, bytesPerCluster, bytesPerSector: DWORD;
   recordSizeInt: Integer;
   mftStart, mftSize, fileOffset: Int64;
-  chunkBuf: PByte;
-  chunkSize: Integer;
+  chunkBuf, fetchBuf: PByte;
+  chunkSize, fetchBufSize: Integer;
   recordIndex, recordCount: Int64;
   i, carryLen, workLen: Integer;
   readSize: DWORD;
@@ -1034,6 +1087,18 @@ var
   driveStr: string;
   carry, workBuf: array of Byte;
   scanComplete: Boolean;
+
+  procedure AppendRawItem(const AItem: TRawMftItem);
+  begin
+    if Length(rawItems) <= rawCount then
+      SetLength(rawItems, rawCount + 4096);
+    rawItems[rawCount] := AItem;
+    if AItem.Excluded and AItem.IsDirectory then
+      if not AExcludedFrn.ContainsKey(FrnMapKey(ADriveIndex, AItem.FRN)) then
+        AExcludedFrn.Add(FrnMapKey(ADriveIndex, AItem.FRN), 1);
+    Inc(rawCount);
+  end;
+
 begin
   Result := False;
   AFailReason := '';
@@ -1072,7 +1137,9 @@ begin
     mftSize := ResolveMftScanSize(volData, recordSize);
     chunkSize := cMftReadChunk;
     driveStr := ADriveLetter + ':';
+    fetchBufSize := recordSizeInt + cMftIoctlScanSlop;
     GetMem(chunkBuf, chunkSize);
+    GetMem(fetchBuf, fetchBufSize);
     try
       SetLength(rawItems, 0);
       SetLength(carry, 0);
@@ -1123,15 +1190,10 @@ begin
           recPtr := PByte(@workBuf[i * recordSizeInt]);
           recordIndex := (fileOffset + Int64(i) * Int64(recordSizeInt)) div Int64(recordSizeInt);
           if ParseMftRecord(recPtr, recordSize, bytesPerSector, recordIndex, ADriveIndex, ADB, item) then
-          begin
-            if Length(rawItems) <= rawCount then
-              SetLength(rawItems, rawCount + 4096);
-            rawItems[rawCount] := item;
-            if item.Excluded and item.IsDirectory then
-              if not AExcludedFrn.ContainsKey(FrnMapKey(ADriveIndex, item.FRN)) then
-                AExcludedFrn.Add(FrnMapKey(ADriveIndex, item.FRN), 1);
-            Inc(rawCount);
-          end;
+            AppendRawItem(item)
+          else if TryParseMftRecordByIoctl(volHandle, recordIndex, recordSize, bytesPerSector,
+            ADriveIndex, ADB, item, fetchBuf, fetchBufSize) then
+            AppendRawItem(item);
         end;
         carryLen := workLen - Integer(recordCount) * recordSizeInt;
         SetLength(carry, carryLen);
@@ -1165,6 +1227,7 @@ begin
       CommitRawItems(ADB, rawItems, AFrnToFolder, AFrnToFile, AFileFrnKeys);
       Result := True;
     finally
+      FreeMem(fetchBuf);
       FreeMem(chunkBuf);
     end;
   finally
@@ -1182,6 +1245,7 @@ function MftBuildFromDrive(const ADriveLetter: Char; ADriveIndex: Byte;
 var
   usnReason, mftReason: string;
   filesBefore: Integer;
+  mftOk: Boolean;
 begin
   Result := False;
   AFailReason := '';
@@ -1192,18 +1256,19 @@ begin
   end;
   EnableVolumeScanPrivileges;
   filesBefore := ADB.FileCount;
-  if MftBuildFromDriveRaw(ADriveLetter, ADriveIndex, ADB, AFrnToFolder, AFrnToFile, AFileFrnKeys,
-    AExcludedFrn, AOnProgress, mftReason) then
+  mftOk := MftBuildFromDriveRaw(ADriveLetter, ADriveIndex, ADB, AFrnToFolder, AFrnToFile, AFileFrnKeys,
+    AExcludedFrn, AOnProgress, mftReason);
+  if mftOk and (ADB.FileCount <= filesBefore) then
   begin
-    if ADB.FileCount > filesBefore then
-      Exit(True);
     if mftReason <> '' then
       mftReason := '$MFT 已索引文件夹但未产生文件（' + mftReason + '）'
     else
       mftReason := '$MFT 已索引文件夹但未产生文件';
   end;
-  if UsnBuildFromDrive(ADriveLetter, ADriveIndex, ADB, AFrnToFolder, AFrnToFile, AFileFrnKeys,
-    AExcludedFrn, AOnProgress, usnReason) then
+  { 线性 $MFT 扫描会漏掉已重定位的记录；USN 全量枚举可补齐 Desktop\CreateSession 等目录。 }
+  UsnBuildFromDrive(ADriveLetter, ADriveIndex, ADB, AFrnToFolder, AFrnToFile, AFileFrnKeys,
+    AExcludedFrn, AOnProgress, usnReason);
+  if ADB.FileCount > filesBefore then
     Exit(True);
   AFailReason := mftReason;
   if usnReason <> '' then

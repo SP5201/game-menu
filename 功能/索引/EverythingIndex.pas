@@ -94,7 +94,7 @@ var
   GUsnCheckpoints: TUsnCheckpointArray;
   GCatchUpInProgress: Boolean;
   GCatchUpApplyStats: TMftApplyUsnStats;
-  GCatchUpFileLookup: TDictionary<AnsiString, Integer>;
+  GFileLookup: TDictionary<AnsiString, Integer>;
 
 function TickElapsed(AStartTick: Cardinal): Cardinal;
 begin
@@ -322,6 +322,16 @@ begin
   end;
 end;
 
+procedure RebuildFileLookupFromDb;
+begin
+  if GFileLookup = nil then
+    GFileLookup := TDictionary<AnsiString, Integer>.Create
+  else
+    GFileLookup.Clear;
+  if GDB.FileCount > 0 then
+    MftBuildFileParentNameMap(GDB, GFileLookup);
+end;
+
 procedure RestoreFrnMapsAfterLoad(const ALoadedFileFrnKeys: TFileFrnKeyArray);
 begin
   if GFrnToFolder = nil then
@@ -346,6 +356,7 @@ begin
     FillChar(GFileFrnKeys[0], GDB.FileCount * SizeOf(UInt64), 0);
     RebuildFileFrnMapsForAllDrives;
   end;
+  RebuildFileLookupFromDb;
 end;
 
 procedure PostIndexHitChanges(const AChanges: TIndexHitChangeArray);
@@ -434,7 +445,6 @@ begin
   totalAppliedUpdate := 0;
   FillChar(GCatchUpApplyStats, SizeOf(GCatchUpApplyStats), 0);
   GCatchUpInProgress := True;
-  GCatchUpFileLookup := TDictionary<AnsiString, Integer>.Create;
   detail := TStringList.Create;
   try
     detail.Add('【离线同步】');
@@ -521,14 +531,13 @@ begin
       ' ~' + IntToStr(totalAppliedUpdate));
     detail.Add('索引文件数: ' + IntToStr(fileCountBefore) + ' -> ' +
       IntToStr(fileCountAfter) + ' (Δ' + IntToStr(fileCountAfter - fileCountBefore) + ')');
-    if GCatchUpFileLookup.Count > 0 then
-      detail.Add('文件查找表: ' + IntToStr(GCatchUpFileLookup.Count) + ' 项（按需构建）')
+    if GFileLookup <> nil then
+      detail.Add('文件查找表: ' + IntToStr(GFileLookup.Count) + ' 项（常驻）')
     else
       detail.Add('文件查找表: 未构建（无 USN 变动）');
     ACatchUpDetail := detail.Text;
   finally
     GCatchUpInProgress := False;
-    FreeAndNil(GCatchUpFileLookup);
     detail.Free;
   end;
 end;
@@ -543,10 +552,7 @@ var
 begin
   if (Length(ARecords) = 0) or (GBuilding and not GCatchUpInProgress) then
     Exit;
-  if GCatchUpInProgress then
-    fileLookup := GCatchUpFileLookup
-  else
-    fileLookup := nil;
+  fileLookup := GFileLookup;
   SetLength(indexChanges, 0);
   IndexLockEnter;
   try
@@ -776,6 +782,10 @@ begin
     GExcludedFrn := TDictionary<UInt64, Byte>.Create
   else
     GExcludedFrn.Clear;
+  if GFileLookup = nil then
+    GFileLookup := TDictionary<AnsiString, Integer>.Create
+  else
+    GFileLookup.Clear;
 
   failDetail := '';
   driveTimingText := '';
@@ -787,6 +797,7 @@ begin
     driveTimingText := driveTimings.Text;
     if buildOk then
     begin
+      RebuildFileLookupFromDb;
       RefreshUsnCheckpoints(GUsnCheckpoints);
       phaseTick := GetTickCount;
       EverythingDbSave(GDB, GDriveLetters, GFileFrnKeys, GUsnCheckpoints);
@@ -979,6 +990,7 @@ begin
   FreeAndNil(GFrnToFile);
   SetLength(GFileFrnKeys, 0);
   FreeAndNil(GExcludedFrn);
+  FreeAndNil(GFileLookup);
 end;
 
 function EverythingIndexIsReady: Boolean;

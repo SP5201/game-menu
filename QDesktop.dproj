@@ -124,10 +124,12 @@
 			<None Include="功能\硬件\Net\NetIfTable2.pas"/>
 			<None Include="功能\硬件\Net\NetTrafficMonitor.pas"/>
 			<None Include="功能\硬件\Net\NetInfo.pas"/>
-			<None Include="功能\硬件\PawnIo.pas"/>
+			<None Include="功能\硬件\HardwarePdh.pas"/>
+			<None Include="功能\硬件\PawnIoClient.pas"/>
+			<None Include="功能\硬件\PawnIoDriver.pas"/>
 			<None Include="功能\硬件\CPU\CpuIdHelper.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfoNative.pas"/>
-			<None Include="功能\硬件\CPU\CpuInfoPawnIo.pas"/>
+			<None Include="功能\硬件\CPU\CpuInfoSensors.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfoFan.pas"/>
 			<None Include="功能\硬件\CPU\CpuInfo.pas"/>
 			<None Include="功能\硬件\Mem\MemInfoNative.pas"/>
@@ -136,6 +138,7 @@
 			<None Include="功能\硬件\Mem\MemPartNumberLookup.pas"/>
 			<None Include="功能\硬件\Mem\MemInfo.pas"/>
 			<None Include="功能\硬件\GPU\GpuInfoNative.pas"/>
+			<None Include="功能\硬件\GPU\GpuInfoVendor.pas"/>
 			<None Include="功能\硬件\GPU\GpuInfo.pas"/>
 			<None Include="功能\HardwareMonitor.pas"/>
 			<None Include="功能\网络\NetHttpWorker.pas"/>

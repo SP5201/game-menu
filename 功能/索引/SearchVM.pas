@@ -640,26 +640,9 @@ begin
   hitCount := 0;
   totalMatched := 0;
   phaseStart := GetTickCount;
-  for i := 0 to ADB.FileCount - 1 do
-  begin
-    if ShouldCancel(AIsCancelled, i) then
-      Exit;
-    if not FileMatchesPattern(ADB, i, pattern) then
-      Continue;
-    Inc(totalMatched);
-    if hitCount >= hitCap then
-    begin
-      Inc(hitCap, cHitGrowChunk);
-      SetLength(AHitIndices, hitCap);
-    end;
-    AHitIndices[hitCount] := i;
-    Inc(hitCount);
-  end;
-  ATiming.ScanFileMs := GetTickCount - phaseStart;
-  phaseStart := GetTickCount;
   for i := 0 to ADB.FolderCount - 1 do
   begin
-    if ShouldCancel(AIsCancelled, ADB.FileCount + i) then
+    if ShouldCancel(AIsCancelled, i) then
       Exit;
     if not FolderMatchesPattern(ADB, i, pattern) then
       Continue;
@@ -673,10 +656,24 @@ begin
     Inc(hitCount);
   end;
   ATiming.ScanFolderMs := GetTickCount - phaseStart;
-  SetLength(AHitIndices, hitCount);
   phaseStart := GetTickCount;
-  SanitizeHitIndices(AHitIndices, ADB);
-  ATiming.SanitizeMs := GetTickCount - phaseStart;
+  for i := 0 to ADB.FileCount - 1 do
+  begin
+    if ShouldCancel(AIsCancelled, ADB.FolderCount + i) then
+      Exit;
+    if not FileMatchesPattern(ADB, i, pattern) then
+      Continue;
+    Inc(totalMatched);
+    if hitCount >= hitCap then
+    begin
+      Inc(hitCap, cHitGrowChunk);
+      SetLength(AHitIndices, hitCap);
+    end;
+    AHitIndices[hitCount] := i;
+    Inc(hitCount);
+  end;
+  ATiming.ScanFileMs := GetTickCount - phaseStart;
+  SetLength(AHitIndices, hitCount);
   ATotalCount := Cardinal(totalMatched);
   if (not ASkipSort) and (Length(AHitIndices) > 1) then
   begin

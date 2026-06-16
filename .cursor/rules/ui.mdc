@@ -1,0 +1,54 @@
+---
+description: UI 层约定（窗口/样式/Layout；主题色、XCGUI 句柄、事件、线程回 UI）
+globs: 窗口/**/*.pas,样式/**/*.pas,**/Resource/Layout/**/*.xml
+alwaysApply: false
+---
+
+# UI 层（`窗口/` · `样式/` · Layout）
+
+## 分层
+
+- **`窗口/`**：页面、对话框、交互编排；可调 `功能/`，**禁止**直接做磁盘/注册表/驱动/WMI 等 I/O（经 `功能/` 接口）。
+- **`样式/`**：可复用 XCGUI 封装与默认样式；**禁止**业务逻辑与 I/O。
+- **Layout**：`Resource/Layout/*.xml`；优先 `fill`、`:1`，禁止写死绝对像素。
+
+## 颜色与主题
+
+- 深色扁平；主色 **#D21B46**（`RGBA(210, 27, 70, 255)`）；表面低透明度白叠加深灰底；边框/分隔线半透明白，避免纯 `#FFFFFF` 硬边。
+- **色板唯一来源**：`样式/UI_Theme.pas`（`UITheme_*`）；改色只改此文件；`窗口/`/`样式/` 其它单元禁散落 `RGBA(...)`（一次性插画除外，须注释）。透明度/圆角：`UITheme_WindowAlpha`、`UITheme_WindowCornerRadius`。
+- **Pas 绘制**：`XDraw_SetBrushColor` / `XShapeText_SetTextColor` / `XSvg_SetUserFillColor` 等传 `UITheme_*`。
+- **组件默认色**：`TEditUI`/`TButtonUI`/`TComboBoxUI`/`TListViewUI`/`TPopupMenuUI` 在 `Init`/`Apply*Style` 绑定；窗口 `ApplyDefaultStyles` 只做控件级覆盖（如状态栏分色）。
+- **XML**：强调文字可用 `textColor="@Resource:\ID_COLOR_PRIMARY"`；其余由 `ApplyDefaultStyles` 设置，XML 不写死十六进制色。
+- **用户可选色**（二维码/背景等）：运行时存配置，不入 `UI_Theme`。
+- **D2D 设色**：`RGBAToD2D1ColorF(UITheme_*)`（须先 `XC_IsEnableD2D`）。
+
+## VCL 隔离
+
+- **禁止** `uses Vcl.*`；对话框走 `功能/Shell/ShellHelper.pas`（WinAPI `CommDlg`）。
+
+## 炫彩句柄与 WinAPI 句柄
+
+句柄均为**指针宽**（`NativeInt`），禁止裸 `Integer` 存炫彩句柄。`XWidget_GetHWND`/`XWnd_GetHWND` → **Win32 `HWND`**；`HWINDOW`/`HELE`/`HXCGUI` → **炫彩句柄**，**禁止混用**（`XMenu_Popup` 第 2 参 `HWND`、第 5 参 `HELE` 为例外，见 `样式/UI_PopupMenu.pas`）。
+
+| 类型 | 用途 |
+|------|------|
+| `HWINDOW` | 窗口 API、`XC_LoadLayout` 的 `hAttachWnd`、子窗 `CreateEx` 父窗 |
+| `HXCGUI` | `XC_LoadLayout` 返回值、元素/形状 `hParent` |
+| `HELE` | 元素；`XEle_Redraw` 第二参禁 `True` |
+| `Windows.HWND` | WinAPI、`XMenu_Popup` 的 `hParentWnd` |
+
+- 子窗/浮动窗父级：`XWidget_GetHWINDOW(hEle)`，**禁止** `GetHWND` 传给 `CreateEx`/`XC_LoadLayout` 父参。
+- 菜单坐标：`XEle_PointClientToWndClient` → `ClientToScreen(hWnd, pt)`。
+
+## 多线程与 UI
+
+- **禁止** `TThread.Synchronize`/`Queue`/`CheckSynchronize`；工作线程**禁止**调 `XEle_*`/`XShape_*`/`XDraw_*`。
+- 回 UI：`XC_PostMessage`/`PostMessageW` + 自定义 `WM_QD_*`；载荷 `New`/`Dispose`；新增常量须避开已有。
+- 参照：`UI_MainWindowStat.PostStat*` 等。
+
+## 命名与事件
+
+- 变量名与类型名（忽略大小写）**不得相同**（**E2007**）；事件形参用 `hSender`，**禁止** `hEle`。
+- 类型判断：优先 `XC_GetObjectType(h) = XC_*`。
+- `pbHandled^` 始终有效；拦截写 `True`，未处理不写 `False`。
+- D2D 绘制：`ID2D1RenderTarget(XDraw_GetD2dRenderTarget(hDraw))`；坐标 `XEle_RectClientToWndClientDPI`。

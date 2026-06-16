@@ -1,0 +1,15 @@
+---
+description: 文件编码与 cmd/bat 约定；防乱码、防 Delphi 编译环境错误
+alwaysApply: true
+---
+
+# 文件编码（防乱码）
+
+含中文文件须按下表保存：
+
+| 类型 | 编码 |
+|------|------|
+| `*.pas` / `*.dpr` / `*.xml` / `*.md` / `*.mdc` | **UTF-8 无 BOM** |
+| `*.bat` / `*.cmd` | **UTF-8 无 BOM**，**CRLF**；参照 **`编译测试.bat`** |
+| `QDesktop.dproj` | 保持现状；勿改 `DCC_CodePage` |
+

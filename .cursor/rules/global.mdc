@@ -1,120 +1,40 @@
 ---
-description: QDesktop 全局约定；UI和功能分离；性能优先；复杂任务先 MD 方案
+description: QDesktop 全局约定；工程/Git/编译；UI 与功能分层见 ui/feature.mdc
 alwaysApply: true
 ---
 
 # QDesktop 全局约定
 
-## 1. 基础与 Agent（无人值守）
-- **技术栈**：Delphi XE2（Win32 + Win64）+ XCGUI。**依赖**：能复用不手写，优先 GitHub 开源库（须已验证兼容 XE2）；禁止引入仅支持高版本 Delphi 的单元。**回复中文**。
-- **复杂任务先方案**：架构变动、跨多模块重构、性能敏感热路径大改、新子系统引入等，须先输出 **Markdown 方案**（目标、步骤、风险、取舍），**待用户确认后再动代码**。
+## 1. 基础与 Agent
+
+- **技术栈**：Delphi XE2（Win32 + Win64）+ XCGUI；依赖优先 GitHub 开源（须兼容 XE2）；**禁止** `Vcl.*`。**回复中文**。
+- **复杂任务先方案**：架构变动、跨模块重构、性能热路径大改、新子系统引入等，须先 Markdown 方案，**待用户确认后再动代码**。
 
 ## 2. 工程与源码
+
 - **联动**：`*.pas` 增删改名须同步 `QDesktop.dproj`、`QDesktop.dpr`。
-- **编码**：`*.pas` / `*.dpr` 保存为 **UTF-8 无 BOM**；`QDesktop.dproj` 已设 `DCC_CodePage=65001`，勿改回系统代码页。
-- **布局**：运行期 `Resource/Layout/*.xml`；优先 `fill`、`:1`，禁止写死绝对像素。
-- **目录**：`窗口/`、`样式/`、`功能/`；**禁止改** `库/`。
-- **GitHub 同步含删除**：同步须 `git add -A`（或等价全量暂存），本地已删的已跟踪文件必须一并提交；`Debug/**/Bin/`、`Debug/**/Data/` 删减后远程也要同步，禁止只推新增/修改而遗漏 `D` 删除项。推送前用 `git status` 核对。
-- **本地数据库不上传**：`Debug/**/Data/games.db`、`Debug/**/Data/Everything.db`（及 `Debug/**/Bin/Everything.db`）仅本地使用，**禁止**提交；远程若曾存在须 `git rm --cached` 后推送。
+- **编码 / bat / cmd**：见 **`encoding.mdc`**。
+- **分层**（详细规则按目录自动加载）：
+  - **UI**：`窗口/`、`样式/`、`Resource/Layout/` → **`ui.mdc`**
+  - **功能**：`功能/` → **`feature.mdc`**
+  - **禁止改** `库/`
+- **GitHub 同步含删除**：须 `git add -A`；本地已删的已跟踪文件必须一并提交；推送前 `git status` 核对。
+- **本地数据库不上传**：`Debug/**/Data/games.db`、`Debug/**/Data/Everything.db`（及 `Debug/**/Bin/Everything.db`）**禁止**提交；远程若曾存在须 `git rm --cached`。
 
-## 3. 编码原则
-- **性能优先**：热路径零/少拷贝——传引用、`const`、复用缓冲；避免 `string`/动态数组整份复制与无谓临时对象。
-- **少 I/O**：磁盘、注册表、网络、驱动调用能缓存则缓存（硬件传感器见 §10 TTL）；禁止循环或高频回调内反复读文件、枚举设备、查注册表。
-- **最小改动**：最简单正确实现；不扩无关范围，不顺手重构周边。
-- **禁止过度封装/防御**：1～2 行、单处逻辑不抽函数；不为极不可能边界堆砌 `try/except` 或多层 fallback。
-- **先读再写**：匹配周边命名与分层；优先扩展 `窗口/`、`样式/`、`功能/` 已有模块。
-- **替换即删除**：新封装取代旧调用时，同步删旧函数/重复实现；功能变动直接切新行为，**仅当用户明确要求**才做向后兼容。
-- **注释节制**：仅对非显而易见的业务规则、XCGUI/D2D 细节或 WOW64 陷阱写注释。
+## 3. 通用编码原则
 
-## 4. VCL 隔离
-- **禁止** `uses` 引用 `Vcl.*`；`QDesktop.dproj` 的 `DCC_Namespace` 不得含 `Vcl`。
-- 对话框：`功能/Shell/ShellHelper.pas`（WinAPI `CommDlg`）。
+- **最小改动**；**禁止过度封装**（1～2 行不抽函数、不为极 unlikely 边界堆 `try/except`）。
+- **先读再写**：匹配周边命名与分层；优先扩展已有模块。
+- **替换即删除**：新封装取代旧调用时同步删旧实现；**仅当用户明确要求**才做向后兼容。
+- **注释节制**：仅非显而易见的业务规则、XCGUI/D2D/WOW64 陷阱。
 
-## 5. 炫彩句柄与 WinAPI 句柄
+## 4. 改码后编译（必做）
 
-### 句柄宽度（对照 `库/XCGUI/xcgui.h`）
-
-`xcgui.h` 中炫彩句柄均为**指针宽度**（Win32 = 4 字节，Win64 = 8 字节），**不是** Delphi 里恒 32 位的 `Integer`：
-
-| C 类型 | `xcgui.h` 定义 | 宽度 |
-|--------|----------------|------|
-| `vint` | `#ifdef _WIN64` → `__int64`，否则 `int` | 随平台（`XCGUI.pas` 已用 `Int64`/`Integer` 对齐） |
-| `HXCGUI` | `typedef void* HXCGUI` | 指针宽（`NativeInt`） |
-| `HWINDOW` / `HELE` / `HMENUX` / `HDRAW` / `HIMAGE` / `HFONTX` / `HBKM` / `HTEMP` / `HSVG` 等 | `DECLARE_HANDLEX` → `struct … *` | 指针宽（`NativeInt`） |
-
-`库/XCGUI/XCGUI.pas` 已将 `HXCGUI`/`HWINDOW`/`HELE` 等句柄绑定为 `NativeInt`（指针宽、有符号，兼容 `XC_ERROR = -1`），`vint` 按平台为 `Int64`/`Integer`。`XWidget_GetHWND`/`XWnd_GetHWND` 返回类型为 `HWND`，**无需**再包 `Windows.HWND(...)`。业务代码仍用 `XCGUI.HXCGUI` / `HWINDOW` / `HELE` 类型名，禁止裸 `Integer` 存炫彩句柄。
-
-**总原则**：炫彩 API 与 Win32 API 句柄**分层、禁止混用**。`XWidget_GetHWND` / `XWnd_GetHWND` 取的是 **Win32 `HWND`**；`XWidget_GetHWINDOW` / `Handle` / `HWINDOW` 是 **炫彩窗口句柄**。二者数值来源不同，**不得**把 `GetHWND` 结果传给 `XWnd_Create*`、`XC_LoadLayout` 父窗、或 `XEle_*` / `XShape_*` 的 `hParent`。**例外**：`XMenu_Popup` 第 2 参数 `hParentWnd` 须 **Win32 `Windows.HWND`**（见下）。
-
-| 类型 | 适用 API / 场景 | 获取方式 | 约束 |
-|------|----------------|----------|------|
-| `XCGUI.HWINDOW` | 炫彩**窗口**：`XWnd_Create`/`XWnd_CreateEx`、`XModalWnd_*`、`XFloatWnd_*`、`XFrameWnd_*`、`XWnd_*`、`XC_PostMessage`；`XC_LoadLayout` 的 **`hAttachWnd`**；窗口 **`Create`/`CreateEx` 的父窗参数** | `XWidget_GetHWINDOW`、`TFormUI.Handle`、`TXWidget.HWINDOW` | 炫彩窗口 API 与创建父窗均用此类型；**不得**传 `Windows.HWND`/`HELE` |
-| `XCGUI.HXCGUI` | 炫彩**通用对象句柄**（窗口/元素/形状/布局等，类型未定时用此类型）；`XC_LoadLayout` **返回值**（可能是窗口，也可能是布局元素）；`XEle_*`/`XBtn_*`/`XList_*`/`XEdit_*`/`XLayout_*` 的 **`hParent`**；`XShape_*`/`XListBox_Create`/`XShapeText_Create` 等 **`hParent`** | `XC_LoadLayout`、`XC_GetObjectByName`/`XC_GetObjectByID`、父控件 `.Handle` | 后续需判断类型可用 `XC_GetObjectType` 区分；组件**永远创建在炫彩句柄上**（窗口用 `HWINDOW`，元素/形状用 `HELE`/`HXCGUI`），**禁止**用 Win32 `HWND` 作父级 |
-| `XCGUI.HELE` | 炫彩**元素**；`XMenu_Popup` 第 5 参数 **`hParentEle`** | 同上 | 刷新 `XEle_Redraw`（第二参数禁止 `True`） |
-| `Windows.HWND` | **Win32**：`MessageBoxW`、`ShellExecute*`、`OpenFileDialog*`、`BrowseForFolderPath`、`PostMessageW`、`IsZoomed`、`ClientToScreen`（WinAPI）等；**炫彩例外** `XMenu_Popup`/`TXMenu.Popup` 第 2 参数 **`hParentWnd`** | `XWnd_GetHWND`、`XWidget_GetHWND`、`TXWidget.HWND` | 变量/字段写 `Windows.HWND`，禁止裸 `HWND`；**禁止**传入 `XWnd_*`/`XC_PostMessage`/`CreateEx` 父窗（菜单弹出除外） |
-
-### 创建与父级（易错）
-
-- **窗口 `Create`/`CreateEx`**（含 `TFormUI.CreateEx`）：父窗参数类型 **`XCGUI.HWINDOW`**，从触发控件取 **`XWidget_GetHWINDOW(hEle)`**，**禁止** `XWidget_GetHWND`。`库/XForm.pas` 参数误标为 `Windows.HWND`，工程内统一走 **`TFormUI.CreateEx(..., hOwnerWindow: HWINDOW, ...)`**。
-- **元素/形状 `*_Create(..., hParent)`**：`hParent` 为 **`HXCGUI`**（常为父窗/容器的 `.Handle`），同样是炫彩句柄，**不是** Win32 `HWND`。
-- **`XC_LoadLayout(..., hParent, hAttachWnd)`**：返回值类型 **`HXCGUI`**（可能是 `HWINDOW` 或布局 `HELE`，后续需判断类型可用 `XC_GetObjectType` 区分）；`hParent` → `HXCGUI`；`hAttachWnd` → **`HWINDOW`**（模态附着窗）。
-- **`XMenu_Popup(hMenu, hParentWnd, x, y, hParentEle, ...)`**（`TXMenu.Popup` 同理）：**第 2 参数 `hParentWnd` → `Windows.HWND`**（`XWidget_GetHWND` / `XWnd_GetHWND`）；**第 5 参数 `hParentEle` → `HELE`**。坐标须先 `XEle_PointClientToWndClient` 再 `ClientToScreen(hParentWnd, pt)`。参照 `样式/UI_PopupMenu.pas`。
-
-```pascal
-// 浮动窗：父窗用 HWINDOW
-hOwnerWindow := XWidget_GetHWINDOW(hEle);
-Popup := TSliderValuePopupUI.CreateEx(..., hOwnerWindow, window_style_nothing);
-
-// 子组件：父级用炫彩 Handle
-FTextShape := XShapeText_Create(0, 0, 80, 24, '', FInstance.Handle);
-
-// 菜单弹出：第 2 参数 Win32 HWND，第 5 参数 HELE（炫彩 API 中的例外）
-hWnd := XWidget_GetHWND(hHostEle);
-XEle_PointClientToWndClient(hHostEle, pt);
-ClientToScreen(hWnd, pt);
-XMenu_Popup(hMenu, hWnd, pt.X, pt.Y, hHostEle, menu_popup_position_left_top);
-
-// 其他 WinAPI
-MessageBoxW(XWidget_GetHWND(hEle), ...);
-PostMessageW(XWnd_GetHWND(hWindow), WM_QD_..., ...);
-```
-
-## 6. 多线程与 UI
-- **禁止 VCL 线程 UI 模型**：不得 `TThread.Synchronize`、`TThread.Queue`、`CheckSynchronize` 回主线程改界面。
-- **线程分工**：工作线程只做计算 / I/O / 采样；**禁止**在非 UI 线程调用 `XEle_*`、`XShape_*`、`XDraw_*` 等 XCGUI API。
-- **回 UI 用消息**：经 `XC_PostMessage` / `PostMessageW` 投递自定义 `WM_QD_*`；载荷堆分配（`New`），窗口过程消费后 `Dispose`；投递失败须释放载荷。
-- **毫秒级中断**：`功能/` 工作线程类须 `RequestStop`（`Terminate` + `TEvent.SetEvent` 唤醒）；主循环、分批任务、网络/磁盘 I/O 内高频检查 `Terminated` 或代际令牌；等待用限时 `WaitFor`/`Sleep`，**禁止**无超时阻塞（暂停态 `WaitFor(INFINITE)` 除外）；停止后须在数百毫秒内退出。
-- **参照**：`UI_MainWindowStat.PostStat*`、`HardwareMonitor`、`NetTrafficMonitor`、`WeatherFetcher`；新增 `WM_APP + n` 须避开已有常量。
-
-## 7. 命名与 XCGUI 校验
-- 变量名与类型名（忽略大小写）**不得相同**（**E2007**）；须后缀避让（如 `hSvgIcon`）。
-- **事件形参禁止 `hEle`**：会遮蔽类型 `HELE`，过程体内不得再声明 `var hBtn: HELE`。统一 `hSender`，比较写 `hBtn = hSender`。
-- 判空与类型：优先 `XC_GetObjectType(h) = XC_*`；已用时禁止再叠 `IsHELE`/`XC_IsHELE` 或与 `0` 比较。
-
-## 8. 事件与 D2D
-- `pbHandled` 始终有效，直接 `pbHandled^`；未处理不写 `False`，拦截时写 `True`。
-- **重绘**：`XEle_Redraw` 第二参数 `bImmediate` **禁止** `True`；省略或 `False`。`shapeText` 用 `XShape_Redraw` / `XShape_AdjustLayout`。
-- D2D：先 `XC_IsEnableD2D`，否则 `XDraw_*`；目标 `ID2D1RenderTarget(XDraw_GetD2dRenderTarget(hDraw))`；坐标经 `XEle_RectClientToWndClientDPI`。
-
-## 9. WOW64（32 位进程）
-- 路径：`System32` → `SysWOW64`（真 64 位用 `Sysnative`）。
-- 注册表须标明 32/64 视图（含 `Wow6432Node`）；**本节指路径/WOW64 陷阱；若须读注册表取硬件，须符合 §10 末位兜底**。
-
-## 10. 硬件获取（`功能/硬件/`）
-**所有**硬件信息获取须遵守 **驱动 → Native API → WMI / 注册表** 优先级，**不得跳级、不得并列混用**；WMI / 注册表**慎用**，仅前两级均不可用且业务必须时兜底。新增或调整获取路径时，**先参考主流工具**（CPU-Z、HWiNFO、LibreHardwareMonitor 等；开源优先查源码）的已验证做法，再映射到下列分层，**禁止**自创未经验证的冷门旁路。
-
-- **驱动**：传感器及可经内核/驱动获取的数据走 `PawnIO`（`DeviceIoControl`）；`Bin\PawnIO.sys` 随程序分发，按 CPU 选模块（AMD Zen → `AMDFamily17.bin`，Intel → `IntelMSR.bin`）。
-- **Native API**：静态/动态信息优先直接系统调用——CPU：`CPUID` + NT API；内存：`GlobalMemoryStatusEx` + SMBIOS；GPU：`HardwarePdh` + `EnumDisplayDevicesW` + D3DKMT + ADL2/NVML（无 COM）；网卡：`GetAdaptersAddresses` + `GetIfEntry2`。
-- **WMI / 注册表**：`IWbem*`、`Win32_*`、`TRegistry`/`RegQuery*` **禁止**作为首选、并列源或「图省事」捷径；新增兜底须单行注释说明为何驱动与 Native API 均不可用。
-- **分层**：`*Info.pas` 接口 + `*InfoNative.pas` 静态 + `*InfoPawnIo.pas`/`PawnIo.pas` 传感器；传感器按 TTL 缓存（见 `README.md`）。
-
-## 11. 改码后编译检测（必做）
-
-### 何时必须编译
-- **必须**：修改 `*.pas` / `*.dpr` / `*.dproj` 后，**编译通过**才能向用户汇报任务完成。
-- **可跳过**：仅改 `Resource/Layout/*.xml`、静态资源、文档、规则，且未动 Pascal 工程文件。
+- 改 `*.pas` / `*.dpr` / `*.dproj` 后须**编译通过**再汇报；仅 Layout/资源/文档/规则且未动 Pascal 可跳过。
 
 ```bat
 cd /d "d:\游戏菜单"
 编译测试.bat nopause
 ```
+
+- 须经 **cmd** 运行（见 `encoding.mdc`）；改 `编译测试.bat` 后须跑通再汇报。

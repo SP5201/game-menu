@@ -1,0 +1,35 @@
+---
+description: 功能层约定（业务/数据/系统访问；性能、线程、硬件、WOW64）
+globs: 功能/**/*.pas
+alwaysApply: false
+---
+
+# 功能层（`功能/`）
+
+## 分层
+
+- **`功能/`**：业务逻辑、数据、索引、配置、网络、硬件等；**禁止** `XEle_*`/`XShape_*`/`XDraw_*` 等 XCGUI UI API（`功能/Shell` 等 WinAPI 封装除外）。
+- 需更新界面：只产出数据或发消息，由 **`窗口/`** 消费（见 **`ui.mdc`** 多线程与 UI）。
+
+## 性能与 I/O
+
+- 热路径少拷贝：传引用、`const`、复用缓冲；避免无谓 `string`/动态数组复制。
+- 磁盘、注册表、网络、驱动能缓存则缓存（传感器 TTL 见 `README.md`）；禁止高频回调内反复 I/O。
+
+## 工作线程
+
+- `功能/` 线程类须 `RequestStop`（`Terminate` + `TEvent.SetEvent`）；循环/I/O 内检查 `Terminated`；`WaitFor`/`Sleep` 须限时（暂停态 `WaitFor(INFINITE)` 除外）；停止后数百毫秒内退出。
+- 参照：`HardwareMonitor`、`NetTrafficMonitor`、`WeatherFetcher`。
+
+## WOW64（32 位进程）
+
+- 路径：`System32` → `SysWOW64`（真 64 位用 `Sysnative`）。
+- 注册表须区分 32/64 视图（含 `Wow6432Node`）；读注册表取硬件时须符合下节兜底顺序。
+
+## 硬件获取（`功能/硬件/`）
+
+**驱动 → Native API → WMI/注册表**，不得跳级或并列混用；WMI/注册表仅前两级均不可用且业务必须时兜底，须注释说明原因。新增路径前先参考 CPU-Z/HWiNFO/LibreHardwareMonitor 等已验证做法。
+
+- **驱动**：传感器走 `PawnIO`；`Bin\PawnIO.sys`，AMD Zen → `AMDFamily17.bin`，Intel → `IntelMSR.bin`。
+- **Native API**：CPU `CPUID`+NT；内存 `GlobalMemoryStatusEx`+SMBIOS；GPU PDH+D3DKMT+ADL2/NVML；网卡 `GetAdaptersAddresses`+`GetIfEntry2`。
+- **分层**：`*Info.pas` + `*InfoNative.pas` + `*InfoPawnIo.pas`/`PawnIo.pas`；传感器 TTL 缓存。
