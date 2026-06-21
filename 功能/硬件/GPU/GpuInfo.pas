@@ -65,7 +65,7 @@ function GpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  Math, GpuInfoNative, GpuInfoVendor, MemInfo;
+  Math, GpuInfoNative, GpuInfoVendor, MemInfo, HardwareCommon;
 
 const
   cGpuSensorRefreshMs = 3000;
@@ -73,26 +73,14 @@ const
   cGpuFanRetryMs = 1000;
 
 var
-  GStaticLoaded: Boolean;
+  GStaticGate: THwStaticLoadGate;
   GStaticInfo: TGpuStaticInfo;
-  GStaticLoadLock: TRTLCriticalSection;
-  GStaticLoading: Boolean;
   GSensorsInfo: TGpuSensorInfo;
   GSensorsValid: Boolean;
   GSensorsHasData: Boolean;
   GSensorsLastTick: DWORD;
   GSensorsLock: TRTLCriticalSection;
   GSensorsLoading: Boolean;
-
-function AppendLine(const ALines, ALine: string): string;
-begin
-  if ALine = '' then
-    Result := ALines
-  else if ALines = '' then
-    Result := ALine
-  else
-    Result := ALines + sLineBreak + ALine;
-end;
 
 function GpuSensorHasData(const AInfo: TGpuSensorInfo): Boolean;
 begin
@@ -103,47 +91,35 @@ end;
 
 function GpuSensorsTickElapsed(ANowTick, ALastTick: DWORD): Integer;
 begin
-  if ANowTick >= ALastTick then
-    Result := ANowTick - ALastTick
-  else
-    Result := (High(DWORD) - ALastTick) + ANowTick + 1;
+  Result := HwTickElapsed(ANowTick, ALastTick);
 end;
 
 procedure GpuLoadStaticInfo;
 begin
-  if GStaticLoaded then
+  if not HwStaticGateTryEnter(GStaticGate) then
     Exit;
-  EnterCriticalSection(GStaticLoadLock);
   try
-    if GStaticLoaded then
-      Exit;
-    if GStaticLoading then
-      Exit;
-    GStaticLoading := True;
-    try
-      GStaticInfo := GpuNativeQueryStaticInfo;
-      GStaticLoaded := True;
-    finally
-      GStaticLoading := False;
-    end;
-  finally
-    LeaveCriticalSection(GStaticLoadLock);
+    GStaticInfo := GpuNativeQueryStaticInfo;
+    HwStaticGateLeaveLoaded(GStaticGate);
+  except
+    HwStaticGateLeaveFailed(GStaticGate);
+    raise;
   end;
 end;
 
 function GpuPeekStaticInfo(out ALoaded: Boolean): TGpuStaticInfo;
 begin
-  ALoaded := GStaticLoaded;
+  ALoaded := GStaticGate.Loaded;
   if not ALoaded then
   begin
     GpuInitStaticInfo(Result);
     Exit;
   end;
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     Result := GStaticInfo;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
 end;
 
@@ -259,21 +235,21 @@ begin
     Result := '厂商：' + info.VendorName
   else
     Result := '';
-  Result := AppendLine(Result, '型号：' + deviceLine);
+  Result := HwAppendLine(Result, '型号：' + deviceLine);
   if info.DriverVersion <> '' then
-    Result := AppendLine(Result, '驱动：' + info.DriverVersion);
+    Result := HwAppendLine(Result, '驱动：' + info.DriverVersion);
   if info.PcieLink <> '' then
-    Result := AppendLine(Result, 'PCIe：' + info.PcieLink);
+    Result := HwAppendLine(Result, 'PCIe：' + info.PcieLink);
   if info.HasIntegrated and info.Integrated then
-    Result := AppendLine(Result, '集成显卡：是');
-  Result := AppendLine(Result, '显存：' + GpuFormatMemoryText(sensors));
-  Result := AppendLine(Result, '温度：' + GpuFormatTemperatureText(sensors));
-  Result := AppendLine(Result, '功耗：' + GpuFormatPowerText(sensors));
-  Result := AppendLine(Result, '核心频率：' + GpuFormatFrequencyText(sensors.HasFrequency, sensors.FrequencyMhz));
-  Result := AppendLine(Result, '显存频率：' + GpuFormatFrequencyText(sensors.HasMemFrequency, sensors.MemFrequencyMhz));
-  Result := AppendLine(Result, '电压：' + GpuFormatVoltageText(sensors));
-  Result := AppendLine(Result, '风扇：' + GpuFormatFanSpeedText(sensors));
-  Result := AppendLine(Result, '使用率：' + usageText);
+    Result := HwAppendLine(Result, '集成显卡：是');
+  Result := HwAppendLine(Result, '显存：' + GpuFormatMemoryText(sensors));
+  Result := HwAppendLine(Result, '温度：' + GpuFormatTemperatureText(sensors));
+  Result := HwAppendLine(Result, '功耗：' + GpuFormatPowerText(sensors));
+  Result := HwAppendLine(Result, '核心频率：' + GpuFormatFrequencyText(sensors.HasFrequency, sensors.FrequencyMhz));
+  Result := HwAppendLine(Result, '显存频率：' + GpuFormatFrequencyText(sensors.HasMemFrequency, sensors.MemFrequencyMhz));
+  Result := HwAppendLine(Result, '电压：' + GpuFormatVoltageText(sensors));
+  Result := HwAppendLine(Result, '风扇：' + GpuFormatFanSpeedText(sensors));
+  Result := HwAppendLine(Result, '使用率：' + usageText);
 end;
 
 procedure GpuInitStaticInfo(out AInfo: TGpuStaticInfo);
@@ -352,13 +328,13 @@ begin
 end;
 
 initialization
-  InitializeCriticalSection(GStaticLoadLock);
+  HwStaticGateInit(GStaticGate);
   InitializeCriticalSection(GSensorsLock);
   GpuInitStaticInfo(GStaticInfo);
   GpuInitSensorInfo(GSensorsInfo);
 
 finalization
   DeleteCriticalSection(GSensorsLock);
-  DeleteCriticalSection(GStaticLoadLock);
+  HwStaticGateDone(GStaticGate);
 
 end.

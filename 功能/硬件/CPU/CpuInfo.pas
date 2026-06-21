@@ -58,7 +58,7 @@ function CpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  AppPaths, CpuInfoNative, CpuInfoSensors, CpuInfoFan, HardwarePdh;
+  AppPaths, CpuInfoNative, CpuInfoSensors, CpuInfoFan, HardwarePdh, HardwareCommon;
 
 const
   cCpuSensorRefreshMs = 3000;
@@ -68,10 +68,8 @@ const
   cCpuTooltipSvgPrefix = '#svg:';
 
 var
-  GStaticLoaded: Boolean;
+  GStaticGate: THwStaticLoadGate;
   GStaticInfo: TCpuStaticInfo;
-  GStaticLoadLock: TRTLCriticalSection;
-  GStaticLoading: Boolean;
   GSensorsInfo: TCpuSensorInfo;
   GSensorsValid: Boolean;
   GSensorsHasData: Boolean;
@@ -87,10 +85,7 @@ end;
 
 function CpuSensorsTickElapsed(ANowTick, ALastTick: DWORD): Integer;
 begin
-  if ANowTick >= ALastTick then
-    Result := ANowTick - ALastTick
-  else
-    Result := (High(DWORD) - ALastTick) + ANowTick + 1;
+  Result := HwTickElapsed(ANowTick, ALastTick);
 end;
 
 procedure CpuRefreshSensorsIfStale(AForce: Boolean = False);
@@ -176,23 +171,14 @@ end;
 
 procedure CpuLoadStaticInfo;
 begin
-  if GStaticLoaded then
+  if not HwStaticGateTryEnter(GStaticGate) then
     Exit;
-  EnterCriticalSection(GStaticLoadLock);
   try
-    if GStaticLoaded then
-      Exit;
-    if GStaticLoading then
-      Exit;
-    GStaticLoading := True;
-    try
-      GStaticInfo := CpuNativeQueryStaticInfo;
-      GStaticLoaded := True;
-    finally
-      GStaticLoading := False;
-    end;
-  finally
-    LeaveCriticalSection(GStaticLoadLock);
+    GStaticInfo := CpuNativeQueryStaticInfo;
+    HwStaticGateLeaveLoaded(GStaticGate);
+  except
+    HwStaticGateLeaveFailed(GStaticGate);
+    raise;
   end;
 end;
 
@@ -217,28 +203,28 @@ end;
 function CpuQueryStaticInfo: TCpuStaticInfo;
 begin
   CpuLoadStaticInfo;
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     Result := GStaticInfo;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
   Result.CurrentSpeedMhz := CpuNativeQueryCurrentSpeedMhz;
 end;
 
 function CpuPeekStaticInfo(out ALoaded: Boolean): TCpuStaticInfo;
 begin
-  ALoaded := GStaticLoaded;
+  ALoaded := GStaticGate.Loaded;
   if not ALoaded then
   begin
     FillChar(Result, SizeOf(Result), 0);
     Exit;
   end;
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     Result := GStaticInfo;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
 end;
 
@@ -494,13 +480,13 @@ begin
 end;
 
 initialization
-  InitializeCriticalSection(GStaticLoadLock);
+  HwStaticGateInit(GStaticGate);
   InitializeCriticalSection(GSensorsLock);
   FillChar(GStaticInfo, SizeOf(GStaticInfo), 0);
   CpuInitSensorInfo(GSensorsInfo);
 
 finalization
   DeleteCriticalSection(GSensorsLock);
-  DeleteCriticalSection(GStaticLoadLock);
+  HwStaticGateDone(GStaticGate);
 
 end.

@@ -79,13 +79,11 @@ function MemFormatTooltip(const AUsagePctText: string): string;
 implementation
 
 uses
-  MemInfoNative, MemPartNumberLookup;
+  MemInfoNative, MemPartNumberLookup, HardwareCommon;
 
 var
-  GStaticLoaded: Boolean;
+  GStaticGate: THwStaticLoadGate;
   GStaticInfo: TMemStaticInfo;
-  GStaticLoadLock: TRTLCriticalSection;
-  GStaticLoading: Boolean;
   GSpdEnriched: Boolean;
 
 function MemGuessSlotCount(APhysTotal: UInt64): Integer;
@@ -466,16 +464,6 @@ begin
   end;
 end;
 
-procedure MemInitStaticLoadLock;
-begin
-  InitializeCriticalSection(GStaticLoadLock);
-end;
-
-procedure MemDoneStaticLoadLock;
-begin
-  DeleteCriticalSection(GStaticLoadLock);
-end;
-
 procedure MemInitStaticInfo(out AInfo: TMemStaticInfo);
 begin
   AInfo.UsagePct := -1;
@@ -537,16 +525,6 @@ begin
   end;
 end;
 
-function AppendLine(const ALines, ALine: string): string;
-begin
-  if ALine = '' then
-    Result := ALines
-  else if ALines = '' then
-    Result := ALine
-  else
-    Result := ALines + sLineBreak + ALine;
-end;
-
 procedure MemTakeStaticInfo(var AInfo: TMemStaticInfo);
 begin
   MemFreeStaticInfo(GStaticInfo);
@@ -564,32 +542,23 @@ procedure MemLoadStaticInfo;
 var
   nativeInfo: TMemStaticInfo;
 begin
-  if GStaticLoaded then
+  if not HwStaticGateTryEnter(GStaticGate) then
     Exit;
-  EnterCriticalSection(GStaticLoadLock);
   try
-    if GStaticLoaded then
-      Exit;
-    if GStaticLoading then
-      Exit;
-    GStaticLoading := True;
-    try
-      nativeInfo := MemNativeQueryStaticInfo;
-      if (nativeInfo.PhysTotal > 0) or (nativeInfo.UsagePct >= 0) or
-        (nativeInfo.SlotCount > 0) or (Length(nativeInfo.Modules) > 0) then
-        MemTakeStaticInfo(nativeInfo)
-      else
-      begin
-        MemFreeStaticInfo(nativeInfo);
-        MemFreeStaticInfo(GStaticInfo);
-        MemInitStaticInfo(GStaticInfo);
-      end;
-      GStaticLoaded := True;
-    finally
-      GStaticLoading := False;
+    nativeInfo := MemNativeQueryStaticInfo;
+    if (nativeInfo.PhysTotal > 0) or (nativeInfo.UsagePct >= 0) or
+      (nativeInfo.SlotCount > 0) or (Length(nativeInfo.Modules) > 0) then
+      MemTakeStaticInfo(nativeInfo)
+    else
+    begin
+      MemFreeStaticInfo(nativeInfo);
+      MemFreeStaticInfo(GStaticInfo);
+      MemInitStaticInfo(GStaticInfo);
     end;
-  finally
-    LeaveCriticalSection(GStaticLoadLock);
+    HwStaticGateLeaveLoaded(GStaticGate);
+  except
+    HwStaticGateLeaveFailed(GStaticGate);
+    raise;
   end;
 end;
 
@@ -603,16 +572,16 @@ begin
   if GSpdEnriched then
     Exit;
   MemLoadStaticInfo;
-  if not GStaticLoaded then
+  if not GStaticGate.Loaded then
     Exit;
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     if GSpdEnriched then
       Exit;
     MemNativeEnrichSpdInfo(GStaticInfo);
     GSpdEnriched := True;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
 end;
 
@@ -630,7 +599,7 @@ var
   dramVoltage: Double;
   slotCount: Cardinal;
 begin
-  if not GStaticLoaded then
+  if not GStaticGate.Loaded then
   begin
     if (AUsagePctText <> '') and (AUsagePctText <> cMemDash) then
       usageText := AUsagePctText
@@ -639,7 +608,7 @@ begin
     Exit('使用率：' + usageText + sLineBreak +
       '（详细信息加载中…）');
   end;
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     usagePct := GStaticInfo.UsagePct;
     physTotal := GStaticInfo.PhysTotal;
@@ -652,7 +621,7 @@ begin
     slotCount := GStaticInfo.SlotCount;
     modules := GStaticInfo.Modules;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
   MemInitStaticInfo(info);
   info.UsagePct := usagePct;
@@ -695,20 +664,20 @@ begin
       memAvail := 0
     else
       memAvail := memTotal - memInUse;
-    Result := AppendLine(Result, '已用：' + MemFormatBytes(memInUse) + ' / ' + MemFormatBytes(memTotal));
-    Result := AppendLine(Result, '可用：' + MemFormatBytes(memAvail));
+    Result := HwAppendLine(Result, '已用：' + MemFormatBytes(memInUse) + ' / ' + MemFormatBytes(memTotal));
+    Result := HwAppendLine(Result, '可用：' + MemFormatBytes(memAvail));
   end
   else
   begin
-    Result := AppendLine(Result, '已用：' + cMemDash);
-    Result := AppendLine(Result, '可用：' + cMemDash);
+    Result := HwAppendLine(Result, '已用：' + cMemDash);
+    Result := HwAppendLine(Result, '可用：' + cMemDash);
   end;
 
-  Result := AppendLine(Result, '');
+  Result := HwAppendLine(Result, '');
   if dramVoltage <= 0 then
     dramVoltage := MemInferVoltageFromDramType(dramType);
   voltageText := MemFormatVoltageText(dramVoltage);
-  Result := AppendLine(Result, '工作电压：' + voltageText);
+  Result := HwAppendLine(Result, '工作电压：' + voltageText);
 
   installedCount := MemCountInstalledModules(info.Modules);
   if channelCount <= 0 then
@@ -719,10 +688,10 @@ begin
       channelCount := 1;
   end;
   channelText := MemFormatDualChannelText(channelCount, installedCount);
-  Result := AppendLine(Result, '通道：' + channelText);
+  Result := HwAppendLine(Result, '通道：' + channelText);
 
   if info.SpecText <> '' then
-    Result := AppendLine(Result, '最大可扩展：' + info.SpecText);
+    Result := HwAppendLine(Result, '最大可扩展：' + info.SpecText);
 
   if info.SlotCount > 0 then
   begin
@@ -730,23 +699,23 @@ begin
       slotSummaryText := IntToStr(installedCount) + ' / ' + IntToStr(info.SlotCount) + ' 槽'
     else
       slotSummaryText := '0 / ' + IntToStr(info.SlotCount) + ' 槽';
-    Result := AppendLine(Result, '已装：' + slotSummaryText);
+    Result := HwAppendLine(Result, '已装：' + slotSummaryText);
   end;
 
-  Result := AppendLine(Result, '');
+  Result := HwAppendLine(Result, '');
   if Length(info.Modules) = 0 then
-    Result := AppendLine(Result, cMemDash)
+    Result := HwAppendLine(Result, cMemDash)
   else
     for i := 0 to High(info.Modules) do
-      Result := AppendLine(Result, MemFormatModuleLine(i + 1, info.Modules[i]));
+      Result := HwAppendLine(Result, MemFormatModuleLine(i + 1, info.Modules[i]));
 end;
 
 initialization
-  MemInitStaticLoadLock;
+  HwStaticGateInit(GStaticGate);
   MemInitStaticInfo(GStaticInfo);
 
 finalization
   MemFreeStaticInfo(GStaticInfo);
-  MemDoneStaticLoadLock;
+  HwStaticGateDone(GStaticGate);
 
 end.

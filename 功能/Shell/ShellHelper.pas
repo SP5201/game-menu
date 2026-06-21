@@ -17,16 +17,12 @@ function GetListViewFileItemFromParsingPath(const AFullPath: string; ALoadIcon: 
 function LoadXImageFromFileMemory(const AFilePath: string): Integer;
 function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE;
 function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
-function TryAcquireSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; out AImage: Integer): Boolean;
-function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
-procedure PutSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; AImage: Integer);
 procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
 procedure ClearListDisplayImageCache;
 function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: string): HIMAGE;
 function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
   out AIconCachePathOut: string): HIMAGE;
 function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
-function GetApplicationIcon: HICON;
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
 function GetShieldIconSmall: HICON;
 procedure ReleaseFileTypeImageCache;
@@ -42,6 +38,7 @@ function ShellExecuteDefaultVerb(hwnd: Windows.HWND; const FilePath, Parameters,
 function ShellExecuteRunAs(hwnd: Windows.HWND; const FilePath, Parameters, WorkingDir: UnicodeString;
   const AShowCmd: Integer): Boolean;
 function ShellOpenFolderAndSelectPath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;
+function ShellDeletePath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;
 procedure RestartWindowsExplorer;
 procedure RestartWindowsExplorerAsync;
 
@@ -93,19 +90,9 @@ begin
   Result := ShellIconHelper.GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
 end;
 
-function TryAcquireSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; out AImage: Integer): Boolean;
-begin
-  Result := ShellIconHelper.TryAcquireSharedDisplayImage(ACacheKey, AIconSide, AImage);
-end;
-
 function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
 begin
   Result := ShellIconHelper.TryAcquireCachedListFileImage(AIconCachePath, AFilePath, AImage);
-end;
-
-procedure PutSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; AImage: Integer);
-begin
-  ShellIconHelper.PutSharedDisplayImage(ACacheKey, AIconSide, AImage);
 end;
 
 procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
@@ -132,11 +119,6 @@ end;
 function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
 begin
   Result := ShellIconHelper.LoadImageFromIconData(AIcon);
-end;
-
-function GetApplicationIcon: HICON;
-begin
-  Result := ShellIconHelper.GetApplicationIcon;
 end;
 
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
@@ -534,6 +516,22 @@ begin
   Result := ShellExecuteW(hwnd, nil, 'explorer.exe', PWideChar(Params), nil, SW_SHOWNORMAL) > 32;
 end;
 
+function ShellDeletePath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;
+var
+  fo: TSHFileOpStruct;
+  fromBuf: UnicodeString;
+begin
+  Result := False;
+  if FilePath = '' then
+    Exit;
+  fromBuf := FilePath + #0#0;
+  FillChar(fo, SizeOf(fo), 0);
+  fo.Wnd := hwnd;
+  fo.wFunc := FO_DELETE;
+  fo.pFrom := PWideChar(fromBuf);
+  fo.fFlags := FOF_ALLOWUNDO;
+  Result := (SHFileOperation(fo) = 0) and (not fo.fAnyOperationsAborted);
+end;
 
 function IsRunningUnderWow64: Boolean;
 type

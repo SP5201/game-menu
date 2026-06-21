@@ -1,4 +1,4 @@
-﻿unit NetInfo;
+unit NetInfo;
 
 {
   网卡悬停提示：GetAdaptersAddresses + GetIfEntry2（发送/接收字节数每次刷新）。
@@ -36,13 +36,11 @@ implementation
 {$WARN IMPLICIT_STRING_CAST OFF}
 
 uses
-  Winapi.Winsock2, Classes, NetIfTable2;
+  Winapi.Winsock2, Classes, NetIfTable2, HardwareCommon;
 
 var
-  GStaticLoaded: Boolean;
+  GStaticGate: THwStaticLoadGate;
   GStaticInfo: TNetAdapterInfo;
-  GStaticLoadLock: TRTLCriticalSection;
-  GStaticLoading: Boolean;
   GWsaStarted: Boolean;
 
 const
@@ -832,23 +830,14 @@ end;
 
 procedure NetLoadStaticInfo;
 begin
-  if GStaticLoaded then
+  if not HwStaticGateTryEnter(GStaticGate) then
     Exit;
-  EnterCriticalSection(GStaticLoadLock);
   try
-    if GStaticLoaded then
-      Exit;
-    if GStaticLoading then
-      Exit;
-    GStaticLoading := True;
-    try
-      GStaticInfo := NetNativeQueryAdapterInfo;
-      GStaticLoaded := True;
-    finally
-      GStaticLoading := False;
-    end;
-  finally
-    LeaveCriticalSection(GStaticLoadLock);
+    GStaticInfo := NetNativeQueryAdapterInfo;
+    HwStaticGateLeaveLoaded(GStaticGate);
+  except
+    HwStaticGateLeaveFailed(GStaticGate);
+    raise;
   end;
 end;
 
@@ -862,13 +851,13 @@ var
   info: TNetAdapterInfo;
 begin
   NetLoadStaticInfo;
-  if not GStaticLoaded then
+  if not GStaticGate.Loaded then
     Exit('（网卡信息加载中…）');
-  EnterCriticalSection(GStaticLoadLock);
+  EnterCriticalSection(GStaticGate.Lock);
   try
     info := GStaticInfo;
   finally
-    LeaveCriticalSection(GStaticLoadLock);
+    LeaveCriticalSection(GStaticGate.Lock);
   end;
   NetNativeRefreshTrafficOctets(info.IfIndex, info);
 
@@ -909,12 +898,12 @@ begin
 end;
 
 initialization
-  InitializeCriticalSection(GStaticLoadLock);
+  HwStaticGateInit(GStaticGate);
   NetInitAdapterInfo(GStaticInfo);
   GWsaStarted := False;
 
 finalization
-  DeleteCriticalSection(GStaticLoadLock);
+  HwStaticGateDone(GStaticGate);
   if GWsaStarted then
     WSACleanup;
 

@@ -48,7 +48,6 @@ function SafeLogLiveWindowHandle: XCGUI.HWINDOW;
 procedure SafeLogStartupBegin;
 procedure SafeLogStartupAppendStep(const AFeature, ADetail: string; ASuccess: Boolean);
 procedure SafeLogStartupCommit;
-function SafeLogStartupPending: Boolean;
 
 implementation
 
@@ -381,11 +380,6 @@ begin
     entry.SummaryText := '应用初始化失败';
   GStartupLines.Clear;
   SafeLogAppendEntry(entry);
-end;
-
-function SafeLogStartupPending: Boolean;
-begin
-  Result := GStartupActive;
 end;
 
 function SafeLogFindById(AId: Integer; out AEntry: TSafeLogEntry): Boolean;

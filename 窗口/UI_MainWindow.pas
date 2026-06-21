@@ -133,6 +133,8 @@ procedure MainWindowListViewPrepareContextMenu(ASender: TListViewUI; AMenu: TPop
   const AFilePath: string);
 procedure MainWindowListViewItemActivate(ASender: TListViewUI; AItemIndex: Integer);
 function MainWindowResolveListViewMenuFilePath(out AItemIndex: Integer): string;
+function MainWindowIsSearchListContext(ASender: TListViewUI): Boolean;
+procedure MainWindowRemoveSearchHitByPath(const AFilePath: string);
 procedure MainWindowListViewItemWidthChanged(ASender: TListViewUI; AWidth: Integer);
 function NormalizeCategoryIconFile(const AIconFile: string): string;
 
@@ -1365,6 +1367,49 @@ begin
     Exit;
   end;
 
+  if nItem = ID_LISTVIEW_MENU_DELETE then
+  begin
+    data.FilePath := MainWindowResolveListViewMenuFilePath(itm);
+    if data.FilePath = '' then
+      Exit;
+    if MainWindowIsSearchListContext(CListViewUI) then
+    begin
+      if ShellDeletePath(CListViewUI.HWND, data.FilePath) then
+      begin
+        MainWindowRemoveSearchHitByPath(data.FilePath);
+        ApplySearchHitsToViewPreserveScroll;
+        RefreshListFilterButtonCounts;
+      end;
+    end
+    else
+    begin
+      if not CListViewUI.TryGetSelectedItem(groupIndex, itm, data) then
+        Exit;
+      if data.FilePath = '' then
+        data.FilePath := CListViewUI.ResolveSearchItemPath(itm);
+      fileName := data.FileName;
+      if fileName = '' then
+        fileName := ExtractFileName(data.FilePath);
+      if fileName = '' then
+        fileName := data.FilePath;
+      if not TMessageBoxUI.Confirm('删除项', '确定要删除' + fileName + '吗？', hOwnerWnd) then
+        Exit;
+      activeGroupIndex := CActiveListGroupIndex;
+      if data.ItemGroupIndex >= 0 then
+        activeGroupIndex := data.ItemGroupIndex;
+      if activeGroupIndex < 0 then
+        Exit;
+      if CStore.DeleteItem(activeGroupIndex, data.FilePath) then
+      begin
+        RemoveListFilterSourceItem(data.FilePath);
+        ApplyListFilterToView;
+        CListViewUI.Redraw();
+        RefreshListFilterButtonCounts;
+      end;
+    end;
+    Exit;
+  end;
+
   if not CListViewUI.TryGetSelectedItem(groupIndex, itm, data) then
     Exit;
 
@@ -1404,31 +1449,6 @@ begin
       end;
     end;
     Exit;
-  end;
-
-  if nItem = ID_LISTVIEW_MENU_DELETE then
-  begin
-    fileName := data.FileName;
-    if fileName = '' then
-      fileName := ExtractFileName(data.FilePath);
-    if fileName = '' then
-      fileName := data.FilePath;
-
-    if not TMessageBoxUI.Confirm('删除项', '确定要删除' + fileName + '吗？', hOwnerWnd) then
-      Exit;
-
-    activeGroupIndex := CActiveListGroupIndex;
-    if data.ItemGroupIndex >= 0 then
-      activeGroupIndex := data.ItemGroupIndex;
-    if activeGroupIndex < 0 then
-      Exit;
-    if CStore.DeleteItem(activeGroupIndex, data.FilePath) then
-    begin
-      RemoveListFilterSourceItem(data.FilePath);
-      ApplyListFilterToView;
-      CListViewUI.Redraw();
-      RefreshListFilterButtonCounts;
-    end;
   end;
 end;
 
@@ -1982,6 +2002,29 @@ begin
     (TMainFormUI.CListBoxUI.GetSelectItem = cCategorySearchListIndex);
 end;
 
+procedure MainWindowRemoveSearchHitByPath(const AFilePath: string);
+var
+  i, w, n: Integer;
+  hitPath: string;
+begin
+  if AFilePath = '' then
+    Exit;
+  n := Length(TMainFormUI.CSearchHitIndices);
+  w := 0;
+  for i := 0 to n - 1 do
+  begin
+    hitPath := EverythingIndexGetHitPath(TMainFormUI.CSearchHitIndices[i]);
+    if not SameText(hitPath, AFilePath) then
+    begin
+      TMainFormUI.CSearchHitIndices[w] := TMainFormUI.CSearchHitIndices[i];
+      Inc(w);
+    end;
+  end;
+  SetLength(TMainFormUI.CSearchHitIndices, w);
+  if TMainFormUI.CLastSearchCacheValid then
+    TMainFormUI.CLastSearchHitIndices := TMainFormUI.CSearchHitIndices;
+end;
+
 function MainWindowResolveListViewMenuFilePath(out AItemIndex: Integer): string;
 var
   data: TListViewFileItem;
@@ -2021,13 +2064,12 @@ begin
       AMenu.AddItemShieldIcon(ID_LISTVIEW_MENU_RUN_AS_ADMIN, '以管理员身份运行', 0, 0);
     AMenu.AddItem(ID_LISTVIEW_MENU_OPEN_FOLDER, UI_Utf8Src(UTF8String('打开所在目录')));
     ShellOpenWithAppendContextMenuItems(AMenu, AFilePath);
+    AMenu.AddItem(0, '', 0, menu_item_flag_separator);
     if not isSearchView then
-    begin
-      AMenu.AddItem(0, '', 0, menu_item_flag_separator);
       AMenu.AddItemIcon(ID_LISTVIEW_MENU_EDIT, '修改', 0, 'Resource\menu_edit.svg', 0);
-      AMenu.AddItem(ID_LISTVIEW_MENU_DELETE, '删除');
+    AMenu.AddItem(ID_LISTVIEW_MENU_DELETE, '删除');
+    if not isSearchView then
       AMenu.AddItem(0, '', 0, menu_item_flag_separator);
-    end;
   end;
   if not isSearchView then
   begin

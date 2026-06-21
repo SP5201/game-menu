@@ -1,4 +1,4 @@
-unit UI_ListView;
+﻿unit UI_ListView;
 
 interface
 
@@ -917,7 +917,7 @@ end;
 procedure TListViewUI.ClearItems;
 begin
   FListGeneration := ShellIconLoaderBumpListGeneration;
-  FScrollGeneration := 0;
+  FScrollGeneration := ShellIconLoaderBumpScrollGeneration;
   ReleaseAllFileImages;
   FSearchMode := False;
   SetLength(FSearchHitIndices, 0);
@@ -1061,7 +1061,7 @@ var
   iconsPrimed: Boolean;
 begin
   FListGeneration := ShellIconLoaderBumpListGeneration;
-  FScrollGeneration := 0;
+  FScrollGeneration := ShellIconLoaderBumpScrollGeneration;
   FWheelLayoutDirty := False;
   ReleaseAllFileImages;
   FSearchMode := True;
@@ -1103,7 +1103,7 @@ var
   iconsPrimed: Boolean;
 begin
   FListGeneration := ShellIconLoaderBumpListGeneration;
-  FScrollGeneration := 0;
+  FScrollGeneration := ShellIconLoaderBumpScrollGeneration;
   FWheelLayoutDirty := False;
   ReleaseAllFileImages;
   FSearchMode := False;
@@ -1585,7 +1585,7 @@ begin
     Exit;
   if (itm < 0) or (itm >= ListView.FItemCount) then
     Exit;
-  ListView.SetSelectItem(grp, itm);
+  ListView.SetSelectItem(cListDataGroup, itm);
   if Assigned(ListView.FOnItemActivate) then
     ListView.FOnItemActivate(ListView, itm);
   pbHandled^ := True;
@@ -1607,11 +1607,15 @@ begin
   begin
     if (itm < 0) or (itm >= ListView.FItemCount) then
       itm := -1
-    else if ListView.TryGetItem(itm, itemData) then
+    else
     begin
-      filePath := itemData.FilePath;
-      if (filePath = '') and ListView.IsSearchMode then
-        filePath := ListView.ResolveSearchItemPath(itm);
+      ListView.SetSelectItem(cListDataGroup, itm);
+      if ListView.TryGetItem(itm, itemData) then
+      begin
+        filePath := itemData.FilePath;
+        if (filePath = '') and ListView.IsSearchMode then
+          filePath := ListView.ResolveSearchItemPath(itm);
+      end;
     end;
   end;
   Menu := TPopupMenuUI.Create(hEle);

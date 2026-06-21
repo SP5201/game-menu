@@ -1,4 +1,4 @@
-unit UI_Button;
+﻿unit UI_Button;
 
 interface
 
@@ -251,11 +251,9 @@ var
   rcBox: TRect;
   rcText: TRect;
   nBoxSize: Integer;
-
 begin
   Result := 0;
   pbHandled^ := True;
-
   F := TButtonUI.GetPaintFlagsOfHandle(hEle);
   bSvg := BtnGetSvg(hEle, hSvgIcon, svgW, svgH);
   bBkHighlight := (F and BB_EnableHighlightBk) <> 0;

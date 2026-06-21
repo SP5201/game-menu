@@ -1,4 +1,4 @@
-﻿unit ShellIconHelper;
+unit ShellIconHelper;
 
 interface
 
@@ -61,8 +61,6 @@ function GetListViewFileItemFromParsingPath(const AFullPath: string;
   ALoadIcon: Boolean = True): TListViewFileItem;
 function LoadXImageFromFileMemory(const AFilePath: string): Integer;
 function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
-function TryAcquireSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; out AImage: Integer): Boolean;
-procedure PutSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; AImage: Integer);
 procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
 function IsListFileImageLoadFailed(const AIconCachePath, AFilePath: string): Boolean;
 procedure MarkListFileImageLoadFailed(const AIconCachePath, AFilePath: string);
@@ -72,7 +70,6 @@ function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: st
 function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
   out AIconCachePathOut: string): HIMAGE;
 function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
-function GetApplicationIcon: HICON;
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
 function GetShieldIconSmall: HICON;
 function TryGetCachedFileTypeImage(const ACacheKey: string; out AImage: HIMAGE): Boolean;
@@ -1469,48 +1466,6 @@ begin
     Result := ChangeFileExt(fn, '')
   else
     Result := 'file:' + IntToHex(Fnv1a32(AnsiString(LowerCase(AFilePath))), 8);
-end;
-
-function TryAcquireSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; out AImage: Integer): Boolean;
-var
-  entryKey: string;
-  idx: Integer;
-  v: NativeInt;
-begin
-  Result := False;
-  AImage := 0;
-  if (ACacheKey = '') or (AIconSide <= 0) or (GListDisplayImageCache = nil) then
-    Exit;
-  entryKey := LowerCase(ACacheKey) + #9 + IntToStr(AIconSide);
-  idx := GListDisplayImageCache.IndexOf(entryKey);
-  if idx < 0 then
-    Exit;
-  v := NativeInt(GListDisplayImageCache.Objects[idx]);
-  if v <= 0 then
-    Exit;
-  if XC_GetObjectType(v) <> XC_IMAGE then
-  begin
-    GListDisplayImageCache.Delete(idx);
-    Exit;
-  end;
-  AImage := v;
-  XImage_AddRef(HIMAGE(AImage));
-  Result := True;
-end;
-
-procedure PutSharedDisplayImage(const ACacheKey: string; AIconSide: Integer; AImage: Integer);
-var
-  entryKey: string;
-begin
-  if (ACacheKey = '') or (AIconSide <= 0) or (AImage = 0) or (GListDisplayImageCache = nil) then
-    Exit;
-  entryKey := LowerCase(ACacheKey) + #9 + IntToStr(AIconSide);
-  if GListDisplayImageCache.IndexOf(entryKey) >= 0 then
-    Exit;
-  if XC_GetObjectType(AImage) <> XC_IMAGE then
-    Exit;
-  XImage_AddRef(HIMAGE(AImage));
-  GListDisplayImageCache.AddObject(entryKey, TObject(NativeInt(AImage)));
 end;
 
 procedure IncFileTypeRef(const ATypeKey: string);

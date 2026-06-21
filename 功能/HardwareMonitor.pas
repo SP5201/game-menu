@@ -12,6 +12,7 @@ type
   private
     FWakeEvent: TEvent;
     FOnUpdate: THardwareUpdateProc;
+    FPausedFlag: Longint;
     FPreIdleTime: TFileTime;
     FPreKernelTime: TFileTime;
     FPreUserTime: TFileTime;
@@ -23,12 +24,15 @@ type
     function SampleMemoryPercent: Integer;
     function SampleGpuPercent: Integer;
     procedure NotifyUi(const ACpuText, AMemText, AGpuText: string);
+    procedure SetPaused(const APaused: Boolean);
   protected
     procedure Execute; override;
   public
     constructor Create;
     destructor Destroy; override;
     procedure RequestStop;
+    procedure PauseSampler;
+    procedure ResumeSampler;
     property OnUpdate: THardwareUpdateProc read FOnUpdate write FOnUpdate;
   end;
 
@@ -40,7 +44,7 @@ uses
   Math, HardwarePdh;
 
 const
-  cSampleIntervalMs = 1000;
+  cSampleIntervalMs = 2500;
 
 function FileTimeDiff(const AOldTime, ANewTime: TFileTime): Int64;
 var
@@ -80,6 +84,22 @@ begin
     Exit;
   Terminate;
   FWakeEvent.SetEvent;
+end;
+
+procedure THardwareSamplerThread.SetPaused(const APaused: Boolean);
+begin
+  InterlockedExchange(FPausedFlag, Ord(APaused));
+  FWakeEvent.SetEvent;
+end;
+
+procedure THardwareSamplerThread.PauseSampler;
+begin
+  SetPaused(True);
+end;
+
+procedure THardwareSamplerThread.ResumeSampler;
+begin
+  SetPaused(False);
 end;
 
 function THardwareSamplerThread.SampleCpuPercent: Integer;
@@ -175,6 +195,11 @@ var
 begin
   while not Terminated do
   begin
+    if FPausedFlag <> 0 then
+    begin
+      FWakeEvent.WaitFor(INFINITE);
+      Continue;
+    end;
     CpuUsage := SampleCpuPercent;
     MemUsage := SampleMemoryPercent;
     GpuUsage := SampleGpuPercent;
