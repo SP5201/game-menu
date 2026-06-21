@@ -14,8 +14,9 @@ const
   cRenderModeGDI = 'GDI';
   cRenderModeD2D = 'D2D';
   /// <summary>UI 绘制间隔（毫秒），传给 XC_SetPaintFrequency</summary>
-  cDefaultPaintFrequencyMs = 30;
+  cDefaultPaintFrequencyMs = 90;
   cMaxPaintFrequencyMs = 120;
+  cIdlePaintFrequencyMs = 0;
   cDefaultCityCoordsUrl = 'https://raw.githubusercontent.com/zhongzx8080/CityCoordinate/refs/heads/master/city.json';
   cProxyModeOff = 0;
   cProxyModeHttp = 1;
@@ -162,6 +163,8 @@ type
     class procedure SyncRunWithWindowsRegistry(const AEnabled: Boolean);
     class function InitXCGUI: Boolean;
     class procedure ApplyPaintFrequency;
+    class procedure ApplyIdlePaintFrequency;
+    class procedure ApplyActivePaintFrequency;
   end;
 
 
@@ -800,6 +803,16 @@ end;
 class procedure TAppSettings.ApplyPaintFrequency;
 begin
   XC_SetPaintFrequency(TAppConfig.GetPaintFrequencyMs);
+end;
+
+class procedure TAppSettings.ApplyIdlePaintFrequency;
+begin
+  XC_SetPaintFrequency(cIdlePaintFrequencyMs);
+end;
+
+class procedure TAppSettings.ApplyActivePaintFrequency;
+begin
+  ApplyPaintFrequency;
 end;
 
 class procedure TAppSettings.SyncRunWithWindowsRegistry(const AEnabled: Boolean);

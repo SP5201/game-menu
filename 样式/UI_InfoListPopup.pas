@@ -1,4 +1,4 @@
-﻿unit UI_InfoListPopup;
+unit UI_InfoListPopup;
 
 {
   信息行列表悬停弹层：独立弹出窗口 + ListBox，可复用于状态栏 IP/天气等多行说明。
@@ -20,6 +20,7 @@ type
     GetText: TInfoListGetTextFunc;
     PopupAbove: Boolean;
     OffsetY: Integer;
+  LiveRefresh: Boolean;
   end;
 
   TInfoListPopupUI = class(TFormUI)
@@ -84,7 +85,9 @@ type
   protected
     procedure Init; override;
   public
-    class procedure BindHover(const ATargetHandle: HELE; const AGetText: TInfoListGetTextFunc; const APopupAbove: Boolean = False; const AOffsetY: Integer = 0); static;
+    class procedure BindHover(const ATargetHandle: HELE; const AGetText: TInfoListGetTextFunc;
+      const APopupAbove: Boolean = False; const AOffsetY: Integer = 0;
+      const ALiveRefresh: Boolean = False); static;
     class procedure NotifyContentChanged; static;
     class function IsHoverBoundTo(const ATarget: HELE): Boolean; static;
     class procedure Hide; static;
@@ -117,9 +120,9 @@ const
   CInfoSvgValuePrefix = '#svg:';   // 值列 SVG 前缀，格式 #svg:路径[@宽x高]
   // 定时器
   CInfoRefreshTimerId = 1;         // 弹层可见时周期刷新正文
-  CInfoRefreshTimerMs = 1000;      // 刷新间隔（毫秒）
+  CInfoRefreshTimerMs = 3000;      // 刷新间隔（毫秒，传感器类弹层）
   CInfoDeferHoverTimerId = 2;      // MouseMove 防抖，延后弹出/切换目标
-  CInfoDeferHoverTimerMs = 1;      // 延后等待（毫秒）
+  CInfoDeferHoverTimerMs = 16;     // 延后等待（毫秒）
 
 class procedure TInfoListPopupUI.EnsureHoverBinds;
 begin
@@ -626,6 +629,8 @@ begin
 end;
 
 class function TInfoListPopupUI.OnWndTimer(hWindow: XCGUI.HWINDOW; nIDEvent: UINT; pbHandled: PBOOL): Integer; stdcall;
+var
+  bindIdx: Integer;
 begin
   Result := 0;
   if nIDEvent = CInfoDeferHoverTimerId then
@@ -636,7 +641,12 @@ begin
     Exit;
   end;
   if (nIDEvent = CInfoRefreshTimerId) and FIsVisible then
-    NotifyContentChanged;
+  begin
+    bindIdx := FindBindIndex(FBoundTargetHandle);
+    if (bindIdx >= 0) and FHoverBinds[bindIdx].LiveRefresh then
+      NotifyContentChanged;
+    Exit;
+  end;
 end;
 
 class procedure TInfoListPopupUI.NotifyContentChanged;
@@ -808,6 +818,7 @@ end;
 class procedure TInfoListPopupUI.RefreshPopup(const AFirstShow, ASwitchingTarget: Boolean);
 var
   bodyText: string;
+  bindIdx: Integer;
 begin
   if not AFirstShow and not FIsVisible then
     Exit;
@@ -860,7 +871,8 @@ begin
   if AFirstShow then
   begin
     FIsVisible := True;
-    SetRefreshTimer(True);
+    bindIdx := FindBindIndex(FBoundTargetHandle);
+    SetRefreshTimer((bindIdx >= 0) and FHoverBinds[bindIdx].LiveRefresh);
   end;
 end;
 
@@ -909,7 +921,8 @@ begin
   Hide;
 end;
 
-class procedure TInfoListPopupUI.BindHover(const ATargetHandle: hEle; const AGetText: TInfoListGetTextFunc; const APopupAbove: Boolean; const AOffsetY: Integer);
+class procedure TInfoListPopupUI.BindHover(const ATargetHandle: hEle; const AGetText: TInfoListGetTextFunc;
+  const APopupAbove: Boolean; const AOffsetY: Integer; const ALiveRefresh: Boolean);
 var
   bindIdx: Integer;
   entry: TInfoListHoverBind;
@@ -929,6 +942,7 @@ begin
   entry.GetText := AGetText;
   entry.PopupAbove := APopupAbove;
   entry.OffsetY := AOffsetY;
+  entry.LiveRefresh := ALiveRefresh;
   if bindIdx < 0 then
   begin
     XEle_RegEvent(ATargetHandle, XE_MOUSEMOVE, @TInfoListPopupUI.OnTargetMouseMove);

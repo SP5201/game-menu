@@ -51,7 +51,7 @@ uses
   NetIfTable2;
 
 const
-  cSampleIntervalMs = 1000;
+  cSampleIntervalMs = 2500;
 
 function GetTickCount64: UInt64; stdcall;
   external 'kernel32.dll' name 'GetTickCount64';

@@ -8,7 +8,7 @@
 			<AppType>Application</AppType>
 			<FrameworkType>None</FrameworkType>
 			<ProjectVersion>16.1</ProjectVersion>
-			<Platform Condition="'$(Platform)'==''">Win32</Platform>
+			<Platform Condition="'$(Platform)'==''">Win64</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -125,6 +125,7 @@
 			<None Include="功能\硬件\Net\NetTrafficMonitor.pas"/>
 			<None Include="功能\硬件\Net\NetInfo.pas"/>
 			<None Include="功能\硬件\HardwarePdh.pas"/>
+			<None Include="功能\硬件\HardwareCommon.pas"/>
 			<None Include="功能\硬件\PawnIoClient.pas"/>
 			<None Include="功能\硬件\PawnIoDriver.pas"/>
 			<None Include="功能\硬件\CPU\CpuIdHelper.pas"/>
@@ -171,26 +172,17 @@
 			<None Include="库\SQLite3\SQLite3Utils.pas"/>
 			<None Include="库\SQLite3\SQLite3Wrap.pas"/>
 			<None Include="库\SQLite3\SQLite3.pas"/>
-			<None Include="库\XCGUI\XAdTable.pas"/>
 			<None Include="库\XCGUI\XCGUI.pas"/>
 			<None Include="库\XCGUI\XElement.pas"/>
 			<None Include="库\XCGUI\XEdit.pas"/>
-			<None Include="库\XCGUI\XEditor.pas"/>
 			<None Include="库\XCGUI\XForm.pas"/>
 			<None Include="库\XCGUI\XWidget.pas"/>
-			<None Include="库\XCGUI\XLayout.pas"/>
-			<None Include="库\XCGUI\XList.pas"/>
 			<None Include="库\XCGUI\XListview.pas"/>
 			<None Include="库\XCGUI\XMenu.pas"/>
 			<None Include="库\XCGUI\XBUTTON.pas"/>
 			<None Include="库\XCGUI\XScrollView.pas"/>
 			<None Include="库\XCGUI\XListbox.pas"/>
 			<None Include="库\XCGUI\XComboBox.pas"/>
-			<None Include="库\XCGUI\XDateTime.pas"/>
-			<None Include="库\XCGUI\XMonthCal.pas"/>
-			<None Include="库\XCGUI\XLayoutFrame.pas"/>
-			<None Include="库\XCGUI\XSliderBar.pas"/>
-			<None Include="库\XCGUI\XTextLink.pas"/>
 			<None Include="库\libcurl\libcurl.pas"/>
 			<None Include="Debug\Win32\Bin\libcurl.dll"/>
 			<None Include="Debug\Win32\Bin\libcrypto-1_1.dll"/>
@@ -299,14 +291,6 @@
 					<Platform value="Win32">True</Platform>
 				</Platforms>
 				<Deployment>
-					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\Win32\QDesktop.exe">
-						<Platform Name="Win32"/>
-					</DeployFile>
-					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\Win32\QDesktop.rsm">
-						<Platform Name="Win32">
-							<RemoteName>QDesktop.rsm</RemoteName>
-						</Platform>
-					</DeployFile>
 					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\Win64\QDesktop.rsm">
 						<Platform Name="Win64">
 							<RemoteName>QDesktop.rsm</RemoteName>
@@ -314,6 +298,14 @@
 					</DeployFile>
 					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\Win64\QDesktop.exe">
 						<Platform Name="Win64"/>
+					</DeployFile>
+					<DeployFile Class="ProjectOutput" Configuration="Debug" LocalName="Debug\Win32\QDesktop.exe">
+						<Platform Name="Win32"/>
+					</DeployFile>
+					<DeployFile Class="DebugSymbols" Configuration="Debug" LocalName="Debug\Win32\QDesktop.rsm">
+						<Platform Name="Win32">
+							<RemoteName>QDesktop.rsm</RemoteName>
+						</Platform>
 					</DeployFile>
 					<DeployClass Name="DependencyPackage" Required="true">
 						<Platform Name="Win64">

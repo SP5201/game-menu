@@ -385,8 +385,12 @@ begin
   end;
   if FJournalId <> journal.UsnJournalID then
   begin
+    SafeLogRecord('索引', 'USN 监控', FDriveLetter + ': 日志已重置，跳过历史回放',
+      False, '旧JournalId=' + IntToStr(FJournalId) + ' 新JournalId=' +
+      IntToStr(journal.UsnJournalID));
     FJournalId := journal.UsnJournalID;
-    FNextUsn := journal.FirstUsn;
+    FNextUsn := journal.NextUsn;
+    Exit;
   end;
   Result := ReadUsnJournalBatch(FVolumeHandle, FNextUsn, FJournalId, ABlockForChanges,
     ARecords, journal, readErr);
@@ -402,8 +406,10 @@ begin
     hadWork := PollJournalBatch(records, True);
     if (Length(records) > 0) and Assigned(FOnRecords) then
       FOnRecords(FDriveLetter, FDriveIndex, records);
-    if not hadWork then
-      Sleep(1);
+    if hadWork then
+      Sleep(1)
+    else
+      Sleep(100);
   end;
 end;
 

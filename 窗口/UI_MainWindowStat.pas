@@ -1,4 +1,4 @@
-﻿unit UI_MainWindowStat;
+unit UI_MainWindowStat;
 
 interface
 
@@ -45,6 +45,9 @@ type
       FMainFormHWINDOW: HWINDOW;
       FMainUiThreadId: DWORD;
       FCacheLock: TCriticalSection;
+      FWinMinimized: Boolean;
+      FWinDeactivated: Boolean;
+      FBackgroundPowerSave: Boolean;
     class function IsMainUiThread: Boolean;
     class function TryPostStatMessage(AMsg: UINT; ALParam: LPARAM): Boolean;
     class procedure SetMainStatNet(const sDown, sUp: string);
@@ -61,11 +64,13 @@ type
     class procedure RefreshStatCpuHoverHint;
     class procedure RefreshStatGpuHoverHint;
     class procedure DrainPendingStatMessages;
+    class procedure UpdateBackgroundPowerSave;
   public
     class procedure Init(const AMainWindow: HWINDOW; AUiThreadId: DWORD; const ABtnStatWeather: HELE);
     class procedure StopWorkers;
     class function TryHandleWinProc(Msg: UINT; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Boolean;
     class procedure SyncNetTrafficSamplerWithConfig;
+    class procedure NotifyWindowActivation(AMsg: UINT; wParam: WPARAM);
     class procedure PostStatNet(const sDown, sUp: string);
     class procedure PostStatHardware(const ACpuText, AMemText, AGpuText: string);
     class procedure PostStatExtIp(const AInfo: TExternalIpInfo);
@@ -124,13 +129,13 @@ begin
 end;
 
 procedure BindStatHoverBlock(const ALayoutName: string; const hFallbackShape: HXCGUI;
-  var ALayoutOut: HELE; const AHint: TInfoListGetTextFunc);
+  var ALayoutOut: HELE; const AHint: TInfoListGetTextFunc; const ALiveRefresh: Boolean = False);
 begin
   ALayoutOut := ResolveStatLayoutEle(ALayoutName, hFallbackShape);
   if XC_GetObjectType(ALayoutOut) <> XC_ELE_LAYOUT then
     Exit;
   XEle_EnableMouseThrough(ALayoutOut, False);
-  TInfoListPopupUI.BindHover(ALayoutOut, AHint, True, -2);
+  TInfoListPopupUI.BindHover(ALayoutOut, AHint, True, -2, ALiveRefresh);
 end;
 
 procedure StatNetBridge(const sDown, sUp: string);
@@ -317,6 +322,9 @@ var
 begin
   FMainFormHWINDOW := AMainWindow;
   FMainUiThreadId := AUiThreadId;
+  FWinMinimized := False;
+  FWinDeactivated := False;
+  FBackgroundPowerSave := False;
   CBtnStatWeather := ABtnStatWeather;
   CShapeStatNetDown := XC_GetObjectByName('txt_main_stat_net_down');
   CShapeStatNetUp := XC_GetObjectByName('txt_main_stat_net_up');
@@ -367,10 +375,10 @@ begin
   XSvg_SetUserFillColor(hSvgNetUp, UITheme_StatNetUpFill, True);
   XShapePic_SetImage(CShapePicNetUp, XImage_LoadSvg(hSvgNetUp));
   BindStatHoverBlock('layout_main_stat_ext_ip', XC_ERROR, CLayoutStatExtIp, @StatIpWeatherHintBridge);
-  BindStatHoverBlock('layout_main_stat_net', CShapeStatNetUp, CLayoutStatNet, @StatNetHintBridge);
-  BindStatHoverBlock('layout_main_stat_cpu', CShapeStatCpu, CLayoutStatCpu, @StatCpuHintBridge);
+  BindStatHoverBlock('layout_main_stat_net', CShapeStatNetUp, CLayoutStatNet, @StatNetHintBridge, True);
+  BindStatHoverBlock('layout_main_stat_cpu', CShapeStatCpu, CLayoutStatCpu, @StatCpuHintBridge, True);
   BindStatHoverBlock('layout_main_stat_ram', CShapeStatMem, CLayoutStatRam, @StatMemHintBridge);
-  BindStatHoverBlock('layout_main_stat_gpu', CShapeStatGpu, CLayoutStatGpu, @StatGpuHintBridge);
+  BindStatHoverBlock('layout_main_stat_gpu', CShapeStatGpu, CLayoutStatGpu, @StatGpuHintBridge, True);
   FNetTrafficThread := TNetTrafficSamplerThread.Create;
   FNetTrafficThread.OnUpdate := StatNetBridge;
   FNetTrafficThread.Start;
@@ -702,6 +710,49 @@ begin
     XEle_AdjustLayout(hBar);
     XEle_Redraw(hBar);
   end;
+end;
+
+class procedure TMainWindowStat.UpdateBackgroundPowerSave;
+var
+  wantSave: Boolean;
+begin
+  wantSave := FWinMinimized or FWinDeactivated;
+  if wantSave = FBackgroundPowerSave then
+    Exit;
+  FBackgroundPowerSave := wantSave;
+  if wantSave then
+  begin
+    TAppSettings.ApplyIdlePaintFrequency;
+    if FHardwareThread <> nil then
+      FHardwareThread.PauseSampler;
+    if FNetTrafficThread <> nil then
+      FNetTrafficThread.PauseSampler;
+  end
+  else
+  begin
+    TAppSettings.ApplyActivePaintFrequency;
+    if FHardwareThread <> nil then
+      FHardwareThread.ResumeSampler;
+    SyncNetTrafficSamplerWithConfig;
+  end;
+end;
+
+class procedure TMainWindowStat.NotifyWindowActivation(AMsg: UINT; wParam: WPARAM);
+begin
+  case AMsg of
+    WM_ACTIVATE:
+      FWinDeactivated := LOWORD(wParam) = WA_INACTIVE;
+    WM_SIZE:
+      case wParam of
+        SIZE_MINIMIZED:
+          FWinMinimized := True;
+        SIZE_RESTORED, SIZE_MAXIMIZED:
+          FWinMinimized := False;
+      end;
+  else
+    Exit;
+  end;
+  UpdateBackgroundPowerSave;
 end;
 
 class procedure TMainWindowStat.SyncNetTrafficSamplerWithConfig;

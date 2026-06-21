@@ -26,15 +26,17 @@ function MftBuildFromDrive(const ADriveLetter: Char; ADriveIndex: Byte;
   out AFailReason: string): Boolean;
 procedure MftRebuildFolderFrnMap(const ADB: TEverythingDB;
   AFrnToFolder: TDictionary<UInt64, Cardinal>);
+procedure MftRebuildSegToFolderMap(AFrnToFolder: TDictionary<UInt64, Cardinal>;
+  ASegToFolder: TDictionary<UInt64, Cardinal>);
 function MftRebuildFileFrnMapFromUsn(const ADriveLetter: Char; ADriveIndex: Byte;
   const ADB: TEverythingDB; AFrnToFolder: TDictionary<UInt64, Cardinal>;
   AFrnToFile: TDictionary<UInt64, Cardinal>; var AFileFrnKeys: TFileFrnKeyArray): Boolean;
 procedure MftBuildFileParentNameMap(const ADB: TEverythingDB; AMap: TDictionary<AnsiString, Integer>);
 function MftApplyUsnRecords(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARecords: TUsnJournalRecordArray; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
-  AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<AnsiString, Integer>; out AStats: TMftApplyUsnStats;
-  var AChanges: TIndexHitChangeArray): Boolean;
+  ASegToFolder: TDictionary<UInt64, Cardinal>; AExcludedFrn: TDictionary<UInt64, Byte>;
+  var AFileFrnKeys: TFileFrnKeyArray; AFileLookup: TDictionary<AnsiString, Integer>;
+  out AStats: TMftApplyUsnStats; var AChanges: TIndexHitChangeArray): Boolean;
 
 implementation
 
@@ -1430,6 +1432,14 @@ begin
   end;
 end;
 
+procedure MftRebuildSegToFolderMap(AFrnToFolder: TDictionary<UInt64, Cardinal>;
+  ASegToFolder: TDictionary<UInt64, Cardinal>);
+begin
+  if ASegToFolder = nil then
+    Exit;
+  BuildSegmentFolderMap(AFrnToFolder, ASegToFolder);
+end;
+
 function MftRebuildFileFrnMapFromUsn(const ADriveLetter: Char; ADriveIndex: Byte;
   const ADB: TEverythingDB; AFrnToFolder: TDictionary<UInt64, Cardinal>;
   AFrnToFile: TDictionary<UInt64, Cardinal>; var AFileFrnKeys: TFileFrnKeyArray): Boolean;
@@ -1794,9 +1804,9 @@ end;
 
 function MftApplyUsnRecords(var ADB: TEverythingDB; ADriveIndex: Byte;
   const ARecords: TUsnJournalRecordArray; AFrnToFolder, AFrnToFile: TDictionary<UInt64, Cardinal>;
-  AExcludedFrn: TDictionary<UInt64, Byte>; var AFileFrnKeys: TFileFrnKeyArray;
-  AFileLookup: TDictionary<AnsiString, Integer>; out AStats: TMftApplyUsnStats;
-  var AChanges: TIndexHitChangeArray): Boolean;
+  ASegToFolder: TDictionary<UInt64, Cardinal>; AExcludedFrn: TDictionary<UInt64, Byte>;
+  var AFileFrnKeys: TFileFrnKeyArray; AFileLookup: TDictionary<AnsiString, Integer>;
+  out AStats: TMftApplyUsnStats; var AChanges: TIndexHitChangeArray): Boolean;
 var
   i: Integer;
   rec: TUsnJournalRecord;
@@ -1807,7 +1817,6 @@ var
   renameOldNames: TDictionary<UInt64, string>;
   renameFrns: TDictionary<UInt64, Byte>;
   renameOldName: string;
-  segToFolder: TDictionary<UInt64, Cardinal>;
 begin
   FillChar(AStats, SizeOf(AStats), 0);
   Result := Length(ARecords) > 0;
@@ -1815,11 +1824,9 @@ begin
     Exit;
   if (AFileLookup <> nil) and (AFileLookup.Count = 0) then
     MftBuildFileParentNameMap(ADB, AFileLookup);
-  segToFolder := TDictionary<UInt64, Cardinal>.Create;
   renameOldNames := TDictionary<UInt64, string>.Create;
   renameFrns := TDictionary<UInt64, Byte>.Create;
   try
-    BuildSegmentFolderMap(AFrnToFolder, segToFolder);
     for i := 0 to High(ARecords) do
     begin
       rec := ARecords[i];
@@ -1848,7 +1855,7 @@ begin
             AppendIndexHitChange(AChanges, ihckFolderRemoved, FolderIndexToHitIndex(folderOff), 0);
             RemoveFilesUnderFolder(ADB, folderOff, AFrnToFile, AFileFrnKeys, AFileLookup, AChanges);
             AFrnToFolder.Remove(frnKey);
-            RemoveSegmentFolderEntry(segToFolder, ADriveIndex, rec.FRN);
+            RemoveSegmentFolderEntry(ASegToFolder, ADriveIndex, rec.FRN);
           end;
           if IsSystemFolderNameWide(rec.FileName) then
             if not AExcludedFrn.ContainsKey(frnKey) then
@@ -1856,7 +1863,7 @@ begin
         end
         else
           RemoveFileByUsnRecord(ADB, ADriveIndex, rec, AFrnToFolder, AFrnToFile, AFileFrnKeys,
-            AFileLookup, segToFolder, AStats, AChanges);
+            AFileLookup, ASegToFolder, AStats, AChanges);
         Continue;
       end;
       if rec.FileName = '' then
@@ -1872,7 +1879,7 @@ begin
         if not renameOldNames.TryGetValue(frnKey, renameOldName) then
           renameOldName := '';
         UpsertFolderRecord(ADB, ADriveIndex, rec, AFrnToFolder, AFrnToFile, AExcludedFrn,
-          AFileFrnKeys, nameOff, renameOldName, AFileLookup, segToFolder, AChanges);
+          AFileFrnKeys, nameOff, renameOldName, AFileLookup, ASegToFolder, AChanges);
       end
       else
       begin
@@ -1880,11 +1887,10 @@ begin
         if not renameOldNames.TryGetValue(frnKey, renameOldName) then
           renameOldName := '';
         UpsertFileRecord(ADB, ADriveIndex, rec, AFrnToFolder, AFrnToFile, AExcludedFrn,
-          AFileFrnKeys, nameOff, renameOldName, AFileLookup, segToFolder, AStats, AChanges);
+          AFileFrnKeys, nameOff, renameOldName, AFileLookup, ASegToFolder, AStats, AChanges);
       end;
     end;
   finally
-    segToFolder.Free;
     renameOldNames.Free;
     renameFrns.Free;
   end;

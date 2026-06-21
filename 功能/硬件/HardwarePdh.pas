@@ -14,7 +14,7 @@ procedure HardwarePdhShutdown;
 implementation
 
 uses
-  Windows, SysUtils, Classes, Math;
+  Windows, SysUtils, Classes, Math, HardwareCommon;
 
 const
   PDH_FMT_DOUBLE = $00000200;
@@ -23,6 +23,7 @@ const
   cKelvinToCelsius = 273.15;
   cGpuCounterPath = '\GPU Engine(*)\Utilization Percentage';
   cCpuThermalCounterPath = '\Thermal Zone Information(*)\Temperature';
+  cGpuUtilCacheMs = 2500;
 
 type
   PDH_STATUS = Longint;
@@ -58,6 +59,9 @@ var
   GGpuSlot: THardwarePdhSlot;
   GCpuSlot: THardwarePdhSlot;
   GPdhLock: TRTLCriticalSection;
+  GGpuUtilCached: Double;
+  GGpuUtilCacheTick: DWORD;
+  GGpuUtilCacheValid: Boolean;
 
 procedure HardwarePdhCloseSlot(var ASlot: THardwarePdhSlot);
 begin
@@ -222,10 +226,27 @@ begin
 end;
 
 function HardwarePdhSampleGpuUtilization: Double;
+var
+  nowTick: DWORD;
 begin
   EnterCriticalSection(GPdhLock);
   try
+    if GGpuUtilCacheValid then
+    begin
+      nowTick := GetTickCount;
+      if HwTickElapsed(nowTick, GGpuUtilCacheTick) < cGpuUtilCacheMs then
+      begin
+        Result := GGpuUtilCached;
+        Exit;
+      end;
+    end;
     Result := HardwarePdhSampleGpuUtilizationUnlocked;
+    if Result >= 0 then
+    begin
+      GGpuUtilCached := Result;
+      GGpuUtilCacheTick := GetTickCount;
+      GGpuUtilCacheValid := True;
+    end;
   finally
     LeaveCriticalSection(GPdhLock);
   end;
@@ -247,6 +268,7 @@ begin
   try
     HardwarePdhCloseSlot(GGpuSlot);
     HardwarePdhCloseSlot(GCpuSlot);
+    GGpuUtilCacheValid := False;
   finally
     LeaveCriticalSection(GPdhLock);
   end;

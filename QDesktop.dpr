@@ -49,7 +49,11 @@ begin
 
   CoInitialize(nil);                                                                                                       
   try
+{$IFDEF DEBUG}
     XC_EnableResMonitor(True);
+{$ELSE}
+    XC_EnableResMonitor(False);
+{$ENDIF}
     SafeLogStartupBegin;
     configExisted := FileExists(TAppConfig.ConfigFilePath);
     TAppConfig.Load;

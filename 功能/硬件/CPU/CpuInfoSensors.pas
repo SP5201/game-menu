@@ -16,7 +16,7 @@ function CpuSensorsQuery(out AInfo: TCpuSensorInfo): Boolean;
 implementation
 
 uses
-  Windows, SysUtils, Math, PawnIoClient, CpuIdHelper;
+  Windows, SysUtils, Math, PawnIoClient, CpuIdHelper, HardwareCommon;
 
 const
   cMsrIa32ThermStatus = $19C;
@@ -53,14 +53,6 @@ type
 var
   GIntelEnergySample: TCpuEnergySample;
   GAmdEnergySample: TCpuEnergySample;
-
-function CpuSensorsEnergyTickElapsed(ANowTick, ALastTick: DWORD): Integer;
-begin
-  if ANowTick >= ALastTick then
-    Result := ANowTick - ALastTick
-  else
-    Result := (High(DWORD) - ALastTick) + ANowTick + 1;
-end;
 
 function CpuSensorsIsPlausiblePowerW(APowerW: Double): Boolean;
 begin
@@ -111,7 +103,7 @@ begin
     ASample.HasLast := True;
     Exit;
   end;
-  elapsedMs := CpuSensorsEnergyTickElapsed(nowTick, ASample.LastTick);
+  elapsedMs := HwTickElapsed(nowTick, ASample.LastTick);
   if elapsedMs < cCpuEnergyMinElapsedMs then
     Exit;
   if energyNow >= ASample.LastEnergy then

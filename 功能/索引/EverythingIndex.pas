@@ -83,6 +83,7 @@ var
   GLastError: TEverythingIndexError;
   GBuildStatusText: string;
   GFrnToFolder: TDictionary<UInt64, Cardinal>;
+  GSegToFolder: TDictionary<UInt64, Cardinal>;
   GFrnToFile: TDictionary<UInt64, Cardinal>;
   GFileFrnKeys: TFileFrnKeyArray;
   GExcludedFrn: TDictionary<UInt64, Byte>;
@@ -332,6 +333,15 @@ begin
     MftBuildFileParentNameMap(GDB, GFileLookup);
 end;
 
+procedure RebuildSegToFolderFromFrnMap;
+begin
+  if GSegToFolder = nil then
+    GSegToFolder := TDictionary<UInt64, Cardinal>.Create
+  else
+    GSegToFolder.Clear;
+  MftRebuildSegToFolderMap(GFrnToFolder, GSegToFolder);
+end;
+
 procedure RestoreFrnMapsAfterLoad(const ALoadedFileFrnKeys: TFileFrnKeyArray);
 begin
   if GFrnToFolder = nil then
@@ -356,6 +366,7 @@ begin
     FillChar(GFileFrnKeys[0], GDB.FileCount * SizeOf(UInt64), 0);
     RebuildFileFrnMapsForAllDrives;
   end;
+  RebuildSegToFolderFromFrnMap;
   RebuildFileLookupFromDb;
 end;
 
@@ -557,7 +568,7 @@ begin
   IndexLockEnter;
   try
     applied := MftApplyUsnRecords(GDB, ADriveIndex, ARecords, GFrnToFolder, GFrnToFile,
-      GExcludedFrn, GFileFrnKeys, fileLookup, batchStats, indexChanges);
+      GSegToFolder, GExcludedFrn, GFileFrnKeys, fileLookup, batchStats, indexChanges);
     if GCatchUpInProgress then
     begin
       GCatchUpApplyStats.FilesAdded := GCatchUpApplyStats.FilesAdded + batchStats.FilesAdded;
@@ -774,6 +785,10 @@ begin
     GFrnToFolder := TDictionary<UInt64, Cardinal>.Create
   else
     GFrnToFolder.Clear;
+  if GSegToFolder = nil then
+    GSegToFolder := TDictionary<UInt64, Cardinal>.Create
+  else
+    GSegToFolder.Clear;
   if GFrnToFile = nil then
     GFrnToFile := TDictionary<UInt64, Cardinal>.Create
   else
@@ -797,6 +812,7 @@ begin
     driveTimingText := driveTimings.Text;
     if buildOk then
     begin
+      RebuildSegToFolderFromFrnMap;
       RebuildFileLookupFromDb;
       RefreshUsnCheckpoints(GUsnCheckpoints);
       phaseTick := GetTickCount;
@@ -987,6 +1003,7 @@ begin
     IndexLockLeave;
   end;
   FreeAndNil(GFrnToFolder);
+  FreeAndNil(GSegToFolder);
   FreeAndNil(GFrnToFile);
   SetLength(GFileFrnKeys, 0);
   FreeAndNil(GExcludedFrn);

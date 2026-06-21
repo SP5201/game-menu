@@ -19,7 +19,7 @@ function CpuNativeFormatModelName(const ARawBrand: string): string;
 implementation
 
 uses
-  CpuIdHelper;
+  CpuIdHelper, HardwareCommon;
 
 type
   { SYSTEM_LOGICAL_PROCESSOR_INFORMATION：Win32=24 字节，Win64=32 字节；仅解析 Relationship/Cache 字段 }
@@ -126,14 +126,6 @@ var
   GSavedPerfDistLen: ULONG = 0;
   GLastCurrentSpeedMhz: DWORD = 0;
   GSpeedLastSampleTick: DWORD = 0;
-
-function CpuSpeedSampleTickElapsed(ANowTick, ALastTick: DWORD): Integer;
-begin
-  if ANowTick >= ALastTick then
-    Result := ANowTick - ALastTick
-  else
-    Result := (High(DWORD) - ALastTick) + ANowTick + 1;
-end;
 
 procedure CpuCommitCurrentSpeedSample(const ASpeedMhz: DWORD);
 begin
@@ -628,7 +620,7 @@ begin
   nowTick := GetTickCount;
   if (GLastCurrentSpeedMhz > 0) and (GSpeedLastSampleTick <> 0) then
   begin
-    elapsed := CpuSpeedSampleTickElapsed(nowTick, GSpeedLastSampleTick);
+    elapsed := HwTickElapsed(nowTick, GSpeedLastSampleTick);
     if elapsed < cSpeedSampleMinMs then
     begin
       Result := GLastCurrentSpeedMhz;
