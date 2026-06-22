@@ -455,7 +455,7 @@ end;
 class procedure TInfoListPopupUI.CalcInfoListPopupMetrics(const ALines: TStringList; const AFont: HFONTX;
   out ALineCount, ALabelColWidth, APopupW, APopupH: Integer);
 var
-  i, labelW, valueW, maxTextW: Integer;
+  i, labelW, valueW, maxValueColWidth, maxTextW: Integer;
   labelText, valueText, svgPath: string;
   svgW, svgH: Integer;
   hasValueCol: Boolean;
@@ -463,7 +463,7 @@ var
 begin
   ALineCount := 0;
   ALabelColWidth := CInfoLabelColMin;
-  maxTextW := 0;
+  maxValueColWidth := 0;
   APopupW := CInfoMinWidth;
   APopupH := 0;
   if (ALines = nil) or (ALines.Count = 0) then
@@ -486,20 +486,16 @@ begin
       end
       else
         valueW := MeasureTextWidth(valueText, AFont);
-      Inc(valueW, 2);
-      if ALabelColWidth + valueW > maxTextW then
-        maxTextW := ALabelColWidth + valueW + (CInfoShadowExt * 2 + CInfoPadX * 2);
     end
     else
-    begin
       valueW := MeasureTextWidth(ALines[i], AFont);
-      Inc(valueW, 2);
-      if ALabelColWidth + valueW > maxTextW then
-        maxTextW := ALabelColWidth + valueW + (CInfoShadowExt * 2 + CInfoPadX * 2);
-    end;
+    Inc(valueW, 2);
+    if valueW > maxValueColWidth then
+      maxValueColWidth := valueW;
   end;
   listH := ALineCount * CInfoItemHeight + CInfoPadY;
   listTop := CInfoShadowExt + CInfoPadY;
+  maxTextW := ALabelColWidth + maxValueColWidth + (CInfoShadowExt * 2 + CInfoPadX * 2);
   APopupW := EnsureRange(maxTextW + CInfoPadX * 2 + CInfoShadowExt * 2, CInfoMinWidth, CInfoMaxWidth);
   APopupH := listTop + listH + CInfoShadowExt;
 end;

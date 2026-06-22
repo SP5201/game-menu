@@ -120,6 +120,7 @@ type
   protected
     procedure Init; override;
   public
+    class procedure ReloadSearchFilterConfig; static;
     destructor Destroy; override;
     { 从布局 XML 创建主窗体实例 }
     class function LoadLayout(const LayoutFile: PWideChar): TMainFormUI; reintroduce;
@@ -141,7 +142,7 @@ function NormalizeCategoryIconFile(const AIconFile: string): string;
 implementation
 
 uses
-  Math, StrUtils, ShellAPI, AppConfig, AppPaths, ShellHelper, ShellOpenWith, WeatherFetcher,
+  Math, StrUtils, ShellAPI, AppConfig, AppPaths, ShellHelper, ShellIconHelper, ShellOpenWith, WeatherFetcher,
   UI_MainWindowTools, UI_MainWindowStat, UI_Theme,
   UI_ListViewSettingsDialog, NetHttpWorker, UI_SafeLogWindow, SafeLog, UI_HintPopup, UI_ScrollBar,
   ShlObj, ActiveX, PawnIoClient, UI_MainWindowGeometry;
@@ -154,6 +155,7 @@ const
   ID_LISTVIEW_MENU_ADD_FILE = 105;
   ID_LISTVIEW_MENU_ADD_FOLDER = 106;
   ID_LISTVIEW_MENU_RUN_AS_ADMIN = 107;
+  ID_LISTVIEW_MENU_COPY = 108;
   ID_MAIN_LIST_SORT_ASC = 801;
   ID_MAIN_LIST_SORT_DESC = 802;
   ID_MAIN_LIST_SORT_BY_NAME = 803;
@@ -169,21 +171,12 @@ const
   cListFilterFolderIndex = 6;
   cListFilterArchiveIndex = 7;
   cListFilterOtherIndex = cListFilterCount - 1;
-  cListFilterAppExts = ';exe;msi;bat;cmd;com;scr;lnk;msc;msix;appx;appxbundle;ps1;vbs;jar;';
-  cListFilterDocExts = ';doc;docx;pdf;txt;xls;xlsx;ppt;pptx;rtf;odt;ods;odp;wps;md;csv;';
-  cListFilterImageExts = ';jpg;jpeg;png;gif;bmp;webp;ico;tif;tiff;psd;heic;svg;';
-  cListFilterVideoExts = ';mp4;mkv;avi;mov;wmv;flv;webm;m4v;mpeg;mpg;ts;3gp;rmvb;';
-  cListFilterAudioExts = ';mp3;wav;flac;aac;ogg;wma;m4a;ape;aiff;';
-  cListFilterArchiveExts = ';zip;rar;7z;tar;gz;bz2;xz;iso;cab;';
   cListFilterBtnNames: array[0..cListFilterCount - 1] of PChar = (
     'btn_main_filter_all', 'btn_main_filter_app', 'btn_main_filter_doc',
     'btn_main_filter_image', 'btn_main_filter_video', 'btn_main_filter_audio',
     'btn_main_filter_folder', 'btn_main_filter_archive', 'btn_main_filter_other');
   cListFilterLabels: array[0..cListFilterCount - 1] of PChar = (
     '全部', '应用程序', '文档', '图片', '视频', '音频', '文件夹', '压缩包', '其他');
-  cListFilterExtSets: array[0..cListFilterCount - 1] of PChar = (
-    nil, cListFilterAppExts, cListFilterDocExts, cListFilterImageExts,
-    cListFilterVideoExts, cListFilterAudioExts, nil, cListFilterArchiveExts, nil);
 
 var
   GExtIdToFilterKind: TExtFilterKindMap;
@@ -220,7 +213,7 @@ end;
 procedure ListFilterEnsureExtIdMap;
 var
   extCount, extId, kind, i: Integer;
-  extName: string;
+  extName, extSet: string;
 begin
   if not EverythingIndexIsReady then
     Exit;
@@ -237,7 +230,8 @@ begin
     begin
       if i = cListFilterFolderIndex then
         Continue;
-      if (cListFilterExtSets[i] <> nil) and ListFilterExtInSet(extName, string(cListFilterExtSets[i])) then
+      extSet := TAppConfig.GetListFilterExtSet(i);
+      if (extSet <> '') and ListFilterExtInSet(extName, extSet) then
       begin
         kind := i;
         Break;
@@ -245,6 +239,12 @@ begin
     end;
     GExtIdToFilterKind[extId] := Byte(kind);
   end;
+end;
+
+procedure ListFilterInvalidateExtIdMap;
+begin
+  GExtIdToFilterKindBuiltFor := -1;
+  SetLength(GExtIdToFilterKind, 0);
 end;
 
 constructor TSearchHitSortThread.Create(AMainWindow: HWINDOW; AGeneration: Cardinal;
@@ -325,10 +325,10 @@ begin
   ext := ListFilterExtFromPath(APath);
   for i := 1 to cListFilterOtherIndex - 1 do
   begin
-    if cListFilterExtSets[i] = nil then
+    if i = cListFilterFolderIndex then
       Continue;
-    extSet := string(cListFilterExtSets[i]);
-    if ListFilterExtInSet(ext, extSet) then
+    extSet := TAppConfig.GetListFilterExtSet(i);
+    if (extSet <> '') and ListFilterExtInSet(ext, extSet) then
       Exit(i);
   end;
   Result := -1;
@@ -784,6 +784,16 @@ begin
     else
       ApplyListFilterToView;
   end;
+end;
+
+class procedure TMainFormUI.ReloadSearchFilterConfig;
+begin
+  ListFilterInvalidateExtIdMap;
+  RefreshListFilterButtonCounts;
+  if CActiveListGroupIndex < 0 then
+    ApplySearchHitsToViewPreserveScroll
+  else
+    ApplyListFilterToView;
 end;
 
 class procedure TMainFormUI.ShowDiskSearchError(const AError: TDiskSearchError);
@@ -1367,6 +1377,16 @@ begin
     Exit;
   end;
 
+  if nItem = ID_LISTVIEW_MENU_COPY then
+  begin
+    data.FilePath := MainWindowResolveListViewMenuFilePath(itm);
+    if data.FilePath = '' then
+      Exit;
+    if not ShellCopyPathToClipboard(data.FilePath) then
+      MessageBoxW(CListViewUI.HWND, '无法复制到剪贴板。', '提示', MB_OK or MB_ICONWARNING);
+    Exit;
+  end;
+
   if nItem = ID_LISTVIEW_MENU_DELETE then
   begin
     data.FilePath := MainWindowResolveListViewMenuFilePath(itm);
@@ -1514,7 +1534,8 @@ begin
   if CListViewUI = nil then
     Exit;
   needle := CSearchBox.GetTrimmedText;
-  if needle = '' then
+  { 空关键字=显示全部；须已有命中集才增量补丁，避免未发起搜索时只追加零星新文件 }
+  if (needle = '') and (Length(CSearchHitIndices) = 0) then
     Exit;
   EverythingIndexPatchSearchHits(CSearchHitIndices, needle, AData^.Changes);
   if CLastSearchCacheValid and SameText(needle, CLastSearchNeedle) then
@@ -2063,6 +2084,7 @@ begin
     if SameText(ExtractFileExt(AFilePath), '.exe') then
       AMenu.AddItemShieldIcon(ID_LISTVIEW_MENU_RUN_AS_ADMIN, '以管理员身份运行', 0, 0);
     AMenu.AddItem(ID_LISTVIEW_MENU_OPEN_FOLDER, UI_Utf8Src(UTF8String('打开所在目录')));
+    AMenu.AddItem(ID_LISTVIEW_MENU_COPY, '复制', 0);
     ShellOpenWithAppendContextMenuItems(AMenu, AFilePath);
     AMenu.AddItem(0, '', 0, menu_item_flag_separator);
     if not isSearchView then

@@ -6,26 +6,10 @@ uses
   Classes,
   SysUtils,
   Windows,
-  ListItemTypes,
-  ShellIconHelper,
-  XCGUI,
   CommDlg,
   ShlObj,
   ShellAPI;
 
-function GetListViewFileItemFromParsingPath(const AFullPath: string; ALoadIcon: Boolean = True): TListViewFileItem;
-function LoadXImageFromFileMemory(const AFilePath: string): Integer;
-function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE;
-function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
-procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
-procedure ClearListDisplayImageCache;
-function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: string): HIMAGE;
-function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
-  out AIconCachePathOut: string): HIMAGE;
-function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
-function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
-function GetShieldIconSmall: HICON;
-procedure ReleaseFileTypeImageCache;
 function ResolveSystem32ExePath(const AExeName: string): string;
 function ResolveSystemBinaryPathForOsArchitecture(const AExeName: string): string;
 function ResolveSystem32MscDocumentPath(const AMscFileName: string): string;
@@ -38,11 +22,10 @@ function ShellExecuteDefaultVerb(hwnd: Windows.HWND; const FilePath, Parameters,
 function ShellExecuteRunAs(hwnd: Windows.HWND; const FilePath, Parameters, WorkingDir: UnicodeString;
   const AShowCmd: Integer): Boolean;
 function ShellOpenFolderAndSelectPath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;
+function ShellCopyPathToClipboard(const APath: UnicodeString): Boolean;
 function ShellDeletePath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;
 procedure RestartWindowsExplorer;
 procedure RestartWindowsExplorerAsync;
-
-
 
 function IsRunningUnderWow64: Boolean;
 
@@ -51,9 +34,6 @@ function NormalizeSystem32PathForIcon(const APath: string): string;
 
 /// <summary>WOW64 下执行路径的 Sysnative 纠正（目录不误判为缺失）。</summary>
 function NormalizeSystem32PathForExecute(const APath: UnicodeString): UnicodeString;
-
-
-
 
 /// <summary>%WinDir%\explorer.exe；32 位进程 CreateProcess 时需 Wow64DisableWow64FsRedirection。</summary>
 function ResolveWindowsExplorerPath: UnicodeString;
@@ -69,72 +49,6 @@ implementation
 
 uses
   ActiveX, ComObj, CommCtrl, AppConfig, TlHelp32;
-
-function GetListViewFileItemFromParsingPath(const AFullPath: string; ALoadIcon: Boolean): TListViewFileItem;
-begin
-  Result := ShellIconHelper.GetListViewFileItemFromParsingPath(AFullPath, ALoadIcon);
-end;
-
-function LoadXImageFromFileMemory(const AFilePath: string): Integer;
-begin
-  Result := ShellIconHelper.LoadXImageFromFileMemory(AFilePath);
-end;
-
-function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE;
-begin
-  Result := ShellIconHelper.ResampleBGRAToHImage(ABits, ASrcW, ASrcH, AMaxW, AMaxH);
-end;
-
-function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
-begin
-  Result := ShellIconHelper.GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
-end;
-
-function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
-begin
-  Result := ShellIconHelper.TryAcquireCachedListFileImage(AIconCachePath, AFilePath, AImage);
-end;
-
-procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
-begin
-  ShellIconHelper.InvalidateListItemIconCaches(AIconCachePath, AFilePath);
-end;
-
-procedure ClearListDisplayImageCache;
-begin
-  ShellIconHelper.ClearListDisplayImageCache;
-end;
-
-function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: string): HIMAGE;
-begin
-  Result := ShellIconHelper.GetItemImageFromParsingPath(APath, AIconCachePath);
-end;
-
-function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
-  out AIconCachePathOut: string): HIMAGE;
-begin
-  Result := ShellIconHelper.AcquireListItemFileImage(AIconCachePath, AFilePath, AIconCachePathOut);
-end;
-
-function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
-begin
-  Result := ShellIconHelper.LoadImageFromIconData(AIcon);
-end;
-
-function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
-begin
-  Result := ShellIconHelper.LoadApplicationIconToHImage(ADstW, ADstH);
-end;
-
-function GetShieldIconSmall: HICON;
-begin
-  Result := ShellIconHelper.GetShieldIconSmall;
-end;
-
-procedure ReleaseFileTypeImageCache;
-begin
-  ShellIconHelper.ReleaseFileTypeImageCache;
-end;
 
 function OpenFileDialogSingle(const AOwnerWnd: Windows.HWND; const ATitle, AFilter: string; out AFilePath: string): Boolean;
 var
@@ -514,6 +428,73 @@ begin
     Exit;
   Params := '/select,' + FilePath;
   Result := ShellExecuteW(hwnd, nil, 'explorer.exe', PWideChar(Params), nil, SW_SHOWNORMAL) > 32;
+end;
+
+function ShellCopyPathToClipboard(const APath: UnicodeString): Boolean;
+var
+  Drop: ^TDropFiles;
+  buf: Pointer;
+  bufSize, offset, pathLen: Integer;
+  hDrop, hEffect: HGLOBAL;
+  dropEffect: Cardinal;
+  dropEffectFmt: UINT;
+begin
+  Result := False;
+  if APath = '' then
+    Exit;
+  pathLen := Length(APath);
+  bufSize := SizeOf(TDropFiles) + (pathLen + 2) * SizeOf(WideChar);
+  hDrop := GlobalAlloc(GHND, bufSize);
+  if hDrop = 0 then
+    Exit;
+  buf := GlobalLock(hDrop);
+  if buf = nil then
+  begin
+    GlobalFree(hDrop);
+    Exit;
+  end;
+  try
+    Drop := buf;
+    Drop^.pFiles := SizeOf(TDropFiles);
+    Drop^.fWide := True;
+    offset := SizeOf(TDropFiles);
+    Move(PWideChar(APath)^, PByte(buf)[offset], (pathLen + 1) * SizeOf(WideChar));
+  finally
+    GlobalUnlock(hDrop);
+  end;
+  if not OpenClipboard(0) then
+  begin
+    GlobalFree(hDrop);
+    Exit;
+  end;
+  try
+    EmptyClipboard;
+    if SetClipboardData(CF_HDROP, hDrop) = 0 then
+    begin
+      GlobalFree(hDrop);
+      Exit;
+    end;
+    dropEffectFmt := RegisterClipboardFormat('Preferred DropEffect');
+    if dropEffectFmt <> 0 then
+    begin
+      dropEffect := DROPEFFECT_COPY;
+      hEffect := GlobalAlloc(GHND, SizeOf(dropEffect));
+      if hEffect <> 0 then
+      begin
+        buf := GlobalLock(hEffect);
+        if buf <> nil then
+        try
+          Move(dropEffect, buf^, SizeOf(dropEffect));
+        finally
+          GlobalUnlock(hEffect);
+        end;
+        SetClipboardData(dropEffectFmt, hEffect);
+      end;
+    end;
+    Result := True;
+  finally
+    CloseClipboard;
+  end;
 end;
 
 function ShellDeletePath(hwnd: Windows.HWND; const FilePath: UnicodeString): Boolean;

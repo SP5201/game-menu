@@ -71,6 +71,35 @@
 						<editUI name="edit_settings_useragent" rect="0,0,100,34" layout.width="fill" layout.height="34" contentTips="User-Agent" />
 					</layoutEleUI>
 				</layoutEleUI>
+				<layoutEleUI name="pane_settings_search_filter" rect="0,0,100,100" layout.width="fill" layout.height="fill" layout.spaceRow="12" padding="8,4,8,4" expandT="false">
+					<layoutEleUI rect="0,0,100,100" layout.width="fill" layout.height="auto" layout.spaceRow="4" expandT="false">
+						<shapeText name="txt_settings_group_search_filter" rect="0,0,100,22" layout.width="fill" layout.height="22" content="搜索结果分类" textColor="@Resource:\ID_COLOR_PRIMARY" font="@Resource:\YaHei_11" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_app" rect="0,0,72,22" layout.width="72" layout.height="fill" content="应用程序" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_app" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="exe;cmd;msi" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_doc" rect="0,0,72,22" layout.width="72" layout.height="fill" content="文档" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_doc" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="doc;pdf;txt" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_image" rect="0,0,72,22" layout.width="72" layout.height="fill" content="图片" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_image" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="jpg;png;gif" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_video" rect="0,0,72,22" layout.width="72" layout.height="fill" content="视频" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_video" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="mp4;mkv;avi" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_audio" rect="0,0,72,22" layout.width="72" layout.height="fill" content="音频" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_audio" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="mp3;wav;flac" />
+					</layoutEleUI>
+					<layoutEleUI rect="0,0,100,34" layout.width="fill" layout.height="34" layout.horizon="true" layout.alignV="center" layout.space="8" expandT="false">
+						<shapeText name="txt_settings_filter_label_archive" rect="0,0,72,22" layout.width="72" layout.height="fill" content="压缩包" textAlign="DT_LEFT,DT_VCENTER,DT_SINGLELINE" />
+						<editUI name="edit_settings_filter_archive" rect="0,0,100,34" layout.width=":1" layout.height="34" contentTips="zip;rar;7z" />
+					</layoutEleUI>
+				</layoutEleUI>
 			</layoutEleUI>
 		</layoutEleUI>
 		<shapeRect rect="0,0,100,1" layout.width="fill" layout.height="1" fill="true" fillColor="#10FFFFFF" enableBorder="false" expandT="false" />

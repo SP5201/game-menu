@@ -32,7 +32,8 @@ function ShellIconLoaderBumpScrollGeneration: Cardinal;
 function ShellIconLoaderCurrentListGeneration: Cardinal;
 function ShellIconLoaderCurrentScrollGeneration: Cardinal;
 function ShellIconLoaderRequestItem(AListGeneration, AScrollGeneration: Cardinal; AListEle: HELE;
-  AItemIndex: Integer; const AFilePath, AIconCachePath: string; AHighPriority: Boolean = False): Boolean;
+  AItemIndex: Integer; const AFilePath, AIconCachePath: string; AHighPriority: Boolean = False;
+  AIsFolder: Boolean = False): Boolean;
 procedure ShellIconLoaderScheduleDeferredListRefresh;
 function ShellIconLoaderTryHandleMessage(AMsg: UINT; ALParam: LPARAM): Boolean;
 procedure ShellIconLoaderDisposeResult(AData: PShellIconLoadResult);
@@ -49,6 +50,7 @@ type
     FilePath: string;
     IconCachePath: string;
     RequestKey: string;
+    IsFolder: Boolean;
   end;
 
   TShellIconLoaderThread = class(TThread)
@@ -213,7 +215,7 @@ begin
       if targetPath = '' then
         Continue;
 
-      if TryAcquireCachedListFileImage(job^.IconCachePath, targetPath, cachedImg) then
+      if TryAcquireCachedListFileImage(job^.IconCachePath, targetPath, cachedImg, job^.IsFolder) then
       begin
         if not JobStillValid(job^) then
           Continue;
@@ -225,7 +227,7 @@ begin
       end;
 
       FillChar(pixel, SizeOf(pixel), 0);
-      if not ExtractShellIconPixels(targetPath, job^.IconCachePath, pixel) then
+      if not ExtractShellIconPixels(targetPath, job^.IconCachePath, pixel, job^.IsFolder) then
       begin
         if JobStillValid(job^) then
           PostResult(job^, False, '', job^.IconCachePath);
@@ -234,7 +236,7 @@ begin
 
       if not JobStillValid(job^) then
         Continue;
-      pixelKey := BuildListFileImageRequestKey(job^.IconCachePath, targetPath);
+      pixelKey := BuildListFileImageRequestKey(job^.IconCachePath, targetPath, job^.IsFolder);
       StorePendingIconPixels(pixelKey, pixel);
       PostResult(job^, False, pixelKey, pixel.IconCachePath);
     finally
@@ -361,7 +363,8 @@ begin
 end;
 
 function ShellIconLoaderRequestItem(AListGeneration, AScrollGeneration: Cardinal; AListEle: HELE;
-  AItemIndex: Integer; const AFilePath, AIconCachePath: string; AHighPriority: Boolean): Boolean;
+  AItemIndex: Integer; const AFilePath, AIconCachePath: string; AHighPriority: Boolean;
+  AIsFolder: Boolean): Boolean;
 var
   job: PShellIconLoadJob;
   reqKey: string;
@@ -369,7 +372,7 @@ begin
   Result := False;
   if (Length(GLoaderThreads) = 0) or (Trim(AFilePath) = '') then
     Exit;
-  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath);
+  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath, AIsFolder);
   GQueueLock.Enter;
   try
     if GPendingKeys.IndexOf(reqKey) >= 0 then
@@ -382,6 +385,7 @@ begin
     job^.FilePath := AFilePath;
     job^.IconCachePath := AIconCachePath;
     job^.RequestKey := reqKey;
+    job^.IsFolder := AIsFolder;
     GPendingKeys.Add(reqKey);
     if AHighPriority then
       GQueue.Insert(0, job)

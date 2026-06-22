@@ -45,6 +45,13 @@ const
   cListScrollThumbRadiusMin = 0;
   cListScrollThumbRadiusMax = 8;
   cDefaultListScrollThumbRadius = 3;
+  cSearchFilterExtKindCount = 6;
+  cDefaultSearchFilterAppExts = ';exe;msi;bat;cmd;com;scr;lnk;msc;msix;appx;appxbundle;ps1;vbs;jar;';
+  cDefaultSearchFilterDocExts = ';doc;docx;pdf;txt;xls;xlsx;ppt;pptx;rtf;odt;ods;odp;wps;md;csv;';
+  cDefaultSearchFilterImageExts = ';jpg;jpeg;png;gif;bmp;webp;ico;tif;tiff;psd;heic;svg;';
+  cDefaultSearchFilterVideoExts = ';mp4;mkv;avi;mov;wmv;flv;webm;m4v;mpeg;mpg;ts;3gp;rmvb;';
+  cDefaultSearchFilterAudioExts = ';mp3;wav;flac;aac;ogg;wma;m4a;ape;aiff;';
+  cDefaultSearchFilterArchiveExts = ';zip;rar;7z;tar;gz;bz2;xz;iso;cab;';
 
 type
   TAppConfig = class
@@ -76,6 +83,7 @@ type
       FListScrollBarSize: Integer;
       FListScrollSliderMinLen: Integer;
       FListScrollThumbRadius: Integer;
+      FSearchFilterExtSets: array[0..cSearchFilterExtKindCount - 1] of string;
     class procedure ApplyDefaults;
     class function ClampPaintFrequencyMs(const AValue: Integer): Integer;
     class function ClampInt(const AValue, AMin, AMax: Integer): Integer;
@@ -145,6 +153,13 @@ type
     class function GetListScrollThumbRadius: Integer;
     class procedure SetListScrollThumbRadius(const AValue: Integer);
     class procedure ApplyListViewLayoutDefaults;
+    class procedure ApplySearchFilterDefaults;
+    class function NormalizeSearchFilterExtSet(const AText: string): string;
+    class function FormatSearchFilterExtSetForEdit(const ASet: string): string;
+    class function DefaultSearchFilterExtSet(AKind: Integer): string;
+    class function GetSearchFilterExtSet(AKind: Integer): string;
+    class procedure SetSearchFilterExtSet(AKind: Integer; const AText: string);
+    class function GetListFilterExtSet(AListFilterIndex: Integer): string;
   end;
 
 type
@@ -213,6 +228,106 @@ begin
   FHostsResolve := '';
   FListItemWidth := cDefaultListItemWidth;
   ApplyListViewLayoutDefaults;
+  ApplySearchFilterDefaults;
+end;
+
+class procedure TAppConfig.ApplySearchFilterDefaults;
+begin
+  FSearchFilterExtSets[0] := cDefaultSearchFilterAppExts;
+  FSearchFilterExtSets[1] := cDefaultSearchFilterDocExts;
+  FSearchFilterExtSets[2] := cDefaultSearchFilterImageExts;
+  FSearchFilterExtSets[3] := cDefaultSearchFilterVideoExts;
+  FSearchFilterExtSets[4] := cDefaultSearchFilterAudioExts;
+  FSearchFilterExtSets[5] := cDefaultSearchFilterArchiveExts;
+end;
+
+class function TAppConfig.DefaultSearchFilterExtSet(AKind: Integer): string;
+begin
+  case AKind of
+    0: Result := cDefaultSearchFilterAppExts;
+    1: Result := cDefaultSearchFilterDocExts;
+    2: Result := cDefaultSearchFilterImageExts;
+    3: Result := cDefaultSearchFilterVideoExts;
+    4: Result := cDefaultSearchFilterAudioExts;
+    5: Result := cDefaultSearchFilterArchiveExts;
+  else
+    Result := '';
+  end;
+end;
+
+class function TAppConfig.NormalizeSearchFilterExtSet(const AText: string): string;
+var
+  s, token: string;
+  i, startPos: Integer;
+  hasExt: Boolean;
+begin
+  Result := '';
+  s := LowerCase(StringReplace(StringReplace(AText, ' ', '', [rfReplaceAll]), ',', ';', [rfReplaceAll]));
+  if s = '' then
+    Exit;
+  hasExt := False;
+  startPos := 1;
+  for i := 1 to Length(s) + 1 do
+  begin
+    if (i <= Length(s)) and (s[i] <> ';') then
+      Continue;
+    token := Copy(s, startPos, i - startPos);
+    startPos := i + 1;
+    if token = '' then
+      Continue;
+    if token[1] = '.' then
+      Delete(token, 1, 1);
+    if token = '' then
+      Continue;
+    Result := Result + ';' + token;
+    hasExt := True;
+  end;
+  if hasExt then
+    Result := Result + ';';
+end;
+
+class function TAppConfig.FormatSearchFilterExtSetForEdit(const ASet: string): string;
+begin
+  Result := Trim(ASet);
+  if (Length(Result) > 0) and (Result[1] = ';') then
+    Delete(Result, 1, 1);
+  if (Length(Result) > 0) and (Result[Length(Result)] = ';') then
+    SetLength(Result, Length(Result) - 1);
+end;
+
+class function TAppConfig.GetSearchFilterExtSet(AKind: Integer): string;
+begin
+  if (AKind < 0) or (AKind >= cSearchFilterExtKindCount) then
+    Exit('');
+  Result := FSearchFilterExtSets[AKind];
+  if Result = '' then
+    Result := DefaultSearchFilterExtSet(AKind);
+end;
+
+class procedure TAppConfig.SetSearchFilterExtSet(AKind: Integer; const AText: string);
+var
+  normalized: string;
+begin
+  if (AKind < 0) or (AKind >= cSearchFilterExtKindCount) then
+    Exit;
+  normalized := NormalizeSearchFilterExtSet(AText);
+  if normalized = '' then
+    normalized := DefaultSearchFilterExtSet(AKind);
+  FSearchFilterExtSets[AKind] := normalized;
+end;
+
+class function TAppConfig.GetListFilterExtSet(AListFilterIndex: Integer): string;
+begin
+  case AListFilterIndex of
+    1: Result := GetSearchFilterExtSet(0);
+    2: Result := GetSearchFilterExtSet(1);
+    3: Result := GetSearchFilterExtSet(2);
+    4: Result := GetSearchFilterExtSet(3);
+    5: Result := GetSearchFilterExtSet(4);
+    7: Result := GetSearchFilterExtSet(5);
+  else
+    Result := '';
+  end;
 end;
 
 class procedure TAppConfig.ApplyListViewLayoutDefaults;
@@ -288,6 +403,7 @@ end;
 class procedure TAppConfig.Load;
 var
   ini: TIniFile;
+  i: Integer;
 begin
   ForceDirectories(DataDirectory);
   if not FileExists(ConfigFilePath) then
@@ -333,6 +449,12 @@ begin
     FListScrollBarSize := ini.ReadInteger('UI', 'ListScrollBarSize', cDefaultListScrollBarSize);
     FListScrollSliderMinLen := ini.ReadInteger('UI', 'ListScrollSliderMinLen', cDefaultListScrollSliderMinLen);
     FListScrollThumbRadius := ini.ReadInteger('UI', 'ListScrollThumbRadius', cDefaultListScrollThumbRadius);
+    FSearchFilterExtSets[0] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'App', cDefaultSearchFilterAppExts));
+    FSearchFilterExtSets[1] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'Doc', cDefaultSearchFilterDocExts));
+    FSearchFilterExtSets[2] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'Image', cDefaultSearchFilterImageExts));
+    FSearchFilterExtSets[3] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'Video', cDefaultSearchFilterVideoExts));
+    FSearchFilterExtSets[4] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'Audio', cDefaultSearchFilterAudioExts));
+    FSearchFilterExtSets[5] := NormalizeSearchFilterExtSet(ini.ReadString('SearchFilter', 'Archive', cDefaultSearchFilterArchiveExts));
   finally
     ini.Free;
   end;
@@ -356,6 +478,9 @@ begin
   FListScrollBarSize := ClampListScrollBarSize(FListScrollBarSize);
   FListScrollSliderMinLen := ClampListScrollSliderMinLen(FListScrollSliderMinLen);
   FListScrollThumbRadius := ClampListScrollThumbRadius(FListScrollThumbRadius);
+  for i := 0 to cSearchFilterExtKindCount - 1 do
+    if FSearchFilterExtSets[i] = '' then
+      FSearchFilterExtSets[i] := DefaultSearchFilterExtSet(i);
   if Trim(FCityCoordsUrl) = '' then
     FCityCoordsUrl := cDefaultCityCoordsUrl;
   FCityCoordsUpdateEnabled := Ord(FCityCoordsUpdateEnabled <> 0);
@@ -402,6 +527,12 @@ begin
     ini.WriteInteger('UI', 'ListScrollBarSize', FListScrollBarSize);
     ini.WriteInteger('UI', 'ListScrollSliderMinLen', FListScrollSliderMinLen);
     ini.WriteInteger('UI', 'ListScrollThumbRadius', FListScrollThumbRadius);
+    ini.WriteString('SearchFilter', 'App', FSearchFilterExtSets[0]);
+    ini.WriteString('SearchFilter', 'Doc', FSearchFilterExtSets[1]);
+    ini.WriteString('SearchFilter', 'Image', FSearchFilterExtSets[2]);
+    ini.WriteString('SearchFilter', 'Video', FSearchFilterExtSets[3]);
+    ini.WriteString('SearchFilter', 'Audio', FSearchFilterExtSets[4]);
+    ini.WriteString('SearchFilter', 'Archive', FSearchFilterExtSets[5]);
   finally
     ini.Free;
   end;

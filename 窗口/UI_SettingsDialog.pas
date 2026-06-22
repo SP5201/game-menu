@@ -26,7 +26,9 @@ type
       FEdtProxyPort: TEditUI;
       FEdtHostsResolve: TEditUI;
       FEdtUserAgent: TEditUI;
+      FEdtFilterExts: array[0..cSearchFilterExtKindCount - 1] of TEditUI;
     class procedure UpdatePaintFrequencyValue(const APosMs: Integer);
+    class procedure ApplySearchFilterToUi; static;
     class procedure ReadWorkingFromUi; static;
     class procedure ApplyWorkingToUi; static;
     class procedure ApplyCityCoordsUpdateToUi; static;
@@ -57,6 +59,9 @@ type
   end;
 
 implementation
+
+uses
+  UI_MainWindow;
 
 const
   ID_BTN_CLOSE                = 'btn_settings_close';
@@ -96,8 +101,17 @@ const
   cNavIndexGeneral            = 0;
   cNavIndexDataUpdate         = 1;
   cNavIndexProxy              = 2;
-  cNavItemCount               = 3;
-  cNavTitles: array[0..2] of UnicodeString = ('常规', '数据更新', '网络设置');
+  cNavIndexSearchFilter       = 3;
+  cNavItemCount               = 4;
+  cNavTitles: array[0..3] of UnicodeString = ('常规', '数据更新', '网络设置', '搜索分类');
+  ID_PANE_SEARCH_FILTER       = 'pane_settings_search_filter';
+  ID_TXT_GROUP_SEARCH_FILTER  = 'txt_settings_group_search_filter';
+  cFilterEditNames: array[0..cSearchFilterExtKindCount - 1] of string = (
+    'edit_settings_filter_app', 'edit_settings_filter_doc', 'edit_settings_filter_image',
+    'edit_settings_filter_video', 'edit_settings_filter_audio', 'edit_settings_filter_archive');
+  cFilterGroupLabels: array[0..cSearchFilterExtKindCount - 1] of string = (
+    'txt_settings_filter_label_app', 'txt_settings_filter_label_doc', 'txt_settings_filter_label_image',
+    'txt_settings_filter_label_video', 'txt_settings_filter_label_audio', 'txt_settings_filter_label_archive');
   cRenderModeIndexGDI         = 0;
   cRenderModeIndexD2D         = 1;
 
@@ -142,6 +156,7 @@ end;
 class procedure TSettingsDialogUI.ReadWorkingFromUi;
 var
   proxyHostText, proxyPortText: string;
+  i: Integer;
 begin
   if XC_GetObjectType(FChkRunWithWindows) = XC_BUTTON then
     FWorking.RunWithWindows := XBtn_IsCheck(FChkRunWithWindows);
@@ -169,6 +184,19 @@ begin
     TAppConfig.SetHostsResolve(FEdtHostsResolve.Text);
   if FEdtUserAgent <> nil then
     TAppConfig.SetUserAgent(FEdtUserAgent.Text);
+  for i := 0 to cSearchFilterExtKindCount - 1 do
+    if FEdtFilterExts[i] <> nil then
+      TAppConfig.SetSearchFilterExtSet(i, FEdtFilterExts[i].Text);
+end;
+
+class procedure TSettingsDialogUI.ApplySearchFilterToUi;
+var
+  i: Integer;
+begin
+  for i := 0 to cSearchFilterExtKindCount - 1 do
+    if FEdtFilterExts[i] <> nil then
+      FEdtFilterExts[i].Text := TAppConfig.FormatSearchFilterExtSetForEdit(
+        TAppConfig.GetSearchFilterExtSet(i));
 end;
 
 class procedure TSettingsDialogUI.ApplyCityCoordsUpdateToUi;
@@ -272,6 +300,7 @@ begin
   end;
   ApplyCityCoordsUpdateToUi;
   ApplyProxyToUi;
+  ApplySearchFilterToUi;
 end;
 
 class function TSettingsDialogUI.TrySaveWorking: Boolean;
@@ -279,27 +308,32 @@ begin
   ReadWorkingFromUi;
   TAppSettings.Save(FWorking);
   FSaved := FWorking;
+  TMainFormUI.ReloadSearchFilterConfig;
   Result := True;
 end;
 
 class procedure TSettingsDialogUI.UpdateNavPageVisible;
 var
-  hPaneGeneral, hPaneDataUpdate, hPaneProxy: HELE;
+  hPaneGeneral, hPaneDataUpdate, hPaneProxy, hPaneSearchFilter: HELE;
   hModalWnd: XCGUI.HWINDOW;
-  showGeneral, showData, showProxy: BOOL;
+  showGeneral, showData, showProxy, showSearchFilter: BOOL;
 begin
   hPaneGeneral := XC_GetObjectByName(ID_PANE_GENERAL);
   hPaneDataUpdate := XC_GetObjectByName(ID_PANE_DATA_UPDATE);
   hPaneProxy := XC_GetObjectByName(ID_PANE_PROXY);
+  hPaneSearchFilter := XC_GetObjectByName(ID_PANE_SEARCH_FILTER);
   showGeneral := FNavPageIndex = cNavIndexGeneral;
   showData := FNavPageIndex = cNavIndexDataUpdate;
   showProxy := FNavPageIndex = cNavIndexProxy;
+  showSearchFilter := FNavPageIndex = cNavIndexSearchFilter;
   if XC_GetObjectType(hPaneGeneral) <> XC_ERROR then
     XWidget_Show(hPaneGeneral, showGeneral);
   if XC_GetObjectType(hPaneDataUpdate) <> XC_ERROR then
     XWidget_Show(hPaneDataUpdate, showData);
   if XC_GetObjectType(hPaneProxy) <> XC_ERROR then
     XWidget_Show(hPaneProxy, showProxy);
+  if XC_GetObjectType(hPaneSearchFilter) <> XC_ERROR then
+    XWidget_Show(hPaneSearchFilter, showSearchFilter);
   if XC_GetObjectType(FPaneHost) <> XC_ERROR then
   begin
     XEle_AdjustLayoutEx(FPaneHost, adjustLayout_all);
@@ -410,6 +444,7 @@ begin
   TAppConfig.SetProxyUrl('');
   TAppConfig.SetHostsResolve('');
   TAppConfig.SetUserAgent('');
+  TAppConfig.ApplySearchFilterDefaults;
   ApplyWorkingToUi;
 end;
 
@@ -449,6 +484,8 @@ begin
 end;
 
 procedure TSettingsDialogUI.Init;
+var
+  i: Integer;
 begin
   inherited;
   TFormUI.ApplyTitleLogo('pic_settings_dialog_logo', 20, Handle);
@@ -475,6 +512,9 @@ begin
   ApplyShapeTextTheme(ID_TXT_LABEL_PROXY_PORT);
   ApplyShapeTextTheme(ID_TXT_GROUP_HOSTS);
   ApplyShapeTextTheme(ID_TXT_GROUP_USERAGENT);
+  ApplyShapeTextTheme(ID_TXT_GROUP_SEARCH_FILTER);
+  for i := 0 to cSearchFilterExtKindCount - 1 do
+    ApplyShapeTextTheme(cFilterGroupLabels[i]);
 
   FNavListBox := XC_GetObjectByName(ID_LIST_NAV);
   FPaneHost := 0;
@@ -534,6 +574,8 @@ begin
   if XC_GetObjectType(XC_GetObjectByName(ID_BTN_HOSTS_HINT)) = XC_BUTTON then
     THintPopupUI.BindHoverHint(XC_GetObjectByName(ID_BTN_HOSTS_HINT), cHostsResolveHintText);
   FEdtUserAgent := TEditUI.FromXmlName(ID_EDIT_USERAGENT);
+  for i := 0 to cSearchFilterExtKindCount - 1 do
+    FEdtFilterExts[i] := TEditUI.FromXmlName(PWideChar(cFilterEditNames[i]));
 
   ApplyWorkingToUi;
 

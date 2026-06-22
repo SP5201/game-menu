@@ -757,7 +757,7 @@ var
   pattern: TCompiledSearchPattern;
   ch: TIndexHitChange;
 begin
-  if (Length(AChanges) = 0) or (Trim(AQuery) = '') then
+  if Length(AChanges) = 0 then
     Exit;
   pattern := CompileSearchPattern(AQuery);
   for i := 0 to High(AChanges) do

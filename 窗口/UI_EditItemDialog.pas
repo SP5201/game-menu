@@ -41,7 +41,7 @@ type
 implementation
 
 uses
-  AppConfig, ShellHelper, ListItemTypes, UI_ListView, UI_HintPopup;
+  AppConfig, ShellHelper, ShellIconHelper, ListItemTypes, UI_ListView, UI_HintPopup;
 
 function ResolveEditItemPreviewIcon(const AIcon: HIMAGE; const AIconPath, AFilePath: string): HIMAGE;
 var

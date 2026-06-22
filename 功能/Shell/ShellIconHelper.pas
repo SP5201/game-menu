@@ -11,18 +11,6 @@ uses
   XCGUI;
 
 type
-  /// <summary>类型图标缓存条目：引用计数 + 图标句柄。RefCount=0 且 Image=0 表示加载失败哨兵。</summary>
-  PFileTypeCacheEntry = ^TFileTypeCacheEntry;
-  TFileTypeCacheEntry = record
-    RefCount: Integer;
-    Image: HIMAGE;
-  end;
-
-  TShellIconInfo = record
-    IconIndex: Integer;
-    OverlayIndex: Integer;
-  end;
-
   /// <summary>Shell 提取的 BGRA 像素（Worker 线程产出，UI 线程转 HIMAGE）。</summary>
   TShellIconPixelData = record
     Ok: Boolean;
@@ -34,16 +22,16 @@ type
     CanCacheByType: Boolean;
   end;
 
-function ExtractShellIconParts(iconIndexAndOverlay: Integer): TShellIconInfo;
 function ExtractShellIconPixels(const APath: string; const AIconCachePath: string;
-  out AData: TShellIconPixelData): Boolean;
+  out AData: TShellIconPixelData; AIsFolder: Boolean = False): Boolean;
 function CreateHImageFromPixelData(const AData: TShellIconPixelData): HIMAGE;
-function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE;
-function BuildListFileImageRequestKey(const AIconCachePath, AFilePath: string): string;
-function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
+function BuildListFileImageRequestKey(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False): string;
+function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  AIsFolder: Boolean = False): Boolean;
 /// <summary>仅查内存图标缓存，不触发 Shell/磁盘 IO（列表 RefreshVisibleItems 用）。</summary>
 function TryAcquireMemoryCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
-  out AResolvedIconCachePath: string): Boolean;
+  out AResolvedIconCachePath: string; AIsFolder: Boolean = False): Boolean;
 type
   /// <summary>列表占位图类型（Init 预热用）。</summary>
   TListPlaceholderKind = (lpkFolder, lpkApp, lpkFile);
@@ -56,28 +44,23 @@ procedure StorePendingIconPixels(const AKey: string; var AData: TShellIconPixelD
 function TakePendingIconPixels(const AKey: string; out AData: TShellIconPixelData): Boolean;
 procedure DiscardPendingIconPixelEntry(const AKey: string);
 procedure ClearAllPendingIconPixels;
-function ParseDisplayNameForNavigation(const ItemPath: UnicodeString; out APidl: PItemIDList): HRESULT;
 function GetListViewFileItemFromParsingPath(const AFullPath: string;
   ALoadIcon: Boolean = True): TListViewFileItem;
 function LoadXImageFromFileMemory(const AFilePath: string): Integer;
-function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
-procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
-function IsListFileImageLoadFailed(const AIconCachePath, AFilePath: string): Boolean;
-procedure MarkListFileImageLoadFailed(const AIconCachePath, AFilePath: string);
-procedure ClearListFileImageLoadFailure(const AIconCachePath, AFilePath: string);
-procedure ClearListDisplayImageCache;
+procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False);
+function IsListFileImageLoadFailed(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False): Boolean;
+procedure MarkListFileImageLoadFailed(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False);
+procedure ClearListFileImageLoadFailure(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False);
 function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: string): HIMAGE;
 function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
   out AIconCachePathOut: string): HIMAGE;
 function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
 function GetShieldIconSmall: HICON;
-function TryGetCachedFileTypeImage(const ACacheKey: string; out AImage: HIMAGE): Boolean;
-function TryGetShellTypeIcon(const AFilePath: string; out AImage: HIMAGE): Boolean;
-function LoadSysIconToHImage(const ARefPath: string; AAttributes: DWORD): HIMAGE;
-function GetFormatNameFromPath(const APath: string): string;
-procedure IncFileTypeRef(const ATypeKey: string);
-procedure DecFileTypeRef(const ATypeKey: string);
 procedure ReleaseFileTypeImageCache;
 
 implementation
@@ -93,6 +76,10 @@ uses
   ShellHelper;
 
 type
+  PFileTypeCacheEntry = ^TFileTypeCacheEntry;
+  TFileTypeCacheEntry = record
+    Image: HIMAGE;
+  end;
   PShellIconPixelData = ^TShellIconPixelData;
 
   IShellImageList = interface(IUnknown)
@@ -130,13 +117,11 @@ const
   cShellImageListLevels: array[0..3] of Integer = (SHIL_JUMBO, SHIL_EXTRALARGE, SHIL_LARGE, SHIL_SMALL);
 
 var
-  // 非 EXE 类型：按类型键缓存图标句柄 + 引用计数，避免重复 IO/解码。
-  // Objects[] 里存 PFileTypeCacheEntry。RefCount=0 且 Image=0 表示失败哨兵。
+  // 非 EXE 类型：按类型键缓存图标句柄，避免重复 IO/解码。
+  // Objects[] 里存 PFileTypeCacheEntry；Image=0 表示失败哨兵。
   GFileTypeImageCache: TStringList;
   /// <summary>按 IconCache 文件名（如 txt.png、8 位哈希 png）共享 HIMAGE，列表项持有 AddRef。</summary>
   GIconCachePathImageCache: TStringList;
-  /// <summary>列表预缩放图：键为「类型键#边长」，非 exe 同类型同边长共一柄。</summary>
-  GListDisplayImageCache: TStringList;
   GDefaultFileTypeSysIconIndex: Integer = -1;
   GDefaultFileTypeSysIconIndexReady: Boolean = False;
   GDefaultExeSysIconIndex: Integer = -1;
@@ -158,19 +143,43 @@ var
 
 function EnsureShellImageListsLoaded: Boolean; forward;
 function BuildIconCacheFileName(const APath: string): string; forward;
+function GetFormatNameFromPath(const APath: string): string; forward;
+function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean = False): string; forward;
+function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE; forward;
 procedure ReleaseShellImageLists; forward;
 function GetSysIconIndexForPath(const APath: UnicodeString; APidl: PItemIDList; out SysIdx: Integer): Boolean; forward;
-function GetSysIconIndexForShellExtract(const APath: string; out ASysIdx: Integer): Boolean; forward;
-function TryResolveListFileTypeIcon(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean; forward;
+function GetSysIconIndexForShellExtract(const APath: string; out ASysIdx: Integer;
+  AIsFolder: Boolean = False): Boolean; forward;
+function TryResolveListFileTypeIcon(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  AIsFolder: Boolean = False): Boolean; forward;
 function IconTargetPathForShell(const AFilePath: string): string; forward;
 function ResolveShortcutInfo(const AShortcutPath: string; out ATargetPath, AArguments, AWorkingDir: string): Boolean; forward;
 procedure RemoveIconCachePathImageEntry(const ACacheKey: string); forward;
-procedure RemoveCachedFileTypeImageEntry(const ACacheKey: string); forward;
 function IsLikelyTopLeftSmallInJumbo(const AIcon: HICON): Boolean; forward;
 function ShouldShellIconByExtensionOnly(const APath: string): Boolean; forward;
 function BuildExtensionShellRefPath(const AFormat: string): string; forward;
-function ShellQueryPathForIconExtract(const APath: string): string; forward;
-function ShellIconAttributesForPath(const APath: string): DWORD; forward;
+function PathTreatAsFolderForShellIcon(const APath: string; AIsFolder: Boolean): Boolean; forward;
+function ShellQueryPathForIconExtract(const APath: string; AIsFolder: Boolean): string; forward;
+function ShellIconAttributesForPath(const AQueryPath: string): DWORD; forward;
+
+type
+  TShellIconResolveContext = record
+    PathForIcon: string;
+    FormatName: string;
+    SysIdx: Integer;
+    GotSysIdx: Boolean;
+    TypeCacheKey: string;
+  end;
+
+procedure InitShellIconResolveContext(const AFilePath: string; AIsFolder: Boolean;
+  var Ctx: TShellIconResolveContext); forward;
+function GetListItemDisplayImageCacheKeyWithSysIdx(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean; AGotSysIdx: Boolean; ASysIdx: Integer): string; forward;
+function TryGetBestShellIconFromSysIndex(ASysIdx: Integer; out AHIcon: HICON): Boolean; forward;
+function TryAcquireListFileImageInternal(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  out AResolvedIconCachePath: string; ACheckFailureSentinel, AAllowShellResolve, AAllowDiskProbe: Boolean;
+  AIsFolder: Boolean): Boolean; forward;
 
 function GetDefaultFileTypeSysIconIndex: Integer;
 var
@@ -236,9 +245,9 @@ begin
   Result := (defIdx >= 0) and (AIndex = defIdx);
 end;
 
-function FileTypeCacheKey(const APath: string; ASysIconIndex: Integer): string;
+function FileTypeCacheKey(const APath: string; ASysIconIndex: Integer; AIsFolder: Boolean): string;
 begin
-  if Trim(ExtractFileExt(APath)) = '' then
+  if PathTreatAsFolderForShellIcon(APath, AIsFolder) then
     Exit('folder');
   if SameText(GetFormatNameFromPath(APath), 'exe') then
   begin
@@ -338,7 +347,6 @@ begin
   if idx < 0 then
   begin
     New(p);
-    p.RefCount := 0;
     if AFailed then
       p.Image := 0
     else
@@ -351,7 +359,6 @@ begin
     if p = nil then
     begin
       New(p);
-      p.RefCount := 0;
       GFileTypeImageCache.Objects[idx] := TObject(p);
     end;
     if AFailed then
@@ -374,25 +381,6 @@ begin
         XImage_Destroy(oldImg);
     end;
   end;
-end;
-
-procedure RemoveCachedFileTypeImageEntry(const ACacheKey: string);
-var
-  idx: Integer;
-  p: PFileTypeCacheEntry;
-begin
-  if (GFileTypeImageCache = nil) or ShouldSkipFileTypeCacheKey(ACacheKey) then
-    Exit;
-  idx := GFileTypeImageCache.IndexOf(ACacheKey);
-  if idx < 0 then
-    Exit;
-  p := PFileTypeCacheEntry(GFileTypeImageCache.Objects[idx]);
-  GFileTypeImageCache.Delete(idx);
-  if p = nil then
-    Exit;
-  if (p.RefCount > 0) and (XC_GetObjectType(p.Image) = XC_IMAGE) then
-    XImage_Destroy(p.Image);
-  Dispose(p);
 end;
 
 procedure FreeFileTypeImageCache;
@@ -479,76 +467,43 @@ begin
   FreeAndNil(GIconCachePathImageCache);
 end;
 
-procedure ClearListDisplayImageCache;
-var
-  i: Integer;
-  v: NativeInt;
-begin
-  if GListDisplayImageCache = nil then
-    Exit;
-  for i := 0 to GListDisplayImageCache.Count - 1 do
-  begin
-    v := NativeInt(GListDisplayImageCache.Objects[i]);
-    if (v > 0) and (XC_GetObjectType(v) = XC_IMAGE) then
-      XImage_Release(HIMAGE(v));
-  end;
-  GListDisplayImageCache.Clear;
-end;
-
-function TryGetShellTypeIcon(const AFilePath: string; out AImage: HIMAGE): Boolean;
+function TryGetShellTypeIcon(const AFilePath: string; out AImage: HIMAGE;
+  AIsFolder: Boolean): Boolean;
 var
   pathForIcon: string;
   attributes: DWORD;
   SysIdx: Integer;
-  ImageList: IShellImageList;
   hFileIcon: HICON;
-  I: Integer;
   FileInfo: SHFILEINFOW;
 begin
   Result := False;
   AImage := 0;
-  pathForIcon := ShellQueryPathForIconExtract(AFilePath);
+  pathForIcon := ShellQueryPathForIconExtract(AFilePath, AIsFolder);
   if pathForIcon = '' then
     Exit;
   attributes := ShellIconAttributesForPath(pathForIcon);
-  // 从系统图像列表获取图标索引（USEFILEATTRIBUTES = 纯注册表查找，不读盘）
   ZeroMemory(@FileInfo, SizeOf(FileInfo));
   SHGetFileInfoW(PWideChar(pathForIcon), attributes, FileInfo,
     SizeOf(FileInfo), SHGFI_SYSICONINDEX or SHGFI_LARGEICON or SHGFI_USEFILEATTRIBUTES);
   SysIdx := FileInfo.iIcon;
   if SysIdx < 0 then
     Exit;
-  if not EnsureShellImageListsLoaded then
-    Exit;
-  for I := Low(cShellImageListLevels) to High(cShellImageListLevels) do
+  if TryGetBestShellIconFromSysIndex(SysIdx, hFileIcon) then
   begin
-    ImageList := GShellImageLists[I];
-    if ImageList = nil then
-      Continue;
-    hFileIcon := 0;
-    if ImageList.GetIcon(SysIdx, ILD_NORMAL, hFileIcon) = S_OK then
-    begin
-      try
-        if hFileIcon <> 0 then
-        begin
-          if (cShellImageListLevels[I] = SHIL_JUMBO) and IsLikelyTopLeftSmallInJumbo(hFileIcon) then
-            Continue;
-          AImage := XImage_LoadFromHICON(hFileIcon);
-          if XC_GetObjectType(AImage) = XC_IMAGE then
-            Exit(True);
-        end;
-      finally
-        DestroyIcon(hFileIcon);
-      end;
+    try
+      AImage := XImage_LoadFromHICON(hFileIcon);
+      if XC_GetObjectType(AImage) = XC_IMAGE then
+        Exit(True);
+    finally
+      DestroyIcon(hFileIcon);
     end;
   end;
-  // 最后回退到 SHGetFileInfo 直接获取图标
   ZeroMemory(@FileInfo, SizeOf(FileInfo));
   if SHGetFileInfoW(PWideChar(pathForIcon), attributes, FileInfo, SizeOf(FileInfo),
     SHGFI_ICON or SHGFI_LARGEICON or SHGFI_USEFILEATTRIBUTES) <> 0 then
   begin
     try
-      if (FileInfo.hIcon <> 0) then
+      if FileInfo.hIcon <> 0 then
       begin
         AImage := XImage_LoadFromHICON(FileInfo.hIcon);
         if XC_GetObjectType(AImage) = XC_IMAGE then
@@ -575,7 +530,6 @@ begin
     XImage_Destroy(GAppPlaceholderImage);
   GAppPlaceholderImage := 0;
   GAppPlaceholderReady := False;
-  ClearListDisplayImageCache;
   FreeFileTypeImageCache;
   FreeIconCachePathImageCache;
   ReleaseShellImageLists;
@@ -685,75 +639,70 @@ begin
   Result := XImage_LoadFromData(NativeInt(@AData.Bits[0]), AData.Width, AData.Height);
 end;
 
-function BuildListFileImageRequestKey(const AIconCachePath, AFilePath: string): string;
+function BuildListFileImageRequestKey(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean): string;
 var
   iconKey, typeKey: string;
 begin
   iconKey := LowerCase(Trim(AIconCachePath));
   if iconKey <> '' then
     Exit(LowerCase(Trim(AFilePath)) + #9 + iconKey);
-  typeKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
+  typeKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath, AIsFolder);
   if (typeKey <> '') and (Copy(typeKey, 1, 5) <> 'file:') then
     Exit('type:' + typeKey + #9 + iconKey);
   Result := LowerCase(Trim(AFilePath)) + #9 + iconKey;
 end;
 
-function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
-var
-  cacheKey, displayKey: string;
-  cached: HIMAGE;
+procedure InitShellIconResolveContext(const AFilePath: string; AIsFolder: Boolean;
+  var Ctx: TShellIconResolveContext);
 begin
-  AImage := 0;
-  cacheKey := NormalizeIconCachePathKey(AIconCachePath);
-  if (cacheKey <> '') and TryAcquireIconCachePathImage(cacheKey, AImage) then
-    Exit(True);
-  displayKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
-  if (displayKey <> '') and TryGetCachedFileTypeImage(displayKey, cached) then
-  begin
-    if cached = 0 then
-      Exit(True);
-    AImage := cached;
-    Exit(True);
-  end;
-  Result := TryResolveListFileTypeIcon(AIconCachePath, AFilePath, AImage);
+  Ctx.PathForIcon := NormalizeSystem32PathForIcon(IconTargetPathForShell(AFilePath));
+  if PathTreatAsFolderForShellIcon(AFilePath, AIsFolder) then
+    Ctx.FormatName := 'folder'
+  else
+    Ctx.FormatName := GetFormatNameFromPath(AFilePath);
+  Ctx.GotSysIdx := GetSysIconIndexForShellExtract(AFilePath, Ctx.SysIdx, AIsFolder);
+  if not Ctx.GotSysIdx then
+    Ctx.SysIdx := -1;
+  Ctx.TypeCacheKey := FileTypeCacheKey(Ctx.PathForIcon, Ctx.SysIdx, AIsFolder);
 end;
 
-function IsListFileImageLoadFailed(const AIconCachePath, AFilePath: string): Boolean;
+function TryGetBestShellIconFromSysIndex(ASysIdx: Integer; out AHIcon: HICON): Boolean;
 var
-  reqKey: string;
+  ImageList: IShellImageList;
+  I: Integer;
+  hFileIcon: HICON;
 begin
   Result := False;
-  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
+  AHIcon := 0;
+  if (ASysIdx < 0) or not EnsureShellImageListsLoaded then
     Exit;
-  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath);
-  Result := GListFileImageFailureKeys.IndexOf(reqKey) >= 0;
+  for I := Low(cShellImageListLevels) to High(cShellImageListLevels) do
+  begin
+    ImageList := GShellImageLists[I];
+    if ImageList = nil then
+      Continue;
+    hFileIcon := 0;
+    if ImageList.GetIcon(ASysIdx, ILD_NORMAL, hFileIcon) <> S_OK then
+      Continue;
+    try
+      if hFileIcon = 0 then
+        Continue;
+      if (cShellImageListLevels[I] = SHIL_JUMBO) and IsLikelyTopLeftSmallInJumbo(hFileIcon) then
+        Continue;
+      AHIcon := hFileIcon;
+      hFileIcon := 0;
+      Exit(True);
+    finally
+      if hFileIcon <> 0 then
+        DestroyIcon(hFileIcon);
+    end;
+  end;
 end;
 
-procedure MarkListFileImageLoadFailed(const AIconCachePath, AFilePath: string);
-var
-  reqKey: string;
-begin
-  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
-    Exit;
-  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath);
-  GListFileImageFailureKeys.Add(reqKey);
-end;
-
-procedure ClearListFileImageLoadFailure(const AIconCachePath, AFilePath: string);
-var
-  reqKey: string;
-  idx: Integer;
-begin
-  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
-    Exit;
-  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath);
-  idx := GListFileImageFailureKeys.IndexOf(reqKey);
-  if idx >= 0 then
-    GListFileImageFailureKeys.Delete(idx);
-end;
-
-function TryAcquireMemoryCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
-  out AResolvedIconCachePath: string): Boolean;
+function TryAcquireListFileImageInternal(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  out AResolvedIconCachePath: string; ACheckFailureSentinel, AAllowShellResolve, AAllowDiskProbe: Boolean;
+  AIsFolder: Boolean): Boolean;
 var
   cacheKey, displayKey, inferredKey: string;
   cached: HIMAGE;
@@ -761,7 +710,7 @@ begin
   Result := False;
   AImage := 0;
   AResolvedIconCachePath := '';
-  if IsListFileImageLoadFailed(AIconCachePath, AFilePath) then
+  if ACheckFailureSentinel and IsListFileImageLoadFailed(AIconCachePath, AFilePath, AIsFolder) then
     Exit(True);
   cacheKey := NormalizeIconCachePathKey(AIconCachePath);
   if (cacheKey <> '') and TryAcquireIconCachePathImage(cacheKey, AImage) then
@@ -769,7 +718,7 @@ begin
     AResolvedIconCachePath := cacheKey;
     Exit(True);
   end;
-  displayKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
+  displayKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath, AIsFolder);
   if (displayKey <> '') and TryGetCachedFileTypeImage(displayKey, cached) then
   begin
     if cached = 0 then
@@ -777,8 +726,7 @@ begin
     AImage := cached;
     Exit(True);
   end;
-  // 仅自定义 exe 等 per-file 项才用 FindFirst 哈希缓存；按后缀共享的类型项禁止读盘
-  if (cacheKey = '') and (Trim(AFilePath) <> '') and (Copy(displayKey, 1, 5) = 'file:') then
+  if AAllowDiskProbe and (cacheKey = '') and (Trim(AFilePath) <> '') and (Copy(displayKey, 1, 5) = 'file:') then
   begin
     inferredKey := BuildIconCacheFileName(AFilePath);
     if (inferredKey <> '') and TryAcquireIconCachePathImage(inferredKey, AImage) then
@@ -787,6 +735,61 @@ begin
       Exit(True);
     end;
   end;
+  if AAllowShellResolve then
+    Result := TryResolveListFileTypeIcon(AIconCachePath, AFilePath, AImage, AIsFolder);
+end;
+
+function TryAcquireCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  AIsFolder: Boolean): Boolean;
+var
+  resolvedPath: string;
+begin
+  Result := TryAcquireListFileImageInternal(AIconCachePath, AFilePath, AImage, resolvedPath,
+    False, True, False, AIsFolder);
+end;
+
+function IsListFileImageLoadFailed(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean): Boolean;
+var
+  reqKey: string;
+begin
+  Result := False;
+  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
+    Exit;
+  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath, AIsFolder);
+  Result := GListFileImageFailureKeys.IndexOf(reqKey) >= 0;
+end;
+
+procedure MarkListFileImageLoadFailed(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean);
+var
+  reqKey: string;
+begin
+  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
+    Exit;
+  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath, AIsFolder);
+  GListFileImageFailureKeys.Add(reqKey);
+end;
+
+procedure ClearListFileImageLoadFailure(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean);
+var
+  reqKey: string;
+  idx: Integer;
+begin
+  if (GListFileImageFailureKeys = nil) or (Trim(AFilePath) = '') then
+    Exit;
+  reqKey := BuildListFileImageRequestKey(AIconCachePath, AFilePath, AIsFolder);
+  idx := GListFileImageFailureKeys.IndexOf(reqKey);
+  if idx >= 0 then
+    GListFileImageFailureKeys.Delete(idx);
+end;
+
+function TryAcquireMemoryCachedListFileImage(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  out AResolvedIconCachePath: string; AIsFolder: Boolean): Boolean;
+begin
+  Result := TryAcquireListFileImageInternal(AIconCachePath, AFilePath, AImage, AResolvedIconCachePath,
+    True, False, True, AIsFolder);
 end;
 
 procedure StoreListFileImageToMemoryCache(const AIconCachePath, AFilePath: string;
@@ -835,8 +838,6 @@ function LoadSysIconToHImage(const ARefPath: string; AAttributes: DWORD): HIMAGE
 var
   FileInfo: SHFILEINFOW;
   SysIdx: Integer;
-  ImageList: IShellImageList;
-  I: Integer;
   hFileIcon: HICON;
   img: HIMAGE;
 begin
@@ -848,35 +849,19 @@ begin
   SysIdx := FileInfo.iIcon;
   if SysIdx < 0 then
     Exit;
-  if not EnsureShellImageListsLoaded then
+  if not TryGetBestShellIconFromSysIndex(SysIdx, hFileIcon) then
     Exit;
-  // 优先使用 EXTRALARGE（~48x48），缩放至格宽时更清晰
-  for I := Low(cShellImageListLevels) to High(cShellImageListLevels) do
-  begin
-    ImageList := GShellImageLists[I];
-    if ImageList = nil then
-      Continue;
-    hFileIcon := 0;
-    if ImageList.GetIcon(SysIdx, ILD_NORMAL, hFileIcon) = S_OK then
+  try
+    img := XImage_LoadFromHICON(hFileIcon);
+    if XC_GetObjectType(img) = XC_IMAGE then
     begin
-      try
-        if hFileIcon <> 0 then
-        begin
-          if (cShellImageListLevels[I] = SHIL_JUMBO) and IsLikelyTopLeftSmallInJumbo(hFileIcon) then
-            Continue;
-          img := XImage_LoadFromHICON(hFileIcon);
-          if XC_GetObjectType(img) = XC_IMAGE then
-          begin
-            XImage_EnableAutoDestroy(img, False);
-            Exit(img);
-          end
-          else if img <> 0 then
-            XImage_Destroy(img);
-        end;
-      finally
-        DestroyIcon(hFileIcon);
-      end;
-    end;
+      XImage_EnableAutoDestroy(img, False);
+      Exit(img);
+    end
+    else if img <> 0 then
+      XImage_Destroy(img);
+  finally
+    DestroyIcon(hFileIcon);
   end;
 end;
 
@@ -1148,12 +1133,6 @@ begin
   GShellImageListsReady := False;
 end;
 
-function ExtractShellIconParts(iconIndexAndOverlay: Integer): TShellIconInfo;
-begin
-  Result.IconIndex := iconIndexAndOverlay and $00FFFFFF;
-  Result.OverlayIndex := (iconIndexAndOverlay shr 24) and $FF;
-end;
-
 function ParseDisplayNameForNavigation(const ItemPath: UnicodeString; out APidl: PItemIDList): HRESULT;
 var
   bindCtx: IBindCtx;
@@ -1319,7 +1298,21 @@ begin
     Result := cExtensionShellRefBase + fmt;
 end;
 
-function ShellQueryPathForIconExtract(const APath: string): string;
+function PathTreatAsFolderForShellIcon(const APath: string; AIsFolder: Boolean): Boolean;
+var
+  s: string;
+  last: Char;
+begin
+  if AIsFolder then
+    Exit(True);
+  s := Trim(APath);
+  if s = '' then
+    Exit(False);
+  last := s[Length(s)];
+  Result := (last = '\') or (last = '/');
+end;
+
+function ShellQueryPathForIconExtract(const APath: string; AIsFolder: Boolean): string;
 var
   pathForIcon: string;
 begin
@@ -1327,7 +1320,11 @@ begin
   if pathForIcon = '' then
     Exit('');
   if Trim(ExtractFileExt(pathForIcon)) = '' then
-    Exit(cFolderRefPath);
+  begin
+    if PathTreatAsFolderForShellIcon(pathForIcon, AIsFolder) then
+      Exit(cFolderRefPath);
+    Exit(cGenericFileIconRefPath);
+  end;
   if ShouldShellIconByExtensionOnly(pathForIcon) then
     Exit(BuildExtensionShellRefPath(GetFormatNameFromPath(pathForIcon)));
   Result := pathForIcon;
@@ -1428,11 +1425,11 @@ begin
     ADstH := 1;
 end;
 
-function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string): string;
+function GetListItemDisplayImageCacheKeyWithSysIdx(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean; AGotSysIdx: Boolean; ASysIdx: Integer): string;
 var
   fn, fmt: string;
   sysIdx: Integer;
-  gotIdx: Boolean;
 begin
   fn := NormalizeIconCachePathKey(AIconCachePath);
   if IsPerFileShellIconCacheFileName(fn) then
@@ -1446,12 +1443,25 @@ begin
     Exit;
   end;
   if Trim(ExtractFileExt(AFilePath)) = '' then
-    Exit('folder');
+  begin
+    if AGotSysIdx then
+      sysIdx := ASysIdx
+    else if not GetSysIconIndexForShellExtract(AFilePath, sysIdx, AIsFolder) then
+      sysIdx := -1;
+    Result := FileTypeCacheKey(AFilePath, sysIdx, AIsFolder);
+    if Result <> '' then
+      Exit;
+    if fn <> '' then
+      Exit(ChangeFileExt(fn, ''))
+    else
+      Exit('file:' + IntToHex(Fnv1a32(AnsiString(LowerCase(AFilePath))), 8));
+  end;
   fmt := GetFormatNameFromPath(AFilePath);
   if SameText(fmt, 'exe') then
   begin
-    gotIdx := GetSysIconIndexForShellExtract(AFilePath, sysIdx);
-    if not gotIdx then
+    if AGotSysIdx then
+      sysIdx := ASysIdx
+    else if not GetSysIconIndexForShellExtract(AFilePath, sysIdx, AIsFolder) then
       sysIdx := -1;
     if IsDefaultExeSysIconIndex(sysIdx) then
       Exit(cDefaultExeFileTypeCacheKey);
@@ -1468,57 +1478,10 @@ begin
     Result := 'file:' + IntToHex(Fnv1a32(AnsiString(LowerCase(AFilePath))), 8);
 end;
 
-procedure IncFileTypeRef(const ATypeKey: string);
-var
-  idx: Integer;
-  p: PFileTypeCacheEntry;
+function GetListItemDisplayImageCacheKey(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean): string;
 begin
-  if (GFileTypeImageCache = nil) or ShouldSkipFileTypeCacheKey(ATypeKey) then
-    Exit;
-  idx := GFileTypeImageCache.IndexOf(ATypeKey);
-  if idx < 0 then
-  begin
-    // 尚无此类型条目，创建失败哨兵（RefCount=0, Image=0）
-    New(p);
-    p.RefCount := 1;
-    p.Image := 0;
-    GFileTypeImageCache.AddObject(ATypeKey, TObject(p));
-    Exit;
-  end;
-  p := PFileTypeCacheEntry(GFileTypeImageCache.Objects[idx]);
-  if p = nil then
-  begin
-    New(p);
-    p.RefCount := 1;
-    p.Image := 0;
-    GFileTypeImageCache.Objects[idx] := TObject(p);
-    Exit;
-  end;
-  Inc(p.RefCount);
-end;
-
-procedure DecFileTypeRef(const ATypeKey: string);
-var
-  idx: Integer;
-  p: PFileTypeCacheEntry;
-begin
-  if (GFileTypeImageCache = nil) or ShouldSkipFileTypeCacheKey(ATypeKey) then
-    Exit;
-  idx := GFileTypeImageCache.IndexOf(ATypeKey);
-  if idx < 0 then
-    Exit;
-  p := PFileTypeCacheEntry(GFileTypeImageCache.Objects[idx]);
-  if p = nil then
-    Exit;
-  if p.RefCount > 0 then
-    Dec(p.RefCount);
-  if p.RefCount <= 0 then
-  begin
-    // 引用为 0，清除图标缓存
-    if XC_GetObjectType(p.Image) = XC_IMAGE then
-      XImage_Destroy(p.Image);
-    p.Image := 0;
-  end;
+  Result := GetListItemDisplayImageCacheKeyWithSysIdx(AIconCachePath, AFilePath, AIsFolder, False, -1);
 end;
 
 procedure RemoveIconCachePathImageEntry(const ACacheKey: string);
@@ -1537,42 +1500,15 @@ begin
   GIconCachePathImageCache.Delete(idx);
 end;
 
-procedure RemoveSharedDisplayImagesForKey(const ACacheKey: string);
+procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string;
+  AIsFolder: Boolean);
 var
-  i: Integer;
-  prefix, entryKey: string;
-  v: NativeInt;
-begin
-  if (ACacheKey = '') or (GListDisplayImageCache = nil) then
-    Exit;
-  prefix := LowerCase(ACacheKey) + #9;
-  i := 0;
-  while i < GListDisplayImageCache.Count do
-  begin
-    entryKey := GListDisplayImageCache[i];
-    if (Length(entryKey) >= Length(prefix)) and SameText(Copy(entryKey, 1, Length(prefix)), prefix) then
-    begin
-      v := NativeInt(GListDisplayImageCache.Objects[i]);
-      if (v > 0) and (XC_GetObjectType(v) = XC_IMAGE) then
-        XImage_Release(HIMAGE(v));
-      GListDisplayImageCache.Delete(i);
-    end
-    else
-      Inc(i);
-  end;
-end;
-
-procedure InvalidateListItemIconCaches(const AIconCachePath, AFilePath: string);
-var
-  cacheKey, displayKey: string;
+  cacheKey: string;
 begin
   cacheKey := NormalizeIconCachePathKey(AIconCachePath);
   if cacheKey <> '' then
     RemoveIconCachePathImageEntry(cacheKey);
-  displayKey := GetListItemDisplayImageCacheKey(AIconCachePath, AFilePath);
-  if displayKey <> '' then
-    RemoveSharedDisplayImagesForKey(displayKey);
-  ClearListFileImageLoadFailure(AIconCachePath, AFilePath);
+  ClearListFileImageLoadFailure(AIconCachePath, AFilePath, AIsFolder);
 end;
 
 function ResampleBGRAToHImage(const ABits: TBytes; ASrcW, ASrcH, AMaxW, AMaxH: Integer): HIMAGE;
@@ -1710,15 +1646,16 @@ begin
     SysIdx := FileInfo.iIcon;
 end;
 
-function ShellIconAttributesForPath(const APath: string): DWORD;
+function ShellIconAttributesForPath(const AQueryPath: string): DWORD;
 begin
-  if Trim(ExtractFileExt(APath)) = '' then
+  if SameText(AQueryPath, cFolderRefPath) then
     Result := FILE_ATTRIBUTE_DIRECTORY
   else
     Result := FILE_ATTRIBUTE_NORMAL;
 end;
 
-function GetSysIconIndexForShellExtract(const APath: string; out ASysIdx: Integer): Boolean;
+function GetSysIconIndexForShellExtract(const APath: string; out ASysIdx: Integer;
+  AIsFolder: Boolean): Boolean;
 var
   pathForIcon, shellPath: string;
   itemPidl: PItemIDList;
@@ -1732,7 +1669,7 @@ begin
 
   if ShouldShellIconByExtensionOnly(pathForIcon) or (Trim(ExtractFileExt(pathForIcon)) = '') then
   begin
-    shellPath := ShellQueryPathForIconExtract(APath);
+    shellPath := ShellQueryPathForIconExtract(APath, AIsFolder);
     ZeroMemory(@FileInfo, SizeOf(FileInfo));
     Result := SHGetFileInfoW(PWideChar(shellPath), ShellIconAttributesForPath(shellPath), FileInfo,
       SizeOf(FileInfo), SHGFI_SYSICONINDEX or SHGFI_LARGEICON or SHGFI_USEFILEATTRIBUTES) <> 0;
@@ -1763,29 +1700,25 @@ begin
     ASysIdx := FileInfo.iIcon;
 end;
 
-function TryResolveListFileTypeIcon(const AIconCachePath, AFilePath: string; out AImage: HIMAGE): Boolean;
+function TryResolveListFileTypeIcon(const AIconCachePath, AFilePath: string; out AImage: HIMAGE;
+  AIsFolder: Boolean): Boolean;
 var
   img: HIMAGE;
   pixel: TShellIconPixelData;
-  sysIdx: Integer;
-  fmt, pathForIcon: string;
+  ctx: TShellIconResolveContext;
+  pathForIcon: string;
 begin
   Result := False;
   AImage := 0;
   pathForIcon := Trim(AFilePath);
   if pathForIcon = '' then
     Exit;
-  if Trim(ExtractFileExt(pathForIcon)) = '' then
-    fmt := 'folder'
-  else
-    fmt := GetFormatNameFromPath(pathForIcon);
-  if SameText(fmt, 'exe') then
+  InitShellIconResolveContext(pathForIcon, AIsFolder, ctx);
+  if SameText(ctx.FormatName, 'exe') then
   begin
-    if not GetSysIconIndexForShellExtract(pathForIcon, sysIdx) then
-      sysIdx := -1;
-    if not IsDefaultExeSysIconIndex(sysIdx) then
+    if not IsDefaultExeSysIconIndex(ctx.SysIdx) then
       Exit;
-    if not TryGetShellTypeIcon(pathForIcon, img) then
+    if not TryGetShellTypeIcon(pathForIcon, img, AIsFolder) then
       Exit;
     if XC_GetObjectType(img) <> XC_IMAGE then
     begin
@@ -1803,11 +1736,11 @@ begin
     AImage := img;
     Exit(True);
   end;
-  if SameText(fmt, 'msc') then
+  if SameText(ctx.FormatName, 'msc') then
     Exit;
-  if fmt = '' then
+  if ctx.FormatName = '' then
     Exit;
-  if not TryGetShellTypeIcon(pathForIcon, img) then
+  if not TryGetShellTypeIcon(pathForIcon, img, AIsFolder) then
     Exit;
   if XC_GetObjectType(img) <> XC_IMAGE then
   begin
@@ -1816,11 +1749,10 @@ begin
     Exit;
   end;
   FillChar(pixel, SizeOf(pixel), 0);
-  if not GetSysIconIndexForShellExtract(pathForIcon, sysIdx) then
-    sysIdx := -1;
   pixel.CanCacheByType := True;
-  pixel.TypeCacheKey := GetListItemDisplayImageCacheKey(AIconCachePath, pathForIcon);
-  pixel.IconCachePath := FileTypeIconCacheFileName(fmt, sysIdx);
+  pixel.TypeCacheKey := GetListItemDisplayImageCacheKeyWithSysIdx(AIconCachePath, pathForIcon, AIsFolder,
+    ctx.GotSysIdx, ctx.SysIdx);
+  pixel.IconCachePath := FileTypeIconCacheFileName(ctx.FormatName, ctx.SysIdx);
   StoreListFileImageToMemoryCache(AIconCachePath, pathForIcon, pixel, img);
   if XC_GetObjectType(img) <> XC_IMAGE then
     Exit;
@@ -1829,19 +1761,26 @@ begin
 end;
 
 function TryExtractShellIconPixelsFromFileInfo(const pathForIcon: string; AUseFileAttributes: Boolean;
-  var AData: TShellIconPixelData): Boolean;
+  var AData: TShellIconPixelData; AIsFolder: Boolean): Boolean;
 var
   FileInfo: SHFILEINFOW;
   flags: UINT;
   srcW, srcH: Integer;
+  queryPath: string;
 begin
   Result := False;
   ZeroMemory(@FileInfo, SizeOf(FileInfo));
   if AUseFileAttributes then
-    flags := SHGFI_ICON or SHGFI_LARGEICON or SHGFI_USEFILEATTRIBUTES
+  begin
+    flags := SHGFI_ICON or SHGFI_LARGEICON or SHGFI_USEFILEATTRIBUTES;
+    queryPath := ShellQueryPathForIconExtract(pathForIcon, AIsFolder);
+  end
   else
+  begin
     flags := SHGFI_ICON or SHGFI_LARGEICON;
-  if SHGetFileInfoW(PWideChar(pathForIcon), ShellIconAttributesForPath(pathForIcon), FileInfo,
+    queryPath := pathForIcon;
+  end;
+  if SHGetFileInfoW(PWideChar(queryPath), ShellIconAttributesForPath(queryPath), FileInfo,
     SizeOf(FileInfo), flags) = 0 then
     Exit;
   try
@@ -1893,17 +1832,12 @@ begin
 end;
 
 function ExtractShellIconPixels(const APath: string; const AIconCachePath: string;
-  out AData: TShellIconPixelData): Boolean;
+  out AData: TShellIconPixelData; AIsFolder: Boolean): Boolean;
 var
-  fmt, pathForIcon, hintPath: string;
-  SysIdx: Integer;
-  typeCacheKey: string;
-  ImageList: IShellImageList;
+  pathForIcon, hintPath: string;
+  ctx: TShellIconResolveContext;
   hFileIcon: HICON;
-  I: Integer;
-  gotIndex: Boolean;
   canCacheByType: Boolean;
-  sharedExeIcon: Boolean;
   srcW, srcH: Integer;
 begin
   Result := False;
@@ -1921,76 +1855,43 @@ begin
   pathForIcon := NormalizeSystem32PathForIcon(IconTargetPathForShell(APath));
   if pathForIcon = '' then
     Exit;
-  if Trim(ExtractFileExt(pathForIcon)) = '' then
-    fmt := 'folder'
-  else
-    fmt := GetFormatNameFromPath(pathForIcon);
 
-  gotIndex := GetSysIconIndexForShellExtract(APath, SysIdx);
-
-  sharedExeIcon := SameText(fmt, 'exe') and gotIndex and IsDefaultExeSysIconIndex(SysIdx);
-  canCacheByType := sharedExeIcon or ((fmt <> '') and (not SameText(fmt, 'exe')) and
-    (not SameText(fmt, 'msc')));
-  if canCacheByType then
-  begin
-    if sharedExeIcon then
-      typeCacheKey := cDefaultExeFileTypeCacheKey
-    else
-      typeCacheKey := FileTypeCacheKey(pathForIcon, SysIdx);
-  end
-  else
-    typeCacheKey := '';
+  InitShellIconResolveContext(APath, AIsFolder, ctx);
+  canCacheByType := (ctx.TypeCacheKey <> '') and not ShouldSkipFileTypeCacheKey(ctx.TypeCacheKey);
   AData.CanCacheByType := canCacheByType;
-  AData.TypeCacheKey := typeCacheKey;
+  AData.TypeCacheKey := ctx.TypeCacheKey;
   if canCacheByType then
   begin
-    if sharedExeIcon then
+    if SameText(ctx.TypeCacheKey, cDefaultFileTypeCacheKey) then
+      AData.IconCachePath := FileTypeIconCacheFileName('', ctx.SysIdx)
+    else if SameText(ctx.TypeCacheKey, cDefaultExeFileTypeCacheKey) then
       AData.IconCachePath := cDefaultExeIconFileName
     else
-      AData.IconCachePath := FileTypeIconCacheFileName(fmt, SysIdx);
+      AData.IconCachePath := FileTypeIconCacheFileName(ctx.TypeCacheKey, ctx.SysIdx);
   end
   else
     AData.IconCachePath := BuildIconCacheFileName(APath);
 
-  if gotIndex and EnsureShellImageListsLoaded then
+  if ctx.GotSysIdx and TryGetBestShellIconFromSysIndex(ctx.SysIdx, hFileIcon) then
   begin
-    for I := Low(cShellImageListLevels) to High(cShellImageListLevels) do
-    begin
-      ImageList := GShellImageLists[I];
-      if ImageList = nil then
-        Continue;
-      hFileIcon := 0;
-      if ImageList.GetIcon(SysIdx, ILD_NORMAL, hFileIcon) = S_OK then
+    try
+      if IconToBGRA(hFileIcon, srcW, srcH, AData.Bits) then
       begin
-        try
-          if hFileIcon <> 0 then
-          begin
-            if (cShellImageListLevels[I] = SHIL_JUMBO) and IsLikelyTopLeftSmallInJumbo(hFileIcon) then
-              Continue;
-            if IconToBGRA(hFileIcon, srcW, srcH, AData.Bits) then
-            begin
-              AData.Width := srcW;
-              AData.Height := srcH;
-              AData.Ok := True;
-              Exit(True);
-            end;
-          end;
-        finally
-          if hFileIcon <> 0 then
-            DestroyIcon(hFileIcon);
-        end;
+        AData.Width := srcW;
+        AData.Height := srcH;
+        AData.Ok := True;
+        Exit(True);
       end;
+    finally
+      DestroyIcon(hFileIcon);
     end;
   end;
 
+  if ShouldShellIconByExtensionOnly(pathForIcon) then
+    Exit;
+  Result := TryExtractShellIconPixelsFromFileInfo(pathForIcon, False, AData, AIsFolder);
   if not Result then
-  begin
-    if ShouldShellIconByExtensionOnly(pathForIcon) then
-      Exit;
-    Result := TryExtractShellIconPixelsFromFileInfo(pathForIcon, False, AData);
-    if not Result then
-      Result := TryExtractShellIconPixelsFromFileInfo(pathForIcon, True, AData);
-  end;
+    Result := TryExtractShellIconPixelsFromFileInfo(pathForIcon, True, AData, AIsFolder);
 end;
 
 function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: string): HIMAGE;
@@ -2072,7 +1973,6 @@ end;
 initialization
   GFileTypeImageCache := CreateSortedStrList;
   GIconCachePathImageCache := CreateSortedStrList;
-  GListDisplayImageCache := CreateSortedStrList;
   GPendingIconPixels := CreateSortedStrList;
   GPendingIconPixelLock := TCriticalSection.Create;
   GListFileImageFailureKeys := CreateSortedStrList;
@@ -2082,8 +1982,6 @@ finalization
   ClearAllPendingIconPixels;
   FreeAndNil(GPendingIconPixels);
   FreeAndNil(GPendingIconPixelLock);
-  ClearListDisplayImageCache;
-  FreeAndNil(GListDisplayImageCache);
   FreeAndNil(GListFileImageFailureKeys);
   ReleaseFileTypeImageCache;
 

@@ -41,8 +41,8 @@ function MainWindowSettings_OnMenuSelect(hEle: XCGUI.HELE; nItem: Integer; pbHan
 implementation
 
 uses
-   SysUtils, ShellAPI, UI_PopupMenu, ShellHelper, UI_QrCodeDialog,
-   UI_SettingsDialog, UI_FeedbackDialog;
+   SysUtils, ShellAPI, UI_PopupMenu, ShellHelper, ShellIconHelper, UI_QrCodeDialog,
+   UI_SettingsDialog, UI_FeedbackDialog, UI_MainWindow;
 
 function MainWindowTools_OnButtonClick(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 var

@@ -29,7 +29,7 @@ type
 implementation
 
 uses
-  ShellHelper;
+  ShellIconHelper;
 
 class procedure TFormUI.ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer; hWindow: XCGUI.HWINDOW);
 var

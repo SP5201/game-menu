@@ -40,7 +40,7 @@ type
 implementation
 
 uses
-  AppConfig, SysUtils, ShellHelper;
+  AppConfig, SysUtils, ShellIconHelper;
 
 { TPopupMenuUI }
 

@@ -49,10 +49,13 @@ type
     FPlhFile: HIMAGE;
     FSearchMode: Boolean;
     FSearchHitIndices: TSearchHitIndexArray;
+    FSearchResolvedPaths: array of string;
     function SourceIndex(ADisplayIndex: Integer): Integer;
     function SearchHitAt(ADisplayIndex: Integer): Integer;
+    function SearchItemIsFolder(AIndex: Integer): Boolean;
+    procedure InvalidateSearchResolvedPaths;
+    procedure EnsureSearchResolvedPathsLength;
     procedure BuildSearchListItem(AHitIndex, ADisplayOrder: Integer; out AItem: TListViewFileItem);
-    function ResolveItemFilePath(ADisplayIndex: Integer; const AItem: TListViewFileItem): string;
     procedure GetItemAt(ADisplayIndex: Integer; out AItem: TListViewFileItem);
     function ItemFileImage(ADisplayIndex: Integer): HIMAGE;
     procedure SetItemFileImage(ADisplayIndex: Integer; AImage: HIMAGE);
@@ -170,6 +173,11 @@ begin
   Result := FSearchHitIndices[srcIdx];
 end;
 
+function TListViewUI.SearchItemIsFolder(AIndex: Integer): Boolean;
+begin
+  Result := FSearchMode and EverythingIndexHitIsFolder(SearchHitAt(AIndex));
+end;
+
 procedure TListViewUI.BuildSearchListItem(AHitIndex, ADisplayOrder: Integer; out AItem: TListViewFileItem);
 var
   fileName: string;
@@ -181,16 +189,6 @@ begin
   AItem.InsertOrder := ADisplayOrder;
   AItem.ItemGroupIndex := -1;
   AItem.ShowCmd := SW_SHOWNORMAL;
-end;
-
-function TListViewUI.ResolveItemFilePath(ADisplayIndex: Integer; const AItem: TListViewFileItem): string;
-begin
-  Result := Trim(AItem.FilePath);
-  if Result <> '' then
-    Exit;
-  if not FSearchMode then
-    Exit;
-  Result := EverythingIndexGetHitPath(SearchHitAt(ADisplayIndex));
 end;
 
 function TListViewUI.IsSearchMode: Boolean;
@@ -206,16 +204,29 @@ begin
 end;
 
 function TListViewUI.ResolveSearchItemPath(ADisplayIndex: Integer): string;
-var
-  item: TListViewFileItem;
 begin
   Result := '';
   if not FSearchMode then
     Exit;
   if (ADisplayIndex < 0) or (ADisplayIndex >= FItemCount) then
     Exit;
-  GetItemAt(ADisplayIndex, item);
-  Result := ResolveItemFilePath(ADisplayIndex, item);
+  if (ADisplayIndex < Length(FSearchResolvedPaths)) and (FSearchResolvedPaths[ADisplayIndex] <> '') then
+    Exit(FSearchResolvedPaths[ADisplayIndex]);
+  Result := EverythingIndexGetHitPath(SearchHitAt(ADisplayIndex));
+  EnsureSearchResolvedPathsLength;
+  if ADisplayIndex < Length(FSearchResolvedPaths) then
+    FSearchResolvedPaths[ADisplayIndex] := Result;
+end;
+
+procedure TListViewUI.EnsureSearchResolvedPathsLength;
+begin
+  if Length(FSearchResolvedPaths) < FItemCount then
+    SetLength(FSearchResolvedPaths, FItemCount);
+end;
+
+procedure TListViewUI.InvalidateSearchResolvedPaths;
+begin
+  SetLength(FSearchResolvedPaths, 0);
 end;
 
 function TListViewUI.ItemRecord(ADisplayIndex: Integer): PListViewFileItem;
@@ -481,13 +492,13 @@ begin
     filePath := ResolveSearchItemPath(AIndex);
     if filePath = '' then
       Exit;
-    if IsListFileImageLoadFailed('', filePath) then
+    if IsListFileImageLoadFailed('', filePath, SearchItemIsFolder(AIndex)) then
       Exit(True);
     if XC_GetObjectType(ItemFileImage(AIndex)) = XC_IMAGE then
       Exit(True);
     img := 0;
     resolvedCachePath := '';
-    if not TryAcquireMemoryCachedListFileImage('', filePath, img, resolvedCachePath) then
+    if not TryAcquireMemoryCachedListFileImage('', filePath, img, resolvedCachePath, SearchItemIsFolder(AIndex)) then
       Exit;
     if XC_GetObjectType(img) <> XC_IMAGE then
       Exit;
@@ -562,7 +573,7 @@ begin
     filePath := ResolveSearchItemPath(AIndex);
     if filePath = '' then
       Exit;
-    if IsListFileImageLoadFailed('', filePath) then
+    if IsListFileImageLoadFailed('', filePath, SearchItemIsFolder(AIndex)) then
       Exit;
     if XC_GetObjectType(ItemFileImage(AIndex)) = XC_IMAGE then
       Exit;
@@ -570,7 +581,7 @@ begin
     if FIconPending[AIndex] then
       Exit;
     if not ShellIconLoaderRequestItem(FListGeneration, FScrollGeneration, Handle, AIndex,
-      filePath, '', False) then
+      filePath, '', False, SearchItemIsFolder(AIndex)) then
       Exit;
     FIconPending[AIndex] := True;
     Exit;
@@ -720,7 +731,10 @@ procedure TListViewUI.ApplyIconLoadResult(AListGeneration, AScrollGeneration: Ca
 
   procedure FailIconLoad(const ACachePath, AResolvedPath: string);
   begin
-    MarkListFileImageLoadFailed(ACachePath, AResolvedPath);
+    if FSearchMode then
+      MarkListFileImageLoadFailed(ACachePath, AResolvedPath, SearchItemIsFolder(AIndex))
+    else
+      MarkListFileImageLoadFailed(ACachePath, AResolvedPath);
     FIconPending[AIndex] := False;
   end;
 
@@ -921,6 +935,7 @@ begin
   ReleaseAllFileImages;
   FSearchMode := False;
   SetLength(FSearchHitIndices, 0);
+  InvalidateSearchResolvedPaths;
   SetLength(FSourceItems, 0);
   SetLength(FRowMap, 0);
   SetLength(FIconPending, 0);
@@ -1031,6 +1046,7 @@ begin
   FSearchHitIndices := AHitIndices;
   oldCount := FItemCount;
   ApplyDisplayMap(ARowMap, Length(FSearchHitIndices));
+  InvalidateSearchResolvedPaths;
   if FItemCount > Length(FFileImages) then
   begin
     SetLength(FFileImages, FItemCount);
@@ -1067,6 +1083,7 @@ begin
   FSearchMode := True;
   FSearchHitIndices := AHitIndices;
   SetLength(FSourceItems, 0);
+  InvalidateSearchResolvedPaths;
   ApplyDisplayMap(ARowMap, Length(FSearchHitIndices));
   SetLength(FFileImages, FItemCount);
   if FItemCount > 0 then
@@ -1108,6 +1125,7 @@ begin
   ReleaseAllFileImages;
   FSearchMode := False;
   SetLength(FSearchHitIndices, 0);
+  InvalidateSearchResolvedPaths;
   FSourceItems := ASource;
   ApplyDisplayMap(ARowMap, Length(ASource));
   SetLength(FFileImages, FItemCount);
@@ -1349,7 +1367,7 @@ begin
     Title := itemRec.DisplayTitle;
     if XC_GetObjectType(itemRec.FileImage) = XC_IMAGE then
       hImg := itemRec.FileImage
-    else if ListView.FSearchMode and EverythingIndexHitIsFolder(ListView.SearchHitAt(pItem.iItem)) then
+    else if ListView.FSearchMode and ListView.SearchItemIsFolder(pItem.iItem) then
       hImg := ListView.FPlhFolder
     else
     begin
@@ -1358,7 +1376,7 @@ begin
         ext := LowerCase(Trim(EverythingIndexGetHitExtension(ListView.SearchHitAt(pItem.iItem))));
       if ListPathLeafName(itemRec.FilePath) = '' then
       begin
-        if ListView.FSearchMode and EverythingIndexHitIsFolder(ListView.SearchHitAt(pItem.iItem)) then
+        if ListView.FSearchMode and ListView.SearchItemIsFolder(pItem.iItem) then
           hImg := ListView.FPlhFolder
         else
           hImg := ListView.FPlhFile;
@@ -1622,7 +1640,8 @@ begin
   try
     if (ListView <> nil) and Assigned(ListView.FOnPrepareContextMenu) then
       ListView.FOnPrepareContextMenu(ListView, Menu, itm, filePath);
-    Menu.Popup(hEle, pPt);
+    if Menu.GetItemCount > 0 then
+      Menu.Popup(hEle, pPt);
   finally
     Menu.Free;
   end;
