@@ -1,4 +1,4 @@
-unit UI_EditItemDialog;
+﻿unit UI_EditItemDialog;
 
 interface
 
@@ -84,7 +84,7 @@ var
 begin
   inherited;
   SetupDialogChrome('pic_edititem_dialog_logo', 'btn_edititem_close');
-  btnPathHint := TButtonUI.FromXmlName('btn_edititem_path_hint_icon', BB_NONE, 'Resource\hint.svg');
+  btnPathHint := TButtonUI.FromXmlName('btn_edititem_path_hint_icon', BB_NONE, 'Resource\UI\hint.svg');
   if btnPathHint <> nil then
     THintPopupUI.BindHoverHint(btnPathHint.Handle, PathHintText);
   TButtonUI.FromXmlName('btn_edititem_ok', BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TEditItemDialogUI.OnBtnOK);

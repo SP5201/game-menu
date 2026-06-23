@@ -65,12 +65,13 @@ function GpuFormatTooltip(const AUsageText: string): string;
 implementation
 
 uses
-  Math, GpuInfoNative, GpuInfoVendor, MemInfo, HardwareCommon;
+  Math, AppPaths, GpuInfoNative, GpuInfoVendor, MemInfo, HardwareCommon;
 
 const
   cGpuSensorRefreshMs = 3000;
   cGpuSensorRetryMs = 30000;
   cGpuFanRetryMs = 1000;
+  cGpuTooltipSvgPrefix = '#svg:';
 
 var
   GStaticGate: THwStaticLoadGate;
@@ -197,6 +198,38 @@ begin
   GpuRefreshSensorsIfStale;
 end;
 
+function GpuVendorSvgRelPath(const AVendor: string): string;
+begin
+  Result := '';
+  if SameText(AVendor, 'NVIDIA') then
+    Result := 'Resource\GpuVendor\nvidia.svg'
+  else if SameText(AVendor, 'AMD') then
+    Result := 'Resource\GpuVendor\amd.svg'
+  else if SameText(AVendor, 'Intel') then
+    Result := 'Resource\GpuVendor\intel.svg';
+end;
+
+function GpuVendorTooltipSize(const AVendor: string): string;
+begin
+  if GpuVendorSvgRelPath(AVendor) <> '' then
+    Result := '@44x44'
+  else
+    Result := '';
+end;
+
+function GpuVendorTooltipValue(const AVendor: string): string;
+var
+  svgPath: string;
+begin
+  svgPath := GpuVendorSvgRelPath(AVendor);
+  if (svgPath <> '') and FileExists(AppExeDirectory + svgPath) then
+    Result := cGpuTooltipSvgPrefix + svgPath + GpuVendorTooltipSize(AVendor)
+  else if AVendor <> '' then
+    Result := AVendor
+  else
+    Result := cGpuDash;
+end;
+
 function GpuFormatTooltip(const AUsageText: string): string;
 var
   info: TGpuStaticInfo;
@@ -227,7 +260,7 @@ begin
     usageText := cGpuDash;
 
   if info.VendorName <> '' then
-    Result := '厂商：' + info.VendorName
+    Result := '厂商：' + GpuVendorTooltipValue(info.VendorName)
   else
     Result := '';
   Result := HwAppendLine(Result, '型号：' + deviceLine);

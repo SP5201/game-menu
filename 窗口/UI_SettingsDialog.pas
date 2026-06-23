@@ -563,7 +563,7 @@ begin
   FEdtProxyHost := TEditUI.FromXmlName(ID_EDIT_PROXY_HOST);
   FEdtProxyPort := TEditUI.FromXmlName(ID_EDIT_PROXY_PORT);
   FEdtHostsResolve := TEditUI.FromXmlName(ID_EDIT_HOSTS_RESOLVE);
-  TButtonUI.FromXmlName(ID_BTN_HOSTS_HINT, BB_NONE, 'Resource\hint.svg');
+  TButtonUI.FromXmlName(ID_BTN_HOSTS_HINT, BB_NONE, 'Resource\UI\hint.svg');
   if XC_GetObjectType(XC_GetObjectByName(ID_BTN_HOSTS_HINT)) = XC_BUTTON then
     THintPopupUI.BindHoverHint(XC_GetObjectByName(ID_BTN_HOSTS_HINT), cHostsResolveHintText);
   FEdtUserAgent := TEditUI.FromXmlName(ID_EDIT_USERAGENT);

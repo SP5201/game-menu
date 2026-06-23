@@ -146,7 +146,7 @@ var
 begin
   inherited;
   SetupDialogChrome('pic_category_dialog_logo', ID_BTN_DIALOG_CLOSE);
-  TButtonUI.FromXmlName(ID_BTN_ICON_HINT, BB_NONE, 'Resource\hint.svg');
+  TButtonUI.FromXmlName(ID_BTN_ICON_HINT, BB_NONE, 'Resource\UI\hint.svg');
   hIconHintBtn := XC_GetObjectByName(ID_BTN_ICON_HINT);
   THintPopupUI.BindHoverHint(hIconHintBtn, '请把SVG放到图标文件夹内' + sLineBreak + '重启软件后生效');
   TButtonUI.FromXmlName(ID_BTN_CONFIRM, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TCategoryDialogUI.OnBtnOK);

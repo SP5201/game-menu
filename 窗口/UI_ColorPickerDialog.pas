@@ -1,4 +1,4 @@
-unit UI_ColorPickerDialog;
+﻿unit UI_ColorPickerDialog;
 
 interface
 
@@ -159,7 +159,7 @@ begin
   XEle_RegEvent(FEdtHexHandle, XE_EDIT_CHANGED, @TColorPickerDialogUI.OnEditChanged);
 
   // 屏幕取色器按钮
-  TButtonUI.FromXmlName(ID_BTN_SCREEN, BB_EnableNormalBk, 'Resource\colorPicker.svg', 18, 18).RegEvent(XE_BNCLICK, @TColorPickerDialogUI.OnBtnScreenColorPicker);
+  TButtonUI.FromXmlName(ID_BTN_SCREEN, BB_EnableNormalBk, 'Resource\UI\colorPicker.svg', 18, 18).RegEvent(XE_BNCLICK, @TColorPickerDialogUI.OnBtnScreenColorPicker);
 
   // FHue/FSat/FVal 由 PickColor 在 LoadLayout 前设置
   FAlpha := 1;

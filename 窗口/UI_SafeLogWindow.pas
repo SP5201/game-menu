@@ -230,11 +230,11 @@ begin
   hTitle := XC_GetObjectByName('txt_safelog_title');
   if XC_GetObjectType(hTitle) = XC_SHAPE_TEXT then
     XShapeText_SetTextColor(hTitle, UITheme_TextPrimary);
-  TButtonUI.FromXmlName('btn_safelog_min', BB_NONE, 'Resource\min.svg');
+  TButtonUI.FromXmlName('btn_safelog_min', BB_NONE, 'Resource\UI\min.svg');
   btnUi := TButtonUI.FromXmlName('btn_safelog_max', BB_NONE, cBtnSvgMax);
   TButtonUI.BindMaxButton(Handle, btnUi.Handle);
   TButtonUI.SyncMaxButtonSvg(Handle);
-  TButtonUI.FromXmlName('btn_safelog_close', BB_NONE, 'Resource\close.svg');
+  TButtonUI.FromXmlName('btn_safelog_close', BB_NONE, 'Resource\UI\close.svg');
   TButtonUI.FromXmlName('btn_safelog_copy', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TSafeLogWindow.OnCopyClick);
   TButtonUI.FromXmlName('btn_safelog_export', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TSafeLogWindow.OnExportClick);
   TButtonUI.FromXmlName('btn_safelog_clear', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TSafeLogWindow.OnClearClick);
@@ -242,7 +242,7 @@ begin
   if CListEle <> 0 then
   begin
     XList_EnableMultiSel(CListEle, False);
-    XList_CreateAdapter(CListEle);
+    XList_CreateAdapter(CListEle, 6);
     XList_CreateAdapterHeader(CListEle);
     XList_AddColumnText(CListEle, 32, cListColIndicator, cListHeaderTextIndicator);
     XList_AddColumnText(CListEle, 44, cListColStatus, cListHeaderTextStatus);

@@ -1,4 +1,4 @@
-unit UI_ListBox;
+﻿unit UI_ListBox;
 
 interface
 
@@ -140,7 +140,7 @@ begin
     hitIdx := XListBox_HitTestOffset(hList, pPt);
     if (hitIdx >= 0) and ((ListBox = nil) or (hitIdx >= ListBox.FProtectedHeadCount)) then
     begin
-      Menu.AddItemIcon(ID_LISTBOX_CATEGORY_EDIT, '修改分类', 0, 'Resource\menu_edit.svg', 0);
+      Menu.AddItemIcon(ID_LISTBOX_CATEGORY_EDIT, '修改分类', 0, 'Resource\UI\menu_edit.svg', 0);
       Menu.AddItem(ID_LISTBOX_CATEGORY_DELETE, '删除分类', 0);
     end;
     Menu.AddItem(0, '', 0, menu_item_flag_separator);

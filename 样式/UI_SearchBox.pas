@@ -1,4 +1,4 @@
-unit UI_SearchBox;
+﻿unit UI_SearchBox;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, XCGUI, UI_Edit, UI_Button;
 
 const
-  CDefaultSearchSvg = 'Resource\search.svg';
+  CDefaultSearchSvg = 'Resource\UI\search.svg';
 
 type
   TSearchBoxInputChangedProc = procedure;

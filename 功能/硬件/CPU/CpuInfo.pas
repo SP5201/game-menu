@@ -303,14 +303,9 @@ end;
 
 function CpuVendorTooltipSize(const AVendor: string): string;
 begin
-  if SameText(AVendor, 'Intel') or SameText(AVendor, 'GenuineIntel') then
-    Result := '@96x38'
-  else if SameText(AVendor, 'AMD') or SameText(AVendor, 'AuthenticAMD') then
-    Result := '@72x38'
-  else if SameText(AVendor, 'Apple') then
-    Result := '@64x38'
-  else if SameText(AVendor, 'Qualcomm') then
-    Result := '@88x38'
+  // CpuVendor/*.svg 均为 24×24 正方形，须等比缩放；行高 22px 内垂直居中
+  if CpuVendorSvgRelPath(AVendor) <> '' then
+    Result := '@44x44'
   else
     Result := '';
 end;

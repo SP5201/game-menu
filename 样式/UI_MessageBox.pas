@@ -1,4 +1,4 @@
-unit UI_MessageBox;
+﻿unit UI_MessageBox;
 
 interface
 
@@ -41,12 +41,12 @@ var
 begin
   inherited;
   ApplyTitleLogo('pic_msgbox_dialog_logo', 20);
-  TButtonUI.FromXmlName('btn_msgbox_close', BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnCancel);
+  TButtonUI.FromXmlName('btn_msgbox_close', BB_NONE, 'Resource\UI\close.svg').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnCancel);
   hIcon := XC_GetObjectByName('pic_msgbox_icon');
   if hIcon <> 0 then
   begin
     // 先加载 SVG → 用主色覆盖填充 → 转成图片 → 设置到 shapePicture
-    hSvg := XSvg_LoadFile('Resource\msg_warning.svg');
+    hSvg := XSvg_LoadFile('Resource\UI\msg_warning.svg');
     if XC_SVG = XC_GetObjectType(hSvg) then
     begin
       XSvg_SetSize(hSvg, 80, 80);

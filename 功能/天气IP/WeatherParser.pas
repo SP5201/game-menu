@@ -216,6 +216,37 @@ begin
   Result := DirNames[idx] + '风';
 end;
 
+function FormatWindDisplay(const AKmh: Double; const ADegrees: Integer): string;
+var
+  ms: Double;
+  level, dir, speedText: string;
+begin
+  if AKmh < 0 then
+    Result := cWeatherDash
+  else
+  begin
+    ms := AKmh / 3.6;
+    level := WindSpeedMsToBeaufortZh(ms);
+    speedText := FormatWindSpeedMs(ms);
+    if ADegrees >= 0 then
+      dir := WindDegreesToZh(ADegrees)
+    else
+      dir := '';
+    if (level <> '') and (dir <> '') and (speedText <> '') then
+      Result := level + dir + ' ' + speedText
+    else if (level <> '') and (speedText <> '') then
+      Result := level + ' ' + speedText
+    else if (dir <> '') and (speedText <> '') then
+      Result := dir + ' ' + speedText
+    else if speedText <> '' then
+      Result := speedText
+    else if dir <> '' then
+      Result := dir
+    else
+      Result := cWeatherDash;
+  end;
+end;
+
 function FormatWeatherPrecipMm(const AMm: Double): string;
 begin
   if AMm < 0 then
@@ -743,11 +774,11 @@ begin
     if humidityPct >= 0 then
       AInfo.Humidity := FormatHumidityPercent(humidityPct);
     windKmh := JsonDoubleField(currentObj, 'wind_speed_10m', -999);
-    if windKmh >= 0 then
-      AInfo.WindSpeed := FormatWindSpeedDisplay(windKmh);
     windDeg := JsonIntField(currentObj, 'wind_direction_10m', -1);
-    if windDeg >= 0 then
-      AInfo.WindDirection := WindDegreesToZh(windDeg);
+    if windKmh >= 0 then
+      AInfo.WindSpeed := FormatWindDisplay(windKmh, windDeg)
+    else if windDeg >= 0 then
+      AInfo.WindSpeed := WindDegreesToZh(windDeg);
     pressureHpa := JsonDoubleField(currentObj, 'surface_pressure', -999);
     if pressureHpa < 0 then
       pressureHpa := JsonDoubleField(currentObj, 'pressure_msl', -999);

@@ -1,4 +1,4 @@
-unit UI_ListViewSettingsDialog;
+﻿unit UI_ListViewSettingsDialog;
 
 interface
 
@@ -248,7 +248,7 @@ begin
   LoadSavedFromConfig;
   FWorking := FSaved;
 
-  TButtonUI.FromXmlName(ID_BTN_CLOSE, BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TListViewSettingsDialogUI.OnBtnClose);
+  TButtonUI.FromXmlName(ID_BTN_CLOSE, BB_NONE, 'Resource\UI\close.svg').RegEvent(XE_BNCLICK, @TListViewSettingsDialogUI.OnBtnClose);
   TButtonUI.FromXmlName(ID_BTN_RESET, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TListViewSettingsDialogUI.OnBtnReset);
   TButtonUI.FromXmlName(ID_BTN_OK, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TListViewSettingsDialogUI.OnBtnOk);
 

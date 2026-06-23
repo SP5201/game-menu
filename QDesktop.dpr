@@ -50,7 +50,7 @@ begin
   try
 {$IFDEF DEBUG}
     XC_EnableResMonitor(True);
-    XC_DebugToFileInfo(True);
+    XC_EnableDebugFile(True);
 {$ELSE}
     XC_EnableResMonitor(False);
 {$ENDIF}

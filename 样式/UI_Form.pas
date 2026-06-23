@@ -1,4 +1,4 @@
-unit UI_Form;
+﻿unit UI_Form;
 
 interface
 
@@ -87,7 +87,7 @@ begin
     Exit;
   hClose := GetNamed(ACloseBtnXmlName);
   if XC_GetObjectType(hClose) = XC_BUTTON then
-    TButtonUI.FormHandle(hClose, BB_NONE, 'Resource\close.svg')
+    TButtonUI.FormHandle(hClose, BB_NONE, 'Resource\UI\close.svg')
       .RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
 end;
 

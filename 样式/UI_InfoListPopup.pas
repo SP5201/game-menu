@@ -60,6 +60,10 @@ type
     class function MeasureSvgDisplayWidth(const ASvgPath: string; ADrawW, ADrawH: Integer): Integer; static;
     class procedure DrawSvgValue(const AHDraw: XCGUI.HDRAW; const ARcValue: TRect; const ASvgPath: string;
       ADrawW, ADrawH: Integer); static;
+    class function InfoStripHlTags(const AValue: string): string; static;
+    class function InfoValueHasHlTags(const AValue: string): Boolean; static;
+    class function ResolveInfoHlColor(const AStyle: string): Integer; static;
+    class procedure DrawValueText(const AHDraw: XCGUI.HDRAW; const ARcValue: TRect; const AValueText: string); static;
     class procedure EnsureSvgCache; static;
     class procedure FreeSvgCache; static;
     class procedure DrawInfoListItem(const AHDraw: XCGUI.HDRAW; const ARcItem: TRect; const ALineText: string; const ALabelColWidth: Integer); static;
@@ -118,6 +122,8 @@ const
   // 列宽与 SVG
   CInfoLabelColMin = 72;           // 标签列最小宽度（含「标签：」）
   CInfoSvgValuePrefix = '#svg:';   // 值列 SVG 前缀，格式 #svg:路径[@宽x高]
+  CInfoHlPrefix = '#hl:';          // 值列高亮，格式 #hl:文本# 或 #hl:red:文本#
+  CInfoHlSuffix = '#';
   // 定时器
   CInfoRefreshTimerId = 1;         // 弹层可见时周期刷新正文
   CInfoRefreshTimerMs = 3000;      // 刷新间隔（毫秒，传感器类弹层）
@@ -269,6 +275,8 @@ begin
     Result := 'AMD'
   else if baseName = 'intel' then
     Result := 'Intel'
+  else if baseName = 'nvidia' then
+    Result := 'NVIDIA'
   else if baseName = 'apple' then
     Result := 'Apple'
   else if baseName = 'qualcomm' then
@@ -288,6 +296,8 @@ begin
     Result := RGBA(0, 113, 197, 255)
   else if fileName = 'amd.svg' then
     Result := RGBA(237, 28, 36, 255)
+  else if fileName = 'nvidia.svg' then
+    Result := RGBA(118, 185, 0, 255)
   else if fileName = 'apple.svg' then
     Result := RGBA(220, 220, 220, 255)
   else if fileName = 'qualcomm.svg' then
@@ -378,6 +388,124 @@ begin
   XDraw_DrawSvgEx(AHDraw, svgHandle, x, y, drawW, drawH);
 end;
 
+class function TInfoListPopupUI.InfoStripHlTags(const AValue: string): string;
+var
+  s, inner: string;
+  p, innerStart, closePos, colonPos: Integer;
+begin
+  Result := '';
+  s := AValue;
+  while s <> '' do
+  begin
+    p := Pos(CInfoHlPrefix, s);
+    if p = 0 then
+      Exit(Result + s);
+    Result := Result + Copy(s, 1, p - 1);
+    innerStart := p + Length(CInfoHlPrefix);
+    closePos := innerStart;
+    while (closePos <= Length(s)) and (s[closePos] <> CInfoHlSuffix) do
+      Inc(closePos);
+    if closePos > Length(s) then
+      Exit(Result + Copy(s, p, MaxInt));
+    inner := Copy(s, innerStart, closePos - innerStart);
+    colonPos := Pos(':', inner);
+    if (colonPos > 0) and (SameText(Copy(inner, 1, colonPos - 1), 'red') or
+       SameText(Copy(inner, 1, colonPos - 1), 'primary')) then
+      Result := Result + Copy(inner, colonPos + 1, MaxInt)
+    else
+      Result := Result + inner;
+    s := Copy(s, closePos + 1, MaxInt);
+  end;
+end;
+
+class function TInfoListPopupUI.InfoValueHasHlTags(const AValue: string): Boolean;
+begin
+  Result := Pos(CInfoHlPrefix, AValue) > 0;
+end;
+
+class function TInfoListPopupUI.ResolveInfoHlColor(const AStyle: string): Integer;
+begin
+  if SameText(AStyle, 'red') or SameText(AStyle, 'primary') or (AStyle = '') then
+    Result := UITheme_PrimaryColor
+  else
+    Result := UITheme_TextPrimary;
+end;
+
+class procedure TInfoListPopupUI.DrawValueText(const AHDraw: XCGUI.HDRAW; const ARcValue: TRect;
+  const AValueText: string);
+var
+  s, inner, segText, segStyle: string;
+  p, innerStart, closePos, colonPos, x, segW: Integer;
+  font: HFONTX;
+  rcSeg: TRect;
+begin
+  if not InfoValueHasHlTags(AValueText) then
+  begin
+    rcSeg := ARcValue;
+    XDraw_SetBrushColor(AHDraw, UITheme_TextPrimary);
+    XDraw_SetTextAlign(AHDraw, CInfoTextDrawAlignRight);
+    XDraw_DrawText(AHDraw, PWideChar(AValueText), -1, rcSeg);
+    Exit;
+  end;
+
+  font := XC_GetDefaultFont();
+  x := ARcValue.Right - MeasureTextWidth(InfoStripHlTags(AValueText), font);
+  XDraw_SetTextAlign(AHDraw, CInfoTextMeasureAlign);
+  s := AValueText;
+  while s <> '' do
+  begin
+    p := Pos(CInfoHlPrefix, s);
+    if p = 0 then
+    begin
+      rcSeg := ARcValue;
+      rcSeg.Left := x;
+      XDraw_SetBrushColor(AHDraw, UITheme_TextPrimary);
+      XDraw_DrawText(AHDraw, PWideChar(s), -1, rcSeg);
+      Exit;
+    end;
+    if p > 1 then
+    begin
+      segText := Copy(s, 1, p - 1);
+      segW := MeasureTextWidth(segText, font);
+      rcSeg := ARcValue;
+      rcSeg.Left := x;
+      XDraw_SetBrushColor(AHDraw, UITheme_TextPrimary);
+      XDraw_DrawText(AHDraw, PWideChar(segText), -1, rcSeg);
+      Inc(x, segW);
+    end;
+    innerStart := p + Length(CInfoHlPrefix);
+    closePos := innerStart;
+    while (closePos <= Length(s)) and (s[closePos] <> CInfoHlSuffix) do
+      Inc(closePos);
+    if closePos > Length(s) then
+    begin
+      rcSeg := ARcValue;
+      rcSeg.Left := x;
+      XDraw_SetBrushColor(AHDraw, UITheme_TextPrimary);
+      XDraw_DrawText(AHDraw, PWideChar(Copy(s, p, MaxInt)), -1, rcSeg);
+      Exit;
+    end;
+    inner := Copy(s, innerStart, closePos - innerStart);
+    segStyle := 'red';
+    colonPos := Pos(':', inner);
+    if (colonPos > 0) and (SameText(Copy(inner, 1, colonPos - 1), 'red') or
+       SameText(Copy(inner, 1, colonPos - 1), 'primary')) then
+    begin
+      segStyle := Copy(inner, 1, colonPos - 1);
+      segText := Copy(inner, colonPos + 1, MaxInt);
+    end
+    else
+      segText := inner;
+    segW := MeasureTextWidth(segText, font);
+    rcSeg := ARcValue;
+    rcSeg.Left := x;
+    XDraw_SetBrushColor(AHDraw, ResolveInfoHlColor(segStyle));
+    XDraw_DrawText(AHDraw, PWideChar(segText), -1, rcSeg);
+    Inc(x, segW);
+    s := Copy(s, closePos + 1, MaxInt);
+  end;
+end;
+
 class procedure TInfoListPopupUI.FreeSvgCache;
 var
   i: Integer;
@@ -433,11 +561,7 @@ begin
       end;
     end
     else
-    begin
-      XDraw_SetBrushColor(AHDraw, UITheme_TextPrimary);
-      XDraw_SetTextAlign(AHDraw, CInfoTextDrawAlignRight);
-      XDraw_DrawText(AHDraw, PWideChar(valueText), -1, rcValue);
-    end;
+      DrawValueText(AHDraw, rcValue, valueText);
   end;
 end;
 
@@ -485,7 +609,7 @@ begin
           valueW := MeasureTextWidth(InfoSvgFallbackText(svgPath), AFont);
       end
       else
-        valueW := MeasureTextWidth(valueText, AFont);
+        valueW := MeasureTextWidth(InfoStripHlTags(valueText), AFont);
     end
     else
       valueW := MeasureTextWidth(ALines[i], AFont);

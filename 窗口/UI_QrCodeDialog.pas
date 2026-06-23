@@ -1,4 +1,4 @@
-unit UI_QrCodeDialog;
+﻿unit UI_QrCodeDialog;
 
 interface
 
@@ -207,7 +207,7 @@ begin
   if XC_SHAPE_TEXT = XC_GetObjectType(XC_GetObjectByName(ID_TXT_LABEL_FORMAT)) then
     XShapeText_SetTextColor(XC_GetObjectByName(ID_TXT_LABEL_FORMAT), UITheme_TextPrimary);
 
-  btnHint := TButtonUI.FromXmlName(ID_BTN_HINT, BB_NONE, 'Resource\hint.svg');
+  btnHint := TButtonUI.FromXmlName(ID_BTN_HINT, BB_NONE, 'Resource\UI\hint.svg');
   if XC_BUTTON = XC_GetObjectType(btnHint.Handle) then
     THintPopupUI.BindHoverHint(btnHint.Handle, '把透明度(A)设置为0 可以不显示背景');
 

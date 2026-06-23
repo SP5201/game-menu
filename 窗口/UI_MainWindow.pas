@@ -1861,23 +1861,23 @@ begin
   CListFilterIndex := 0;
   SetLength(CListFilterSourceItems, 0);
   RestoreMainWindowBounds(Handle);
-  btnUi := TButtonUI.FromXmlName('btn_main_settings', BB_NONE, 'Resource\Settings.svg');
+  btnUi := TButtonUI.FromXmlName('btn_main_settings', BB_NONE, 'Resource\UI\Settings.svg');
   btnUi.RegEvent(XE_BNCLICK, @MainWindowSettings_OnButtonClick);
   XEle_RegEvent(btnUi.Handle, XE_MENU_SELECT, @MainWindowSettings_OnMenuSelect);
-  TButtonUI.FromXmlName('btn_main_min', BB_NONE, 'Resource\min.svg');
+  TButtonUI.FromXmlName('btn_main_min', BB_NONE, 'Resource\UI\min.svg');
   btnUi := TButtonUI.FromXmlName('btn_main_max', BB_NONE, cBtnSvgMax);
   TButtonUI.BindMaxButton(Handle, btnUi.Handle);
   TButtonUI.SyncMaxButtonSvg(Handle);
-  btnUi := TButtonUI.FromXmlName('btn_main_close', BB_NONE, 'Resource\close.svg');
+  btnUi := TButtonUI.FromXmlName('btn_main_close', BB_NONE, 'Resource\UI\close.svg');
   if btnUi.IsHELE then
     THintPopupUI.BindHoverHint(btnUi.Handle, '关闭程序', hpsBubble);
-  btnUi := TButtonUI.FromXmlName('btn_main_commonTools', BB_NONE, 'Resource\CommonTools.svg', 16, 16);
+  btnUi := TButtonUI.FromXmlName('btn_main_commonTools', BB_NONE, 'Resource\UI\CommonTools.svg', 16, 16);
   btnUi.RegEvent(XE_BNCLICK, @MainWindowCommonTools_OnButtonClick);
   XEle_RegEvent(btnUi.Handle, XE_MENU_SELECT, @MainWindowCommonTools_OnMenuSelect);
-  btnUi := TButtonUI.FromXmlName('btn_main_sysTools', BB_NONE, 'Resource\tools.svg', 16, 16);
+  btnUi := TButtonUI.FromXmlName('btn_main_sysTools', BB_NONE, 'Resource\UI\tools.svg', 16, 16);
   btnUi.RegEvent(XE_BNCLICK, @MainWindowTools_OnButtonClick);
   XEle_RegEvent(btnUi.Handle, XE_MENU_SELECT, @MainWindowTools_OnMenuSelect);
-  TButtonUI.FromXmlName('btn_main_notify', BB_NONE, 'Resource\bell.svg', 16, 16).RegEvent(XE_BNCLICK, @TMainFormUI.OnSafeLogButtonClick);
+  TButtonUI.FromXmlName('btn_main_notify', BB_NONE, 'Resource\UI\bell.svg', 16, 16).RegEvent(XE_BNCLICK, @TMainFormUI.OnSafeLogButtonClick);
   for i := 0 to cListFilterCount - 1 do
   begin
     if i = 0 then
@@ -1886,9 +1886,9 @@ begin
       btnUi := TButtonUI.FromXmlName(string(cListFilterBtnNames[i]), BB_EnableNormalBk, '');
     btnUi.RegEvent(XE_BNCLICK, @TMainFormUI.OnListFilterButtonClick);
   end;
-  btnUi := TButtonUI.FromXmlName('btn_main_list_layout', BB_NONE, 'Resource\list_view_layout.svg', 16, 16);
+  btnUi := TButtonUI.FromXmlName('btn_main_list_layout', BB_NONE, 'Resource\UI\list_view_layout.svg', 16, 16);
   btnUi.RegEvent(XE_BNCLICK, @TMainFormUI.OnListLayoutButtonClick);
-  btnUi := TButtonUI.FromXmlName('btn_main_list_sort', BB_NONE, 'Resource\list_view_sort.svg', 16, 16);
+  btnUi := TButtonUI.FromXmlName('btn_main_list_sort', BB_NONE, 'Resource\UI\list_view_sort.svg', 16, 16);
   btnUi.RegEvent(XE_BNCLICK, @TMainFormUI.OnListSortButtonClick);
   XEle_RegEvent(btnUi.Handle, XE_MENU_SELECT, @TMainFormUI.OnListSortMenuSelect);
   btnStatWeather := TButtonUI.FromXmlName('btn_main_stat_weather', BB_NONE, PWideChar(WeatherIconSvgPath(999)), 16, 16).Handle;
@@ -2090,7 +2090,7 @@ begin
     ShellOpenWithAppendContextMenuItems(AMenu, AFilePath);
     AMenu.AddItem(0, '', 0, menu_item_flag_separator);
     if not isSearchView then
-      AMenu.AddItemIcon(ID_LISTVIEW_MENU_EDIT, '修改', 0, 'Resource\menu_edit.svg', 0);
+      AMenu.AddItemIcon(ID_LISTVIEW_MENU_EDIT, '修改', 0, 'Resource\UI\menu_edit.svg', 0);
     AMenu.AddItem(ID_LISTVIEW_MENU_DELETE, '删除');
     if not isSearchView then
       AMenu.AddItem(0, '', 0, menu_item_flag_separator);

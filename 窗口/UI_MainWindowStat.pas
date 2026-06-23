@@ -1,4 +1,4 @@
-unit UI_MainWindowStat;
+﻿unit UI_MainWindowStat;
 
 interface
 
@@ -366,12 +366,12 @@ begin
   XShapeText_SetTextColor(CShapeStatCpu, UITheme_ProgressBarFill);
   XShapeText_SetTextColor(CShapeStatMem, UITheme_StatRamFill);
   XShapeText_SetTextColor(CShapeStatGpu, UITheme_StatGpuFill);
-  hSvgNetDown := XSvg_LoadFile('Resource\NetDown.svg');
+  hSvgNetDown := XSvg_LoadFile('Resource\UI\NetDown.svg');
   XSvg_SetSize(hSvgNetDown, 15, 15);
   XSvg_SetUserFillColor(hSvgNetDown, UITheme_StatNetDownFill, True);
   { XImage_LoadSvg 接管 hSvgNetDown，勿再 XSvg_Destroy }
   XShapePic_SetImage(CShapePicNetDown, XImage_LoadSvg(hSvgNetDown));
-  hSvgNetUp := XSvg_LoadFile('Resource\NetUp.svg');
+  hSvgNetUp := XSvg_LoadFile('Resource\UI\NetUp.svg');
   XSvg_SetSize(hSvgNetUp, 15, 15);
   XSvg_SetUserFillColor(hSvgNetUp, UITheme_StatNetUpFill, True);
   XShapePic_SetImage(CShapePicNetUp, XImage_LoadSvg(hSvgNetUp));

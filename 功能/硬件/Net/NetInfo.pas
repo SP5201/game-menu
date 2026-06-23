@@ -24,6 +24,7 @@ type
     Ipv6Text: string;
     GatewayText: string;
     DnsText: string;
+    DriverVersion: string;
     SentOctetsText: string;
     ReceivedOctetsText: string;
   end;
@@ -55,8 +56,11 @@ const
   AF_INET = 2;
   AF_INET6 = 23;
   cMaxTooltipDnsServers = 2;
+  cNetClassRegPath =
+    'SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}';
 
 type
+  TNetRegKeyHandle = NativeUInt;
   PIP_ADAPTER_ADDRESSES = ^IP_ADAPTER_ADDRESSES;
   PIP_ADAPTER_UNICAST_ADDRESS = ^IP_ADAPTER_UNICAST_ADDRESS;
   PIP_ADAPTER_DNS_SERVER_ADDRESS = ^IP_ADAPTER_DNS_SERVER_ADDRESS;
@@ -154,6 +158,58 @@ function GetAdaptersAddresses(Family: ULONG; Flags: ULONG; Reserved: Pointer;
   external 'iphlpapi.dll' name 'GetAdaptersAddresses';
 function GetIpForwardTable(pIpForwardTable: PMIB_IPFORWARDTABLE; var pdwSize: DWORD;
   bOrder: BOOL): DWORD; stdcall; external 'iphlpapi.dll' name 'GetIpForwardTable';
+
+function NetRegOpenKeyExW(AKey: TNetRegKeyHandle; ASubKey: PWideChar; AOptions: DWORD;
+  ASamDesired: LongWord; var AResultKey: TNetRegKeyHandle): Longint; stdcall;
+  external 'advapi32.dll' name 'RegOpenKeyExW';
+function NetRegCloseKey(AKey: TNetRegKeyHandle): Longint; stdcall; external 'advapi32.dll' name 'RegCloseKey';
+function NetRegQueryValueExW(AKey: TNetRegKeyHandle; AValueName: PWideChar; AReserved: Pointer;
+  var AType: DWORD; AData: PByte; var ADataSize: DWORD): Longint; stdcall;
+  external 'advapi32.dll' name 'RegQueryValueExW';
+
+function NetRegReadString(AKey: TNetRegKeyHandle; const AValueName: string): string;
+var
+  dataType, dataSize: DWORD;
+  buf: array[0..511] of WideChar;
+begin
+  Result := '';
+  dataSize := SizeOf(buf);
+  if NetRegQueryValueExW(AKey, PWideChar(AValueName), nil, dataType,
+    PByte(@buf[0]), dataSize) <> ERROR_SUCCESS then
+    Exit;
+  if dataType = REG_SZ then
+    Result := Trim(string(buf));
+end;
+
+function NetQueryDriverVersion(const AAdapterKey: string): string;
+var
+  classHandle, subHandle: TNetRegKeyHandle;
+  subKey, instanceId: string;
+  i: Integer;
+begin
+  Result := '';
+  if Trim(AAdapterKey) = '' then
+    Exit;
+  if NetRegOpenKeyExW(HKEY_LOCAL_MACHINE, PWideChar(cNetClassRegPath), 0, KEY_READ, classHandle) <> ERROR_SUCCESS then
+    Exit;
+  try
+    for i := 0 to 255 do
+    begin
+      subKey := Format('%.4d', [i]);
+      if NetRegOpenKeyExW(classHandle, PWideChar(subKey), 0, KEY_READ, subHandle) <> ERROR_SUCCESS then
+        Continue;
+      try
+        instanceId := NetRegReadString(subHandle, 'NetCfgInstanceId');
+        if SameText(instanceId, AAdapterKey) then
+          Exit(NetRegReadString(subHandle, 'DriverVersion'));
+      finally
+        NetRegCloseKey(subHandle);
+      end;
+    end;
+  finally
+    NetRegCloseKey(classHandle);
+  end;
+end;
 
 procedure NetEnsureWsaStarted;
 var
@@ -768,6 +824,7 @@ begin
   else
     AInfo.Mac := cNetDash;
   AInfo.LinkSpeedText := NetFormatLinkSpeedMbpsText(AAdapter.LinkSpeedBps);
+  AInfo.DriverVersion := NetQueryDriverVersion(AAdapter.AdapterKey);
   if ReadIfTrafficOctets(AAdapter.IfIndex, inOct, outOct) then
   begin
     AInfo.SentOctetsText := NetFormatUInt64Comma(outOct);
@@ -879,6 +936,8 @@ begin
     info.GatewayText := cNetDash;
   if info.DnsText = '' then
     info.DnsText := cNetDash;
+  if info.DriverVersion = '' then
+    info.DriverVersion := cNetDash;
   if info.SentOctetsText = '' then
     info.SentOctetsText := cNetDash;
   if info.ReceivedOctetsText = '' then
@@ -886,6 +945,7 @@ begin
 
   Result := '网卡名：' + info.Name + sLineBreak +
     '网卡类型：' + info.TypeText + sLineBreak +
+    '驱动：' + info.DriverVersion + sLineBreak +
     '连接状态：' + info.OperStatusText + sLineBreak +
     'IPv4：' + info.Ipv4Text + sLineBreak +
     'IPv6：' + info.Ipv6Text + sLineBreak +

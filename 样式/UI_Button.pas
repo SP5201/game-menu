@@ -39,8 +39,8 @@ type
   end;
 
 const
-  cBtnSvgMax = 'Resource\max.svg';
-  cBtnSvgRestore = 'Resource\restore.svg';
+  cBtnSvgMax = 'Resource\UI\max.svg';
+  cBtnSvgRestore = 'Resource\UI\restore.svg';
   BB_NONE = 0;
   /// 启用边框
   BB_EnableBorder = $00000001;

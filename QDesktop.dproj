@@ -8,7 +8,7 @@
 			<AppType>Application</AppType>
 			<FrameworkType>None</FrameworkType>
 			<ProjectVersion>16.1</ProjectVersion>
-			<Platform Condition="'$(Platform)'==''">Win64</Platform>
+			<Platform Condition="'$(Platform)'==''">Win32</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -59,6 +59,8 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_Hints>false</DCC_Hints>
+			<DCC_Warnings>error</DCC_Warnings>
 			<DCC_DependencyCheckOutputName>QDesktop.exe</DCC_DependencyCheckOutputName>
 			<SanitizedProjectName>QDesktop</SanitizedProjectName>
 			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=13.1.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=13.0.0.0;Comments=</VerInfo_Keys>
@@ -84,6 +86,8 @@
 			<DCC_ExeOutput>Debug\Win64</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<DCC_Warnings>error</DCC_Warnings>
+			<DCC_Hints>false</DCC_Hints>
 			<DCC_ExeOutput>Debug\Win32</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
@@ -143,7 +147,6 @@
 			<None Include="功能\硬件\GPU\GpuInfo.pas"/>
 			<None Include="功能\HardwareMonitor.pas"/>
 			<None Include="功能\网络\NetHttpWorker.pas"/>
-			<None Include="功能\网络\JsonUtil.pas"/>
 			<None Include="功能\网络\FeedbackMailer.pas"/>
 			<None Include="功能\天气IP\IpCityCoords.pas"/>
 			<None Include="功能\天气IP\WeatherParser.pas"/>
@@ -185,7 +188,6 @@
 			<None Include="库\XCGUI\XListbox.pas"/>
 			<None Include="库\XCGUI\XComboBox.pas"/>
 			<None Include="库\libcurl\libcurl.pas"/>
-			<None Include="库\SuperObject\SuperObject.pas"/>
 			<None Include="Debug\Win32\Bin\libcurl.dll"/>
 			<None Include="Debug\Win32\Bin\libcrypto-1_1.dll"/>
 			<None Include="Debug\Win32\Bin\libssl-1_1.dll"/>

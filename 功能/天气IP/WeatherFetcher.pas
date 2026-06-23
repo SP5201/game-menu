@@ -41,7 +41,7 @@ function WeatherIconSvgPath(const AIconCode: Integer): string;
 implementation
 
 uses
-  Windows, NetHttpWorker, SafeLog;
+  Windows, NetHttpWorker, SafeLog, HolidayLookup;
 
 const
   cRefreshIntervalMs = 2 * 60 * 60 * 1000; { 2 小时 }
@@ -143,10 +143,6 @@ begin
     Result := AppendTooltipLine(Result, '风速：' + AInfo.WindSpeed)
   else
     Result := AppendTooltipLine(Result, '风速：' + cWeatherDash);
-  if WeatherFieldValid(AInfo.WindDirection) then
-    Result := AppendTooltipLine(Result, '风向：' + AInfo.WindDirection)
-  else
-    Result := AppendTooltipLine(Result, '风向：' + cWeatherDash);
   if WeatherFieldValid(AInfo.Pressure) then
     Result := AppendTooltipLine(Result, '气压：' + AInfo.Pressure)
   else
@@ -161,6 +157,7 @@ begin
     Result := AppendTooltipLine(Result, '日落：' + AInfo.Sunset)
   else
     Result := AppendTooltipLine(Result, '日落：' + cWeatherDash);
+  Result := AppendTooltipLine(Result, HolidayFormatTooltipLines);
 end;
 
 function WeatherFormatDisplay(const AInfo: TWeatherInfo): string;
@@ -198,8 +195,6 @@ begin
     Result := AppendLogSegment(Result, '湿度' + AInfo.Humidity);
   if WeatherFieldValid(AInfo.WindSpeed) then
     Result := AppendLogSegment(Result, '风速' + AInfo.WindSpeed);
-  if WeatherFieldValid(AInfo.WindDirection) then
-    Result := AppendLogSegment(Result, AInfo.WindDirection);
   if WeatherFieldValid(AInfo.Precipitation) then
     Result := AppendLogSegment(Result, '降水' + AInfo.Precipitation);
   if WeatherFieldValid(AInfo.PrecipitationProbability) then
