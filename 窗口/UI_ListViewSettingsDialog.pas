@@ -183,7 +183,7 @@ begin
   pbHandled^ := True;
   FWorking := FSaved;
   ApplyWorkingToListView;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
+  TFormUI.EndModalCancel(hEle);
 end;
 
 class function TListViewSettingsDialogUI.OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -204,7 +204,7 @@ begin
   ReadWorkingFromUi;
   SaveWorkingToConfig;
   FSaved := FWorking;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
+  TFormUI.EndModalOk(hEle);
 end;
 
 class function TListViewSettingsDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
@@ -216,7 +216,7 @@ begin
         pbHandled^ := True;
         FWorking := FSaved;
         ApplyWorkingToListView;
-        XModalWnd_EndModal(hWindow, IDCANCEL);
+        TFormUI.EndModalCancelWnd(hWindow);
       end;
     VK_RETURN:
       begin
@@ -224,25 +224,25 @@ begin
         ReadWorkingFromUi;
         SaveWorkingToConfig;
         FSaved := FWorking;
-        XModalWnd_EndModal(hWindow, IDOK);
+        TFormUI.EndModalOkWnd(hWindow);
       end;
   end;
 end;
 
 class function TListViewSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TListViewSettingsDialogUI;
 var
-  hLoaded: HXCGUI;
+  h: HXCGUI;
 begin
-  hLoaded := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
-  if hLoaded = 0 then
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
+  if h = 0 then
     Exit(nil);
-  Result := TListViewSettingsDialogUI.FromHandle(hLoaded);
+  Result := TListViewSettingsDialogUI.FromHandle(h);
 end;
 
 procedure TListViewSettingsDialogUI.Init;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_listview_settings_dialog_logo', 20, Handle);
+  ApplyTitleLogo('pic_listview_settings_dialog_logo', 20);
   FActiveDialog := Self;
 
   LoadSavedFromConfig;

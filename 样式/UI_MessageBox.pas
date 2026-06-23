@@ -27,10 +27,10 @@ class function TMessageBoxUI.LoadLayout(const LayoutFile: PWideChar; hParent: HX
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TMessageBoxUI.FromHandle(h);
 end;
 
 procedure TMessageBoxUI.Init;
@@ -40,7 +40,8 @@ var
   hImg: HIMAGE;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_msgbox_dialog_logo', 20, Handle);
+  ApplyTitleLogo('pic_msgbox_dialog_logo', 20);
+  TButtonUI.FromXmlName('btn_msgbox_close', BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnCancel);
   hIcon := XC_GetObjectByName('pic_msgbox_icon');
   if hIcon <> 0 then
   begin
@@ -56,7 +57,6 @@ begin
     end;
   end;
 
-  TButtonUI.FromXmlName('btn_msgbox_close', BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnCancel);
   TButtonUI.FromXmlName('btn_msgbox_ok', BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnOK);
   TButtonUI.FromXmlName('btn_msgbox_cancel', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TMessageBoxUI.OnBtnCancel);
   if IsHWINDOW then
@@ -76,7 +76,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   CModalResult := IDOK;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), CModalResult);
+  TFormUI.EndModalOk(hEle);
 end;
 
 class function TMessageBoxUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -84,29 +84,25 @@ begin
   Result := 0;
   pbHandled^ := True;
   CModalResult := IDCANCEL;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), CModalResult);
+  TFormUI.EndModalCancel(hEle);
 end;
 
 class function TMessageBoxUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
+  if not TFormUI.IsKeyFirstPress(lParam) then
+    Exit;
   if wParam = VK_RETURN then
   begin
     pbHandled^ := True;
-    if (lParam and $40000000) = 0 then
-    begin
-      CModalResult := IDOK;
-      XModalWnd_EndModal(hWindow, CModalResult);
-    end;
+    CModalResult := IDOK;
+    TFormUI.EndModalOkWnd(hWindow);
   end
   else if wParam = VK_ESCAPE then
   begin
     pbHandled^ := True;
-    if (lParam and $40000000) = 0 then
-    begin
-      CModalResult := IDCANCEL;
-      XModalWnd_EndModal(hWindow, CModalResult);
-    end;
+    CModalResult := IDCANCEL;
+    TFormUI.EndModalCancelWnd(hWindow);
   end;
 end;
 

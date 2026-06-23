@@ -24,7 +24,6 @@ type
     FComboShowCmd: TComboBoxUI;
     FPicIcon: HELE;
     class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnChangeIcon(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetItemImage(const AIcon: HIMAGE = 0);
@@ -70,10 +69,10 @@ class function TEditItemDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TEditItemDialogUI.FromHandle(h);
 end;
 
 procedure TEditItemDialogUI.Init;
@@ -84,13 +83,12 @@ var
   btnPathHint: TButtonUI;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_edititem_dialog_logo', 20, Handle);
-  TButtonUI.FromXmlName('btn_edititem_close', BB_NONE, 'Resource\close.svg');
+  SetupDialogChrome('pic_edititem_dialog_logo', 'btn_edititem_close');
   btnPathHint := TButtonUI.FromXmlName('btn_edititem_path_hint_icon', BB_NONE, 'Resource\hint.svg');
   if btnPathHint <> nil then
     THintPopupUI.BindHoverHint(btnPathHint.Handle, PathHintText);
   TButtonUI.FromXmlName('btn_edititem_ok', BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TEditItemDialogUI.OnBtnOK);
-  TButtonUI.FromXmlName('btn_edititem_cancel', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TEditItemDialogUI.OnBtnCancel);
+  TButtonUI.FromXmlName('btn_edititem_cancel', BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
   TButtonUI.FromXmlName('btn_edititem_change_icon', BB_EnableBorder, '').RegEvent(XE_BNCLICK, @TEditItemDialogUI.OnBtnChangeIcon);
   TButtonUI.FromXmlName('btn_edititem_run_as_admin', BB_EnableCheckStyle, '');
   if IsHWINDOW then
@@ -166,14 +164,7 @@ begin
   dlg.FResultShowCmd^ := showCmd;
   if dlg.FIconChanged and (dlg.FResultIconPath <> nil) then
     dlg.FResultIconPath^ := dlg.FCurrentIconPath;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
-end;
-
-class function TEditItemDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
+  TFormUI.EndModalOk(hEle);
 end;
 
 class function TEditItemDialogUI.OnBtnChangeIcon(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -245,14 +236,11 @@ begin
         if dlg.FIconChanged and (dlg.FResultIconPath <> nil) then
           dlg.FResultIconPath^ := dlg.FCurrentIconPath;
       end;
-      XModalWnd_EndModal(hWindow, IDOK);
+      TFormUI.EndModalOkWnd(hWindow);
     end;
   end
-  else if wParam = VK_ESCAPE then
-  begin
-    pbHandled^ := True;
-    XModalWnd_EndModal(hWindow, IDCANCEL);
-  end;
+  else
+    TFormUI.HandleModalKeyEscape(hWindow, wParam, lParam, pbHandled);
 end;
 
 class function TEditItemDialogUI.EditItem(const AFilePath: string; const AIcon: HIMAGE; var ATitle, AParams, AWorkingDir: string;

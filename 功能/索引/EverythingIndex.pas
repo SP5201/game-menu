@@ -96,6 +96,7 @@ var
   GCatchUpInProgress: Boolean;
   GCatchUpApplyStats: TMftApplyUsnStats;
   GFileLookup: TDictionary<AnsiString, Integer>;
+  GIndexShuttingDown: Boolean;
 
 function TickElapsed(AStartTick: Cardinal): Cardinal;
 begin
@@ -561,7 +562,7 @@ var
   fileLookup: TDictionary<AnsiString, Integer>;
   indexChanges: TIndexHitChangeArray;
 begin
-  if (Length(ARecords) = 0) or (GBuilding and not GCatchUpInProgress) then
+  if GIndexShuttingDown or (Length(ARecords) = 0) or (GBuilding and not GCatchUpInProgress) then
     Exit;
   fileLookup := GFileLookup;
   SetLength(indexChanges, 0);
@@ -761,8 +762,9 @@ begin
       end;
       elapsedMs := TickElapsed(startTick);
       phaseTick := GetTickCount;
-      UsnMonitorStart(GUsnThreads, GDriveLetters, GUsnChangedHandler.OnUsnRecords,
-        GUsnCheckpoints);
+      if not GIndexShuttingDown then
+        UsnMonitorStart(GUsnThreads, GDriveLetters, GUsnChangedHandler.OnUsnRecords,
+          GUsnCheckpoints);
       EverythingDbSave(GDB, GDriveLetters, GFileFrnKeys, GUsnCheckpoints);
       saveMs := TickElapsed(phaseTick);
       extraDetail := '缓存文件: ' + EverythingDbFilePath + sLineBreak +
@@ -870,8 +872,9 @@ begin
     if GBuildFailureDetail <> '' then
       extraDetail := extraDetail + GBuildFailureDetail;
     LogIndexBuildResult(True, 'NTFS USN', elapsedMs, extraDetail);
-    UsnMonitorStart(GUsnThreads, GDriveLetters, GUsnChangedHandler.OnUsnRecords,
-      GUsnCheckpoints);
+    if not GIndexShuttingDown then
+      UsnMonitorStart(GUsnThreads, GDriveLetters, GUsnChangedHandler.OnUsnRecords,
+        GUsnCheckpoints);
   end
   else
   begin
@@ -893,7 +896,7 @@ procedure StartBuildThread(ATryCacheFirst: Boolean);
 begin
   IndexLockEnter;
   try
-    if GBuilding then
+    if GIndexShuttingDown or GBuilding then
       Exit;
     if GBuildThread <> nil then
     begin
@@ -987,8 +990,12 @@ end;
 
 procedure EverythingIndexShutdown;
 begin
-  UsnMonitorStop(GUsnThreads);
+  if GIndexShuttingDown then
+    Exit;
+  GIndexShuttingDown := True;
+  GNotifyHwnd := 0;
   EverythingIndexStopBuild;
+  UsnMonitorStop(GUsnThreads);
   IndexLockEnter;
   try
     if GReady and (GDB.FileCount > 0) then

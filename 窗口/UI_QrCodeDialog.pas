@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Math, ShlObj, XCGUI, UI_Form, UI_Button,
-  UI_Edit, UI_Theme, UI_Ele, UI_ComboBox, DelphiZXingQRCode, UI_ColorPickerDialog, UI_HintPopup,
-  UI_MessageBox, ShellHelper, UI_QrCodeRender;
+  UI_Edit, UI_Theme, UI_Ele, UI_ComboBox, UI_SliderBar, DelphiZXingQRCode, UI_ColorPickerDialog,
+  UI_HintPopup, UI_MessageBox, ShellHelper, UI_QrCodeRender;
 
 type
   TQrCodeDialogUI = class(TFormUI)
@@ -26,7 +26,6 @@ type
       FFgA: Byte;
       FLiquify: Boolean;
     class function OnBtnLiquify(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnSave(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnBrowse(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnEditTextChanged(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
@@ -36,8 +35,6 @@ type
     class function DoSaveQRCode(hModalParent: XCGUI.HWINDOW): Boolean; static;
     class function RenderQRCodeToFile(const AFilePath, AExt: string): Boolean; static;
     class function OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnSliderPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnSliderBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnBgColor(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
@@ -46,7 +43,7 @@ type
     class function OnBtnFgColorPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     procedure InitPreviewArea;
     procedure InitSliderBar;
-    procedure UpdateRadiusLabel;
+    class procedure UpdateRadiusLabel; static;
   protected
     procedure Init; override;
   public
@@ -85,7 +82,7 @@ class function TQrCodeDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: 
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
   Result := TQrCodeDialogUI.FromHandle(h);
@@ -101,7 +98,7 @@ begin
   XEle_RegEvent(FPreviewEle, XE_PAINT, @TQrCodeDialogUI.OnPreviewPaint);
 end;
 
-procedure TQrCodeDialogUI.UpdateRadiusLabel;
+class procedure TQrCodeDialogUI.UpdateRadiusLabel;
 var
   posVal: Integer;
 begin
@@ -114,31 +111,14 @@ begin
 end;
 
 procedure TQrCodeDialogUI.InitSliderBar;
-var
-  hSliderBtn: HELE;
 begin
   FSliderRadius := XC_GetObjectByName(ID_SLIDER_RADIUS);
   if FSliderRadius = 0 then
     Exit;
 
-  // 设置滑动条为水平方向，范围 0-50，背景透明，不绘制焦点边框
-  XSliderBar_EnableHorizon(FSliderRadius, True);
   XSliderBar_SetRange(FSliderRadius, 50);
   XSliderBar_SetPos(FSliderRadius, 0);
-  XEle_EnableBkTransparent(FSliderRadius, True);
-  XEle_EnableDrawFocus(FSliderRadius, False);
-  XEle_RegEvent(FSliderRadius, XE_PAINT, @TQrCodeDialogUI.OnSliderPaint);
-
-  // 滑块按钮改为圆形
-  hSliderBtn := XSliderBar_GetButton(FSliderRadius);
-  if hSliderBtn <> 0 then
-  begin
-    XSliderBar_SetButtonWidth(FSliderRadius, 14);
-    XSliderBar_SetButtonHeight(FSliderRadius, 14);
-    XEle_RegEvent(hSliderBtn, XE_PAINT, @TQrCodeDialogUI.OnSliderBtnPaint);
-  end;
-
-  // 注册滑动条变化事件
+  TSliderBarUI.ApplyDefault(FSliderRadius);
   XEle_RegEvent(FSliderRadius, XE_SLIDERBAR_CHANGE, @TQrCodeDialogUI.OnSliderChange);
 end;
 
@@ -149,10 +129,8 @@ var
   desktopPath: array[0..MAX_PATH] of WideChar;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_qrcode_dialog_logo', 20, Handle);
-
-  TButtonUI.FromXmlName(ID_BTN_DIALOG_CLOSE, BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TQrCodeDialogUI.OnBtnCancel);
-  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TQrCodeDialogUI.OnBtnCancel);
+  SetupDialogChrome('pic_qrcode_dialog_logo', ID_BTN_DIALOG_CLOSE);
+  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
 
   btnBrowse := TButtonUI.FromXmlName(ID_BTN_BROWSE, BB_EnableBorder, '');
   if XC_BUTTON = XC_GetObjectType(btnBrowse.Handle) then
@@ -187,7 +165,7 @@ begin
   InitSliderBar;
 
   FLabelRadiusValue := XC_GetObjectByName(ID_TXT_RADIUS_VALUE);
-  UpdateRadiusLabel;
+  TQrCodeDialogUI.UpdateRadiusLabel;
 
   InitPreviewArea;
 
@@ -241,13 +219,6 @@ begin
     RegEvent(WM_KEYDOWN, @TQrCodeDialogUI.OnWndKeyDown);
 
   DoGenerateQRCode;
-end;
-
-class function TQrCodeDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
 end;
 
 class function TQrCodeDialogUI.OnBtnBrowse(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -344,42 +315,9 @@ end;
 class function TQrCodeDialogUI.OnSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
-
-  if FLabelRadiusValue = 0 then
-    Exit;
-
-  XShapeText_SetText(FLabelRadiusValue, PWideChar(IntToStr(nPos)));
-  XShape_Redraw(FLabelRadiusValue);
-
   FQRModuleRadius := nPos;
+  UpdateRadiusLabel;
   RedrawPreview;
-end;
-
-class function TQrCodeDialogUI.OnSliderPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
-var
-  rc: TRect;
-begin
-  Result := 0;
-  pbHandled^ := True;
-
-  XEle_GetClientRect(hEle, rc);
-  // 轨道：1px 高的水平线，居中
-  rc.Top := rc.Top + (rc.Bottom - rc.Top) div 2;
-  rc.Bottom := rc.Top + 1;
-  XDraw_SetBrushColor(hDraw, UITheme_BorderDefault);
-  XDraw_FillRect(hDraw, rc);
-end;
-
-class function TQrCodeDialogUI.OnSliderBtnPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
-var
-  rc: TRect;
-begin
-  Result := 0;
-  pbHandled^ := True;
-
-  XEle_GetClientRect(hEle, rc);
-  XDraw_SetBrushColor(hDraw, UITheme_PrimaryColor);
-  XDraw_FillEllipse(hDraw, rc);
 end;
 
 class function TQrCodeDialogUI.OnPreviewPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;
@@ -415,15 +353,14 @@ begin
   Result := 0;
   if wParam = VK_RETURN then
   begin
-    pbHandled^ := True;
-    if (lParam and $40000000) = 0 then
+    if TFormUI.IsKeyFirstPress(lParam) then
+    begin
+      pbHandled^ := True;
       DoSaveQRCode(hWindow);
+    end;
   end
-  else if wParam = VK_ESCAPE then
-  begin
-    pbHandled^ := True;
-    XModalWnd_EndModal(hWindow, IDCANCEL);
-  end;
+  else
+    TFormUI.HandleModalKeyEscape(hWindow, wParam, lParam, pbHandled);
 end;
 
 class function TQrCodeDialogUI.OnBtnLiquify(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall;

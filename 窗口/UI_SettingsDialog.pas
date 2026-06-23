@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, XCGUI, UI_Form, UI_Button, UI_Theme,
-  UI_ComboBox, UI_ScrollBar, UI_SliderBar, UI_Edit, UI_HintPopup, AppConfig;
+  UI_ComboBox, UI_ScrollBar, UI_SliderBar, UI_Edit, UI_HintPopup, AppConfig,
+  UI_MainWindowStat;
 
 type
   TSettingsDialogUI = class(TFormUI)
@@ -46,7 +47,6 @@ type
     class function OnChkChanged(hEle: XCGUI.HELE; bCheck: BOOL; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnProxyModeChanged(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnPaintFreqSliderChange(hEle: XCGUI.HELE; nPos: Integer; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnApply(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
@@ -145,12 +145,12 @@ end;
 
 class function TSettingsDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): TSettingsDialogUI;
 var
-  hLoaded: HXCGUI;
+  h: HXCGUI;
 begin
-  hLoaded := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
-  if hLoaded = 0 then
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
+  if h = 0 then
     Exit(nil);
-  Result := TSettingsDialogUI.FromHandle(hLoaded);
+  Result := TSettingsDialogUI.FromHandle(h);
 end;
 
 class procedure TSettingsDialogUI.ReadWorkingFromUi;
@@ -309,6 +309,7 @@ begin
   TAppSettings.Save(FWorking);
   FSaved := FWorking;
   TMainFormUI.ReloadSearchFilterConfig;
+  TMainWindowStat.RequestNetworkRefresh;
   Result := True;
 end;
 
@@ -426,13 +427,6 @@ begin
   UpdateProxyInputState;
 end;
 
-class function TSettingsDialogUI.OnBtnClose(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
-end;
-
 class function TSettingsDialogUI.OnBtnReset(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
@@ -460,7 +454,7 @@ begin
   Result := 0;
   pbHandled^ := True;
   if TrySaveWorking then
-    XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
+    TFormUI.EndModalOk(hEle);
 end;
 
 class function TSettingsDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
@@ -472,13 +466,13 @@ begin
     VK_ESCAPE:
       begin
         pbHandled^ := True;
-        XModalWnd_EndModal(hWindow, IDCANCEL);
+        TFormUI.EndModalCancelWnd(hWindow);
       end;
     VK_RETURN:
       begin
         pbHandled^ := True;
         if TrySaveWorking then
-          XModalWnd_EndModal(hWindow, IDOK);
+          TFormUI.EndModalOkWnd(hWindow);
       end;
   end;
 end;
@@ -488,13 +482,12 @@ var
   i: Integer;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_settings_dialog_logo', 20, Handle);
+  SetupDialogChrome('pic_settings_dialog_logo', ID_BTN_CLOSE);
 
   TAppSettings.Load(FSaved);
   FWorking := FSaved;
   FNavPageIndex := cNavIndexGeneral;
 
-  TButtonUI.FromXmlName(ID_BTN_CLOSE, BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TSettingsDialogUI.OnBtnClose);
   TButtonUI.FromXmlName(ID_BTN_RESET, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TSettingsDialogUI.OnBtnReset);
   TButtonUI.FromXmlName(ID_BTN_APPLY, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TSettingsDialogUI.OnBtnApply);
   TButtonUI.FromXmlName(ID_BTN_OK, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TSettingsDialogUI.OnBtnOk);

@@ -33,8 +33,6 @@ type
       FCurrentR: Integer;
       FCurrentG: Integer;
       FCurrentB: Integer;
-    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnColorPanelPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnHueBarPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall; static;
@@ -94,25 +92,19 @@ class function TColorPickerDialogUI.LoadLayout(const LayoutFile: PWideChar; hPar
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TColorPickerDialogUI.FromHandle(h);
 end;
 
 procedure TColorPickerDialogUI.Init;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_colorpicker_dialog_logo', 20, Handle);
+  SetupDialogChrome('pic_colorpicker_dialog_logo', ID_BTN_DIALOG_CLOSE);
 
-  // 关闭按钮
-  TButtonUI.FromXmlName(ID_BTN_DIALOG_CLOSE, BB_NONE, 'Resource\close.svg').RegEvent(XE_BNCLICK, @TColorPickerDialogUI.OnBtnCancel);
-
-  // 取消按钮
-  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TColorPickerDialogUI.OnBtnCancel);
-
-  // 确定按钮
-  TButtonUI.FromXmlName(ID_BTN_OK, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TColorPickerDialogUI.OnBtnOK);
+  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
+  TButtonUI.FromXmlName(ID_BTN_OK, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalOk);
 
   // RGBA编辑框
   FEdtR := TEditUI.FromXmlName(ID_EDIT_R);
@@ -185,34 +177,19 @@ begin
     RegEvent(WM_KEYDOWN, @TColorPickerDialogUI.OnWndKeyDown);
 end;
 
-class function TColorPickerDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
-end;
-
-class function TColorPickerDialogUI.OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
-end;
-
 class function TColorPickerDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
 begin
   Result := 0;
   if wParam = VK_RETURN then
   begin
-    pbHandled^ := True;
-    if (lParam and $40000000) = 0 then
-      XModalWnd_EndModal(hWindow, IDOK);
+    if TFormUI.IsKeyFirstPress(lParam) then
+    begin
+      pbHandled^ := True;
+      TFormUI.EndModalOkWnd(hWindow);
+    end;
   end
-  else if wParam = VK_ESCAPE then
-  begin
-    pbHandled^ := True;
-    XModalWnd_EndModal(hWindow, IDCANCEL);
-  end;
+  else
+    TFormUI.HandleModalKeyEscape(hWindow, wParam, lParam, pbHandled);
 end;
 
 class function TColorPickerDialogUI.OnColorPanelPaint(hEle: XCGUI.HELE; hDraw: XCGUI.HDRAW; pbHandled: PBOOL): Integer; stdcall;

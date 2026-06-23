@@ -59,6 +59,7 @@ function GetItemImageFromParsingPath(const APath: string; out AIconCachePath: st
 function AcquireListItemFileImage(const AIconCachePath, AFilePath: string;
   out AIconCachePathOut: string): HIMAGE;
 function LoadImageFromIconData(const AIcon: HICON): HIMAGE;
+/// 标题栏 LOGO：SetScaleSize + stretch，由 Layout 中 shapePicture 尺寸决定显示区域。
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
 function GetShieldIconSmall: HICON;
 procedure ReleaseFileTypeImageCache;
@@ -368,9 +369,9 @@ begin
       if XC_GetObjectType(oldImg) = XC_IMAGE then
         XImage_Destroy(oldImg);
     end
-    else if (p.Image <> 0) and (XC_GetObjectType(p.Image) = XC_IMAGE) then
+    else if XC_GetObjectType(p.Image) = XC_IMAGE then
     begin
-      if (AImage <> 0) and (AImage <> p.Image) and (XC_GetObjectType(AImage) = XC_IMAGE) then
+      if (AImage <> p.Image) and (XC_GetObjectType(AImage) = XC_IMAGE) then
         XImage_Destroy(AImage);
     end
     else if AImage <> p.Image then
@@ -1602,8 +1603,6 @@ end;
 function LoadApplicationIconToHImage(ADstW, ADstH: Integer): HIMAGE;
 var
   appIcon: HICON;
-  srcW, srcH: Integer;
-  bits: TBytes;
 begin
   Result := 0;
   if (ADstW <= 0) or (ADstH <= 0) then
@@ -1612,8 +1611,18 @@ begin
   if appIcon = 0 then
     Exit;
   try
-    if IconToBGRA(appIcon, srcW, srcH, bits) then
-      Result := ResampleBGRAToHImage(bits, srcW, srcH, ADstW, ADstH);
+    Result := XImage_LoadFromHICON(appIcon);
+    if XC_GetObjectType(Result) = XC_IMAGE then
+    begin
+      XImage_SetScaleSize(Result, ADstW, ADstH);
+      XImage_SetDrawType(Result, image_draw_type_stretch);
+    end
+    else
+    begin
+      if Result <> 0 then
+        XImage_Destroy(Result);
+      Result := 0;
+    end;
   finally
     DestroyIcon(appIcon);
   end;

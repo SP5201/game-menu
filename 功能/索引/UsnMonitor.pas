@@ -404,6 +404,8 @@ begin
   while not Terminated do
   begin
     hadWork := PollJournalBatch(records, True);
+    if Terminated then
+      Break;
     if (Length(records) > 0) and Assigned(FOnRecords) then
       FOnRecords(FDriveLetter, FDriveIndex, records);
     if hadWork then

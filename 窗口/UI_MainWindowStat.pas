@@ -77,6 +77,7 @@ type
     class procedure PostStatWeather(const AInfo: TWeatherInfo);
     class procedure PostStatWeatherLoading;
     class procedure PostStatHintReady;
+    class procedure RequestNetworkRefresh;
   end;
 
 const
@@ -753,6 +754,12 @@ begin
     Exit;
   end;
   UpdateBackgroundPowerSave;
+end;
+
+class procedure TMainWindowStat.RequestNetworkRefresh;
+begin
+  if FExternalIpThread <> nil then
+    FExternalIpThread.RequestRefresh;
 end;
 
 class procedure TMainWindowStat.SyncNetTrafficSamplerWithConfig;

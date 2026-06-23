@@ -37,7 +37,6 @@ function BuildOpenMeteoPollutantsRequest(const ALatitude, ALongitude: Double): T
 function TryParseGeoCoords(const ALatText, ALonText: string; out ALatitude, ALongitude: Double): Boolean;
 function CleanCityName(const ACity: string): string;
 function DescribeHttpResponseError(const AResponse: TNetHttpResponse): string;
-function DescribeForecastParseError(const ABody: string): string;
 function ParseWeatherResponse(const AResponse: TNetHttpResponse;
   out AInfo: TWeatherInfo; out AErrorReason: string): Boolean;
 function ParsePollutantsResponse(const AResponse: TNetHttpResponse;
@@ -46,7 +45,7 @@ function ParsePollutantsResponse(const AResponse: TNetHttpResponse;
 implementation
 
 uses
-  Windows, Math;
+  Windows, Math, JsonUtil, superobject;
 
 function EmptyWeatherInfo: TWeatherInfo;
 begin
@@ -123,126 +122,6 @@ begin
     '&longitude=' + FloatToUrlParam(ALongitude) +
     '&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,aerosol_optical_depth,dust' +
     '&timezone=auto');
-end;
-
-function FindCharFrom(const S: string; const ACh: Char; StartPos: Integer): Integer;
-var
-  i: Integer;
-begin
-  for i := StartPos to Length(S) do
-    if S[i] = ACh then
-      Exit(i);
-  Result := 0;
-end;
-
-function ExtractBalancedJsonObject(const Json: string; ObjStart: Integer): string;
-var
-  i, depth: Integer;
-begin
-  Result := '';
-  if (ObjStart < 1) or (ObjStart > Length(Json)) or (Json[ObjStart] <> '{') then
-    Exit;
-  depth := 0;
-  for i := ObjStart to Length(Json) do
-  begin
-    if Json[i] = '{' then
-      Inc(depth)
-    else if Json[i] = '}' then
-    begin
-      Dec(depth);
-      if depth = 0 then
-      begin
-        Result := Copy(Json, ObjStart, i - ObjStart + 1);
-        Exit;
-      end;
-    end;
-  end;
-end;
-
-function ExtractJsonObjectField(const Json, FieldName: string): string;
-var
-  fieldPos, objPos: Integer;
-begin
-  Result := '';
-  fieldPos := Pos('"' + FieldName + '"', Json);
-  if fieldPos = 0 then
-    Exit;
-  objPos := FindCharFrom(Json, '{', fieldPos);
-  Result := ExtractBalancedJsonObject(Json, objPos);
-end;
-
-function ExtractJsonNumberField(const Obj, FieldName: string): string;
-var
-  marker: string;
-  p: Integer;
-begin
-  Result := '';
-  marker := '"' + FieldName + '":';
-  p := Pos(marker, Obj);
-  if p = 0 then
-    Exit;
-  p := p + Length(marker);
-  while (p <= Length(Obj)) and CharInSet(Obj[p], [' ', #9]) do
-    Inc(p);
-  if (p + 3 <= Length(Obj)) and SameText(Copy(Obj, p, 4), 'null') then
-    Exit;
-  while (p <= Length(Obj)) and CharInSet(Obj[p], ['0'..'9', '-', '.']) do
-  begin
-    Result := Result + Obj[p];
-    Inc(p);
-  end;
-end;
-
-function ExtractJsonArrayFirstNumber(const Obj, FieldName: string): Double;
-var
-  marker: string;
-  p: Integer;
-  numText: string;
-begin
-  Result := -999;
-  marker := '"' + FieldName + '":';
-  p := Pos(marker, Obj);
-  if p = 0 then
-    Exit;
-  p := FindCharFrom(Obj, '[', p);
-  if p = 0 then
-    Exit;
-  Inc(p);
-  while (p <= Length(Obj)) and CharInSet(Obj[p], [' ', #9]) do
-    Inc(p);
-  numText := '';
-  while (p <= Length(Obj)) and CharInSet(Obj[p], ['0'..'9', '-', '.']) do
-  begin
-    numText := numText + Obj[p];
-    Inc(p);
-  end;
-  if numText <> '' then
-    Result := StrToFloatDef(StringReplace(numText, ',', '.', [rfReplaceAll]), -999);
-end;
-
-function ExtractJsonArrayFirstString(const Obj, FieldName: string): string;
-var
-  marker: string;
-  p, q: Integer;
-begin
-  Result := '';
-  marker := '"' + FieldName + '":';
-  p := Pos(marker, Obj);
-  if p = 0 then
-    Exit;
-  p := FindCharFrom(Obj, '[', p);
-  if p = 0 then
-    Exit;
-  Inc(p);
-  while (p <= Length(Obj)) and CharInSet(Obj[p], [' ', #9]) do
-    Inc(p);
-  if (p > Length(Obj)) or (Obj[p] <> '"') then
-    Exit;
-  Inc(p);
-  q := p;
-  while (q <= Length(Obj)) and (Obj[q] <> '"') do
-    Inc(q);
-  Result := Copy(Obj, p, q - p);
 end;
 
 function FormatWeatherTempC(const ADegrees: Double): string;
@@ -412,12 +291,6 @@ begin
     Result := StringReplace(Format('%.1f', [AValue]), ',', '.', [rfReplaceAll]) + 'μg/m³';
 end;
 
-function JsonFieldToFloat(const Obj, FieldName: string): Double;
-begin
-  Result := StrToFloatDef(
-    StringReplace(ExtractJsonNumberField(Obj, FieldName), ',', '.', [rfReplaceAll]), -1);
-end;
-
 function AppendPollutantLine(const ALines, ALine: string): string;
 begin
   if ALine = '' then
@@ -566,52 +439,59 @@ begin
     Result := StringReplace(Format('%.2f', [AValue]), ',', '.', [rfReplaceAll]);
 end;
 
-function BuildPollutantsDisplay(const ACurrentObj: string): string;
+function BuildPollutantsDisplay(const ABody: string): string;
 var
+  root, currentObj: ISuperObject;
   v: Double;
   lineLevel: string;
 begin
   Result := '';
-  v := JsonFieldToFloat(ACurrentObj, 'pm2_5');
+  root := JsonParseText(ABody);
+  if root = nil then
+    Exit;
+  currentObj := JsonObjField(root, 'current');
+  if currentObj = nil then
+    Exit;
+  v := JsonDoubleField(currentObj, 'pm2_5', -1);
   if v >= 0 then
   begin
     lineLevel := Pm25UgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('PM2.5', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'pm10');
+  v := JsonDoubleField(currentObj, 'pm10', -1);
   if v >= 0 then
   begin
     lineLevel := Pm10UgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('PM10', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'carbon_monoxide');
+  v := JsonDoubleField(currentObj, 'carbon_monoxide', -1);
   if v >= 0 then
   begin
     lineLevel := CoUgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('一氧化碳', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'nitrogen_dioxide');
+  v := JsonDoubleField(currentObj, 'nitrogen_dioxide', -1);
   if v >= 0 then
   begin
     lineLevel := No2UgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('二氧化氮', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'sulphur_dioxide');
+  v := JsonDoubleField(currentObj, 'sulphur_dioxide', -1);
   if v >= 0 then
   begin
     lineLevel := So2UgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('二氧化硫', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'ozone');
+  v := JsonDoubleField(currentObj, 'ozone', -1);
   if v >= 0 then
   begin
     lineLevel := O3UgToZhAirLevel(v);
     Result := AppendPollutantLine(Result, FormatPollutantLine('臭氧', FormatPmUgM3(v), lineLevel));
   end;
-  v := JsonFieldToFloat(ACurrentObj, 'aerosol_optical_depth');
+  v := JsonDoubleField(currentObj, 'aerosol_optical_depth', -1);
   if v >= 0 then
     Result := AppendPollutantLine(Result, '气溶胶指数：' + FormatAerosolIndex(v));
-  v := JsonFieldToFloat(ACurrentObj, 'dust');
+  v := JsonDoubleField(currentObj, 'dust', -1);
   if v >= 0 then
   begin
     lineLevel := Pm10UgToZhAirLevel(v);
@@ -815,7 +695,8 @@ end;
 
 function ParseOpenMeteoForecastBody(const ABody: string; out AInfo: TWeatherInfo): Boolean;
 var
-  currentObj, dailyObj, condText, sunriseIso, sunsetIso: string;
+  root, currentObj, dailyObj: ISuperObject;
+  condText, sunriseIso, sunsetIso: string;
   minTemp, maxTemp, curTemp, apparentTemp, precipMm, windKmh, pressureHpa: Double;
   humidityPct, precipProbPct, uvMax: Double;
   wmoCode, isDayFlag, windDeg: Integer;
@@ -823,66 +704,57 @@ var
 begin
   Result := False;
   AInfo := EmptyWeatherInfo;
-  currentObj := ExtractJsonObjectField(ABody, 'current');
-  dailyObj := ExtractJsonObjectField(ABody, 'daily');
-  if dailyObj = '' then
+  root := JsonParseText(ABody);
+  if root = nil then
     Exit;
-  minTemp := ExtractJsonArrayFirstNumber(dailyObj, 'temperature_2m_min');
-  maxTemp := ExtractJsonArrayFirstNumber(dailyObj, 'temperature_2m_max');
+  currentObj := JsonObjField(root, 'current');
+  dailyObj := JsonObjField(root, 'daily');
+  if dailyObj = nil then
+    Exit;
+  minTemp := JsonArrayFirstDouble(dailyObj, 'temperature_2m_min', -999);
+  maxTemp := JsonArrayFirstDouble(dailyObj, 'temperature_2m_max', -999);
   if (minTemp < -100) or (maxTemp < -100) then
     Exit;
   AInfo.Temperature := IntToStr(Round(minTemp)) + '-' + IntToStr(Round(maxTemp)) + '°C';
-  precipMm := ExtractJsonArrayFirstNumber(dailyObj, 'precipitation_sum');
+  precipMm := JsonArrayFirstDouble(dailyObj, 'precipitation_sum', -999);
   if precipMm >= 0 then
     AInfo.Precipitation := FormatWeatherPrecipMm(precipMm);
-  precipProbPct := ExtractJsonArrayFirstNumber(dailyObj, 'precipitation_probability_max');
+  precipProbPct := JsonArrayFirstDouble(dailyObj, 'precipitation_probability_max', -999);
   if precipProbPct >= 0 then
     AInfo.PrecipitationProbability := FormatPrecipitationProbability(precipProbPct);
-  uvMax := ExtractJsonArrayFirstNumber(dailyObj, 'uv_index_max');
+  uvMax := JsonArrayFirstDouble(dailyObj, 'uv_index_max', -999);
   if uvMax >= 0 then
     AInfo.UvIndex := FormatUvIndex(uvMax);
-  sunriseIso := ExtractJsonArrayFirstString(dailyObj, 'sunrise');
-  sunsetIso := ExtractJsonArrayFirstString(dailyObj, 'sunset');
+  sunriseIso := JsonArrayFirstString(dailyObj, 'sunrise');
+  sunsetIso := JsonArrayFirstString(dailyObj, 'sunset');
   AInfo.Sunrise := FormatIsoTimeToHm(sunriseIso);
   AInfo.Sunset := FormatIsoTimeToHm(sunsetIso);
   wmoCode := -1;
   isDay := IsLocalDaytime;
-  if currentObj <> '' then
+  if currentObj <> nil then
   begin
-    curTemp := StrToFloatDef(
-      StringReplace(ExtractJsonNumberField(currentObj, 'temperature_2m'), ',', '.', [rfReplaceAll]),
-      -999);
+    curTemp := JsonDoubleField(currentObj, 'temperature_2m', -999);
     if curTemp > -100 then
       AInfo.CurrentTemperature := FormatWeatherTempC(curTemp);
-    apparentTemp := StrToFloatDef(
-      StringReplace(ExtractJsonNumberField(currentObj, 'apparent_temperature'), ',', '.', [rfReplaceAll]),
-      -999);
+    apparentTemp := JsonDoubleField(currentObj, 'apparent_temperature', -999);
     if apparentTemp > -100 then
       AInfo.ApparentTemperature := FormatWeatherTempC(apparentTemp);
-    humidityPct := StrToFloatDef(
-      StringReplace(ExtractJsonNumberField(currentObj, 'relative_humidity_2m'), ',', '.', [rfReplaceAll]),
-      -999);
+    humidityPct := JsonDoubleField(currentObj, 'relative_humidity_2m', -999);
     if humidityPct >= 0 then
       AInfo.Humidity := FormatHumidityPercent(humidityPct);
-    windKmh := StrToFloatDef(
-      StringReplace(ExtractJsonNumberField(currentObj, 'wind_speed_10m'), ',', '.', [rfReplaceAll]),
-      -999);
+    windKmh := JsonDoubleField(currentObj, 'wind_speed_10m', -999);
     if windKmh >= 0 then
       AInfo.WindSpeed := FormatWindSpeedDisplay(windKmh);
-    windDeg := StrToIntDef(ExtractJsonNumberField(currentObj, 'wind_direction_10m'), -1);
+    windDeg := JsonIntField(currentObj, 'wind_direction_10m', -1);
     if windDeg >= 0 then
       AInfo.WindDirection := WindDegreesToZh(windDeg);
-    pressureHpa := StrToFloatDef(
-      StringReplace(ExtractJsonNumberField(currentObj, 'surface_pressure'), ',', '.', [rfReplaceAll]),
-      -999);
+    pressureHpa := JsonDoubleField(currentObj, 'surface_pressure', -999);
     if pressureHpa < 0 then
-      pressureHpa := StrToFloatDef(
-        StringReplace(ExtractJsonNumberField(currentObj, 'pressure_msl'), ',', '.', [rfReplaceAll]),
-        -999);
+      pressureHpa := JsonDoubleField(currentObj, 'pressure_msl', -999);
     if pressureHpa >= 0 then
       AInfo.Pressure := FormatPressureHpa(pressureHpa);
-    wmoCode := StrToIntDef(ExtractJsonNumberField(currentObj, 'weather_code'), -1);
-    isDayFlag := StrToIntDef(ExtractJsonNumberField(currentObj, 'is_day'), -1);
+    wmoCode := JsonIntField(currentObj, 'weather_code', -1);
+    isDayFlag := JsonIntField(currentObj, 'is_day', -1);
     if isDayFlag = 1 then
       isDay := True
     else if isDayFlag = 0 then
@@ -890,7 +762,7 @@ begin
   end;
   if wmoCode < 0 then
   begin
-    wmoCode := Trunc(ExtractJsonArrayFirstNumber(dailyObj, 'weather_code'));
+    wmoCode := Trunc(JsonArrayFirstDouble(dailyObj, 'weather_code', -999));
     if wmoCode < 0 then
       wmoCode := -1;
   end;
@@ -922,18 +794,6 @@ begin
       Break;
     end;
   end;
-end;
-
-function CheckHttpResponse(const AResponse: TNetHttpResponse; const AContext: string): Boolean;
-begin
-  Result := False;
-  if not AResponse.Ok then
-    Exit;
-  if AResponse.StatusCode <> 200 then
-    Exit;
-  if Trim(AResponse.BodyText) = '' then
-    Exit;
-  Result := True;
 end;
 
 function DescribeHttpResponseError(const AResponse: TNetHttpResponse): string;
@@ -974,64 +834,42 @@ begin
   Result := '';
 end;
 
-function DescribeForecastParseError(const ABody: string): string;
-var
-  body: string;
-begin
-  body := Trim(ABody);
-  if body = '' then
-    Exit('JSON解析失败：响应为空');
-  if Pos('"daily"', body) = 0 then
-    Exit('JSON解析失败：缺少 daily 字段');
-  if Pos('"temperature_2m_min"', body) = 0 then
-    Exit('JSON解析失败：缺少温度数据');
-  Result := 'JSON解析失败';
-end;
-
-function ParseOpenMeteoPollutantsBody(const ABody: string; var AInfo: TWeatherInfo): Boolean;
-var
-  currentObj, detail: string;
-begin
-  Result := False;
-  currentObj := ExtractJsonObjectField(ABody, 'current');
-  if currentObj = '' then
-    Exit;
-  detail := BuildPollutantsDisplay(currentObj);
-  if detail = '' then
-    Exit;
-  AInfo.Pollutants := detail;
-  Result := True;
-end;
-
 function ParseWeatherResponse(const AResponse: TNetHttpResponse;
   out AInfo: TWeatherInfo; out AErrorReason: string): Boolean;
 begin
   Result := False;
   AInfo := EmptyWeatherInfo;
   AErrorReason := '';
-  if not CheckHttpResponse(AResponse, 'Forecast') then
+  if (not AResponse.Ok) or (AResponse.StatusCode <> 200) or (Trim(AResponse.BodyText) = '') then
   begin
     AErrorReason := DescribeHttpResponseError(AResponse);
     Exit;
   end;
   Result := ParseOpenMeteoForecastBody(AResponse.BodyText, AInfo);
   if not Result then
-    AErrorReason := DescribeForecastParseError(AResponse.BodyText);
+    AErrorReason := 'JSON解析失败';
 end;
 
 function ParsePollutantsResponse(const AResponse: TNetHttpResponse;
   var AInfo: TWeatherInfo; out AErrorReason: string): Boolean;
+var
+  detail: string;
 begin
   Result := False;
   AErrorReason := '';
-  if not CheckHttpResponse(AResponse, 'Pollutants') then
+  if (not AResponse.Ok) or (AResponse.StatusCode <> 200) or (Trim(AResponse.BodyText) = '') then
   begin
     AErrorReason := DescribeHttpResponseError(AResponse);
     Exit;
   end;
-  Result := ParseOpenMeteoPollutantsBody(AResponse.BodyText, AInfo);
-  if not Result then
+  detail := BuildPollutantsDisplay(AResponse.BodyText);
+  if detail = '' then
+  begin
     AErrorReason := 'JSON解析失败：缺少污染物数据';
+    Exit;
+  end;
+  AInfo.Pollutants := detail;
+  Result := True;
 end;
 
 end.

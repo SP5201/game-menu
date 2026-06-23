@@ -1,6 +1,6 @@
 ---
 description: UI 层约定（窗口/样式/Layout；主题色、XCGUI 句柄、事件、线程回 UI）
-globs: 窗口/**/*.pas,样式/**/*.pas,**/Resource/Layout/**/*.xml
+globs: 窗口/**/*.pas,样式/**/*.pas,库/XCGUI/**/*.pas,功能/Shell/**/*.pas,**/Resource/Layout/**/*.xml
 alwaysApply: false
 ---
 
@@ -40,6 +40,16 @@ alwaysApply: false
 - 子窗/浮动窗父级：`XWidget_GetHWINDOW(hEle)`，**禁止** `GetHWND` 传给 `CreateEx`/`XC_LoadLayout` 父参。
 - 菜单坐标：`XEle_PointClientToWndClient` → `ClientToScreen(hWnd, pt)`。
 
+## 句柄有效性判断
+
+炫彩句柄（`HELE`/`HWINDOW`/`HXCGUI`/`HMENUX`/`HIMAGE` 等）是否可用，**只用**类型 API 判断，**禁止**与 `<> 0` / `= 0` 叠写：
+
+| 写法 | 说明 |
+|------|------|
+| `XC_GetObjectType(h) = XC_*` | `h = 0` 时返回 `XC_ERROR`，已涵盖空句柄 |
+| `XC_IsHELE(h)` / `XC_IsHWINDOW(h)` 等 | 空句柄为 `False` |
+| `TXWidget.IsHWINDOW` 等封装 | 同上 |
+
 ## 多线程与 UI
 
 - **禁止** `TThread.Synchronize`/`Queue`/`CheckSynchronize`；工作线程**禁止**调 `XEle_*`/`XShape_*`/`XDraw_*`。
@@ -49,6 +59,12 @@ alwaysApply: false
 ## 命名与事件
 
 - 变量名与类型名（忽略大小写）**不得相同**（**E2007**）；事件形参用 `hSender`，**禁止** `hEle`。
-- 类型判断：优先 `XC_GetObjectType(h) = XC_*`。
+- 类型判断：优先 `XC_GetObjectType(h) = XC_*`；细则见上文 **句柄有效性判断**。
 - `pbHandled^` 始终有效；拦截写 `True`，未处理不写 `False`。
 - D2D 绘制：`ID2D1RenderTarget(XDraw_GetD2dRenderTarget(hDraw))`；坐标 `XEle_RectClientToWndClientDPI`。
+
+## Layout 加载与控件查找
+
+- **加载 XML**：统一 `TFormUI.LoadLayoutFile` → 子类 `LoadLayout` 内 **`TXXX.FromHandle(h)`**，**禁止** `TFormUI.FromHandle` / cast 基类 `LoadLayout`（否则 `Init` 不执行）。
+- **按名找控件**：窗口/对话框 `Init` 内优先 **`GetNamed`**（校验 `XWidget_GetHWINDOW` 归属当前窗）；**禁止**裸 `XC_GetObjectByName`（多窗并存时易绑错控件）。`XC_GetObjectByIDName` 不对 XML `name`，勿用于 Layout 名称。
+- **对话框 chrome**：标题 LOGO + 关闭按钮走 `SetupDialogChrome`；LOGO 绘制见 `LoadApplicationIconToHImage`（`SetScaleSize` + `stretch`）。

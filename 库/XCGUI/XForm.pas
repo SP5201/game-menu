@@ -14,6 +14,7 @@ type
   public
     constructor Create(x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND = 0; XCStyle: Integer = 0); reintroduce;
     constructor CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: Windows.HWND = 0; XCStyle: Integer = 0);
+    destructor Destroy; override;
     function Attach(hWnd: Windows.HWND; XCStyle: Integer): Boolean;
     // ????????
     function AddChild(hChild: HXCGUI): Boolean;
@@ -158,6 +159,13 @@ begin
   Handle := XWnd_CreateEx(dwExStyle, dwStyle, lpClassName, x, y, cx, cy, pTitle, hWndParent, XCStyle);
 end;
 
+destructor TXForm.Destroy;
+begin
+  if IsHWINDOW then
+    RemoveEvent(WM_DESTROY, @OnDESTROY);
+  inherited;
+end;
+
 procedure TXForm.Init;
 begin
   inherited;
@@ -166,9 +174,17 @@ end;
 
 
 class function TXForm.OnDESTROY(hWnd: XCGUI.HWINDOW; pbHandled: PBoolean): Integer; stdcall;
+var
+  pObj: Pointer;
 begin
   Result := 0;
-  TXForm(FromHandle(hWnd)).Free;
+  if not TXWidget.IsReused(hWnd) then
+    Exit;
+  pObj := FromHandle(hWnd);
+  if pObj = nil then
+    Exit;
+  TXWidget(pObj).Handle := 0;
+  TObject(pObj).Free;
 end;
 
 function TXForm.Attach(hWnd: Windows.HWND; XCStyle: Integer): Boolean;

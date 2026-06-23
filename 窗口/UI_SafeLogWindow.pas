@@ -10,6 +10,7 @@ type
   TSafeLogWindow = class(TFormUI)
   private
     class var
+      FInstance: TSafeLogWindow;
       CListEle: XCGUI.HELE;
       CEditDetail: XCGUI.HELE;
     class function OnListSelect(hEle: XCGUI.HELE; iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
@@ -134,8 +135,8 @@ var
   hOwner: Windows.HWND;
 begin
   hOwner := 0;
-  if SafeLogLiveWindowHandle <> 0 then
-    hOwner := XWnd_GetHWND(SafeLogLiveWindowHandle);
+  if Assigned(FInstance) and FInstance.IsHWINDOW then
+    hOwner := XWnd_GetHWND(FInstance.Handle);
   if not SaveFileDialog(hOwner, '导出日志', '文本文件 (*.txt)|*.txt',
     'QDesktop_SafeLog_' + FormatDateTime('yyyymmdd_hhnnss', Now) + '.txt',
     IncludeTrailingPathDelimiter(TAppConfig.DataDirectory), 'txt', exportPath) then
@@ -216,7 +217,6 @@ end;
 
 procedure TSafeLogWindow.Init;
 var
-  hEdit: XCGUI.HELE;
   hTitle: XCGUI.HXCGUI;
   editUI: TEditUI;
   btnUi: TButtonUI;
@@ -225,7 +225,7 @@ begin
   CListEle := XC_GetObjectByName('list_safelog');
   CEditDetail := XC_GetObjectByName('edit_safelog_detail');
 
-  TFormUI.ApplyTitleLogo('pic_safelog_logo', 20, Handle);
+  ApplyTitleLogo('pic_safelog_logo', 20);
 
   hTitle := XC_GetObjectByName('txt_safelog_title');
   if XC_GetObjectType(hTitle) = XC_SHAPE_TEXT then
@@ -242,7 +242,6 @@ begin
   if CListEle <> 0 then
   begin
     XList_EnableMultiSel(CListEle, False);
-    XList_SetItemTemplateXML(CListEle, PWideChar(cSafeLogListTemplateXml));
     XList_CreateAdapter(CListEle);
     XList_CreateAdapterHeader(CListEle);
     XList_AddColumnText(CListEle, 32, cListColIndicator, cListHeaderTextIndicator);
@@ -255,21 +254,20 @@ begin
     XEle_RegEvent(CListEle, XE_LIST_SELECT, @TSafeLogWindow.OnListSelect);
   end;
 
-  hEdit := CEditDetail;
-  if hEdit <> 0 then
+  if CEditDetail <> 0 then
   begin
-    editUI := TEditUI(TEditUI.FromHandle(hEdit));
+    editUI := TEditUI(TEditUI.FromHandle(CEditDetail));
     TEditUI.ApplyEditStyle(editUI);
     editUI.EnableBorder := False;
     editUI.EnableBkColor := False;
     editUI.EnableFocusBkColor := False;
-    XEdit_EnableReadOnly(hEdit, True);
-    XEdit_EnableMultiLine(hEdit, True);
-    XEdit_EnableAutoWrap(hEdit, True);
-    XEdit_SetCaretWidth(hEdit, 0);
+    XEdit_EnableReadOnly(CEditDetail, True);
+    XEdit_EnableMultiLine(CEditDetail, True);
+    XEdit_EnableAutoWrap(CEditDetail, True);
+    XEdit_SetCaretWidth(CEditDetail, 0);
     editUI.EnableFocus(False);
-    XEdit_SetDefaultTextColor(hEdit, UITheme_InputText);
-    XEdit_SetText(hEdit, PWideChar(''));
+    XEdit_SetDefaultTextColor(CEditDetail, UITheme_InputText);
+    XEdit_SetText(CEditDetail, PWideChar(''));
   end;
 
   if IsHWINDOW then
@@ -277,14 +275,14 @@ begin
     SafeLogBindWindow(Handle);
     RegEvent(XWM_WINDPROC, @TSafeLogWindow.OnWinProc);
   end;
-  SyncAllEntries;
 end;
 
 destructor TSafeLogWindow.Destroy;
 begin
   SafeLogReleaseWindow(Handle);
-  if SafeLogLiveWindowHandle = 0 then
+  if FInstance = Self then
   begin
+    FInstance := nil;
     CListEle := 0;
     CEditDetail := 0;
   end;
@@ -292,59 +290,50 @@ begin
 end;
 
 class procedure TSafeLogWindow.CloseIfOpen;
-var
-  hLogWnd: XCGUI.HWINDOW;
-  inst: TSafeLogWindow;
 begin
-  hLogWnd := SafeLogLiveWindowHandle;
-  if hLogWnd = 0 then
-    Exit;
-  inst := TSafeLogWindow.FromHandle(hLogWnd);
-  if inst <> nil then
-    inst.CloseWindow;
+  if Assigned(FInstance) then
+    FInstance.CloseWindow;
 end;
 
 class procedure TSafeLogWindow.ShowWindow;
 var
-  dlg: TSafeLogWindow;
   hLogWnd: XCGUI.HWINDOW;
   hRealWnd: Windows.HWND;
-  inst: TSafeLogWindow;
 begin
-  hLogWnd := SafeLogLiveWindowHandle;
-  if hLogWnd <> 0 then
+  if Assigned(FInstance) then
   begin
-    inst := TSafeLogWindow.FromHandle(hLogWnd);
-    if inst <> nil then
+    if FInstance.IsHWINDOW then
     begin
+      hLogWnd := FInstance.Handle;
       XC_SetActivateTopWindow;
       hRealWnd := XWnd_GetHWND(hLogWnd);
       if (hRealWnd <> 0) and IsIconic(hRealWnd) then
         XWnd_ShowWindow(hLogWnd, SW_RESTORE)
       else
         XWnd_ShowWindow(hLogWnd, SW_SHOW);
-      inst.SetTop;
+      FInstance.SetTop;
       if hRealWnd <> 0 then
         SetForegroundWindow(hRealWnd);
       Exit;
     end;
-    CListEle := 0;
-    CEditDetail := 0;
+    FInstance.Free;
+    FInstance := nil;
   end;
-  dlg := TSafeLogWindow.LoadLayout('Resource\Layout\SafeLogWindow.xml');
-  if dlg = nil then
+  FInstance := TSafeLogWindow.LoadLayout('Resource\Layout\SafeLogWindow.xml');
+  if FInstance = nil then
     Exit;
-  hRealWnd := XWnd_GetHWND(dlg.Handle);
+  hRealWnd := XWnd_GetHWND(FInstance.Handle);
   if hRealWnd <> 0 then
     SetWindowTextW(hRealWnd, 'QDesktop - 安全日志');
-  dlg.Show;
+  FInstance.Show;
+  SyncAllEntries;
 end;
 
 class function TSafeLogWindow.LoadLayout(const LayoutFile: PWideChar): TSafeLogWindow;
 var
   h: XCGUI.HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, 0, 0);
+  h := TFormUI.LoadLayoutFile(LayoutFile, 0, 0);
   if h = 0 then
     Exit(nil);
   Result := TSafeLogWindow.FromHandle(h);

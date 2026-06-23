@@ -32,7 +32,7 @@ begin
   ConfigureNativeDllSearchPath;
   // 检查是否已有实例运行
   hMutex := CreateMutex(nil, False, APP_MUTEX_NAME);
-  if (hMutex = 0) or (GetLastError = DWORD(ERROR_ALREADY_EXISTS)) then                            
+  if (hMutex = 0) or (GetLastError = DWORD(ERROR_ALREADY_EXISTS)) then
   begin
     // 已存在实例，查找并激活旧窗口（通过窗口标题查找）
     hFoundWindow := FindWindow(nil, 'QDesktop');
@@ -41,16 +41,16 @@ begin
     if hFoundWindow <> HWND(0) then
     begin
       ShowWindow(hFoundWindow, SW_RESTORE);
-      SetForegroundWindow(hFoundWindow);                  
+      SetForegroundWindow(hFoundWindow);
     end;
     Exit;
-  end;                                                                                    
+  end;
 
-
-  CoInitialize(nil);                                                                                                       
+  CoInitialize(nil);
   try
 {$IFDEF DEBUG}
     XC_EnableResMonitor(True);
+    XC_DebugToFileInfo(True);
 {$ELSE}
     XC_EnableResMonitor(False);
 {$ENDIF}

@@ -852,6 +852,9 @@ begin
     ShowDiskSearchError(dseQueryFailed);
     Exit;
   end;
+  if CListViewUI = nil then
+    Exit;
+  SelectSearchCategoryItem;
   StartSearchIndexStatusTimer;
   if not DiskSearchPrepare(CMainHWINDOW, errKind) then
   begin
@@ -859,10 +862,6 @@ begin
     ShowDiskSearchError(errKind);
     Exit;
   end;
-  if CListViewUI = nil then
-    Exit;
-  CActiveListGroupIndex := -1;
-  SelectSearchCategoryItem;
   DiskSearchRequest(CMainHWINDOW, ANeedle, CSearchListSortKind, CSearchListAsc);
   CSearchGeneration := DiskSearchCurrentGeneration;
   if AEnableLog then
@@ -1146,6 +1145,7 @@ begin
   CSuppressCategorySelectReload := True;
   try
     XListBox_SetSelectItem(CListBoxUI.Handle, cCategorySearchListIndex);
+    XEle_Redraw(CListBoxUI.Handle);
   finally
     CSuppressCategorySelectReload := False;
   end;
@@ -1518,6 +1518,7 @@ class procedure TMainFormUI.ScheduleDebouncedDiskSearch;
 begin
   if XC_GetObjectType(CMainHWINDOW) <> XC_WINDOW then
     Exit;
+  SelectSearchCategoryItem;
   DiskSearchStop;
   XWnd_KillTimer(CMainHWINDOW, cMainSearchDebounceTimerId);
   XWnd_SetTimer(CMainHWINDOW, cMainSearchDebounceTimerId, cMainSearchDebounceMs);
@@ -1828,7 +1829,7 @@ begin
   inherited;
   CMainHWINDOW := Handle;
   EverythingIndexSetNotifyHwnd(XWnd_GetHWND(Handle));
-  TFormUI.ApplyTitleLogo('pic_main_logo', 50, Handle);
+  ApplyTitleLogo('pic_main_logo', 50);
   try
     CStore := TLibraryStore.Create(TAppConfig.DatabaseFilePath);
     SafeLogStartupAppendStep('数据库', '加载本地数据库', True);
@@ -1934,6 +1935,7 @@ begin
   end;
   DiskSearchSetHandlers(nil, nil);
   DiskSearchStopAndWait;
+  EverythingIndexShutdown;
   ShellIconLoaderShutdown;
   TAppConfig.SetListItemWidth(CListViewUI.GetItemWidth);
   SaveMainWindowBounds(Handle);
@@ -1948,7 +1950,7 @@ class function TMainFormUI.LoadLayout(const LayoutFile: PWideChar): TMainFormUI;
 var
   hRealWnd: Windows.HWND;
 begin
-  Result := FromHandle(XC_LoadLayout(LayoutFile, 0, 0));
+  Result := FromHandle(TFormUI.LoadLayoutFile(LayoutFile, 0, 0));
   if Result <> nil then
   begin
     hRealWnd := XWnd_GetHWND(Result.Handle);

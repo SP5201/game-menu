@@ -222,8 +222,8 @@ begin
   FPaintFrequencyMs := cDefaultPaintFrequencyMs;
   FCityCoordsUrl := cDefaultCityCoordsUrl;
   FCityCoordsUpdateEnabled := 1;
-  FProxyMode := cProxyModeOff;
-  FProxyUrl := '';
+  FProxyMode := cProxyModeSocks5;
+  FProxyUrl := '127.0.0.1:10808';
   FUserAgent := cDefaultUserAgent;
   FHostsResolve := '';
   FListItemWidth := cDefaultListItemWidth;
@@ -758,14 +758,21 @@ begin
   if addr = '' then
     Exit;
   if Pos('://', LowerCase(addr)) > 0 then
-    Exit(AnsiString(UTF8Encode(addr)));
+  begin
+    { libcurl Win64 经 socks5:// 本地解析 DNS 时 HTTPS 易 SSL 失败，须 socks5h 走代理解析 }
+    if SameText(Copy(LowerCase(addr), 1, 8), 'socks5://') then
+      Result := AnsiString(UTF8Encode('socks5h://' + Copy(addr, 9, MaxInt)))
+    else
+      Result := AnsiString(UTF8Encode(addr));
+    Exit;
+  end;
   case FProxyMode of
     cProxyModeHttp:
       Result := AnsiString(UTF8Encode('http://' + addr));
     cProxyModeHttps:
       Result := AnsiString(UTF8Encode('https://' + addr));
     cProxyModeSocks5:
-      Result := AnsiString(UTF8Encode('socks5://' + addr));
+      Result := AnsiString(UTF8Encode('socks5h://' + addr));
   end;
 end;
 

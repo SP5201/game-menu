@@ -1,4 +1,4 @@
-unit MftReader;
+﻿unit MftReader;
 
 interface
 
@@ -418,12 +418,15 @@ begin
     AParentOff := cRootParentOffset;
     Exit(True);
   end;
-  if AFrnToFolder.TryGetValue(FrnMapKey(ADriveIndex, AParentFRN), AParentOff) then
-    Exit(True);
-  if (ASegToFolder <> nil) and
-    ASegToFolder.TryGetValue(FrnSegmentKey(ADriveIndex, AParentFRN), AParentOff) then
-    Exit(True);
-  Result := False;
+  if (AFrnToFolder = nil) or
+    not AFrnToFolder.TryGetValue(FrnMapKey(ADriveIndex, AParentFRN), AParentOff) then
+  begin
+    if (ASegToFolder <> nil) and
+      ASegToFolder.TryGetValue(FrnSegmentKey(ADriveIndex, AParentFRN), AParentOff) then
+      Exit(True);
+    Exit(False);
+  end;
+  Exit(True);
 end;
 
 function EnablePrivilege(const APrivilegeName: PChar): Boolean;

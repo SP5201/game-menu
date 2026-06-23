@@ -16,7 +16,7 @@ function IpCityCoordsDownloadFromUrl(const AUrl: string): Boolean;
 implementation
 
 uses
-  Classes, AppConfig, NetHttpWorker;
+  Classes, AppConfig, NetHttpWorker, JsonUtil, superobject;
 
 function NormalizeCityJsonDownloadUrl(const AUrl: string): string;
 var
@@ -55,7 +55,7 @@ begin
   if not resp.Ok then
     Exit;
   body := Trim(resp.BodyText);
-  if (body = '') or (body[1] <> '[') then
+  if (body = '') or (JsonParseText(body) = nil) then
     Exit;
   ForceDirectories(TAppConfig.DataDirectory);
   raw := UTF8String(body);
@@ -95,121 +95,6 @@ end;
 function IpCityCoordsUserPath: string;
 begin
   Result := IncludeTrailingPathDelimiter(TAppConfig.DataDirectory) + cCityUserCoordsFileName;
-end;
-
-function FindCharFrom(const S: string; ACh: Char; StartPos: Integer): Integer;
-var
-  i: Integer;
-begin
-  for i := StartPos to Length(S) do
-    if S[i] = ACh then
-      Exit(i);
-  Result := 0;
-end;
-
-function ExtractBalancedJsonObject(const Json: string; ObjStart: Integer): string;
-var
-  i, depth: Integer;
-begin
-  Result := '';
-  if (ObjStart < 1) or (ObjStart > Length(Json)) or (Json[ObjStart] <> '{') then
-    Exit;
-  depth := 0;
-  for i := ObjStart to Length(Json) do
-  begin
-    if Json[i] = '{' then
-      Inc(depth)
-    else if Json[i] = '}' then
-    begin
-      Dec(depth);
-      if depth = 0 then
-      begin
-        Result := Copy(Json, ObjStart, i - ObjStart + 1);
-        Exit;
-      end;
-    end;
-  end;
-end;
-
-function ExtractJsonStringField(const Obj, FieldName: string): string;
-var
-  marker: string;
-  p, q: Integer;
-begin
-  Result := '';
-  marker := '"' + FieldName + '":';
-  p := Pos(marker, Obj);
-  if p = 0 then
-    Exit;
-  p := p + Length(marker);
-  while (p <= Length(Obj)) and CharInSet(Obj[p], [' ', #9]) do
-    Inc(p);
-  if (p + 3 <= Length(Obj)) and SameText(Copy(Obj, p, 4), 'null') then
-    Exit;
-  if (p > Length(Obj)) or (Obj[p] <> '"') then
-    Exit;
-  Inc(p);
-  q := p;
-  while (q <= Length(Obj)) and (Obj[q] <> '"') do
-    Inc(q);
-  Result := Copy(Obj, p, q - p);
-end;
-
-function ExtractJsonIntegerField(const Obj, FieldName: string): Integer;
-var
-  marker, numText: string;
-  p: Integer;
-begin
-  Result := 0;
-  marker := '"' + FieldName + '":';
-  p := Pos(marker, Obj);
-  if p = 0 then
-    Exit;
-  p := p + Length(marker);
-  while (p <= Length(Obj)) and CharInSet(Obj[p], [' ', #9]) do
-    Inc(p);
-  numText := '';
-  while (p <= Length(Obj)) and CharInSet(Obj[p], ['0'..'9', '-']) do
-  begin
-    numText := numText + Obj[p];
-    Inc(p);
-  end;
-  Result := StrToIntDef(numText, 0);
-end;
-
-function JsonCoordToFloat(const Obj, FieldName: string): Double;
-var
-  fs: TFormatSettings;
-  s: string;
-begin
-  s := ExtractJsonStringField(Obj, FieldName);
-  if s = '' then
-    Exit(0);
-  fs := TFormatSettings.Create('en-US');
-  Result := StrToFloatDef(StringReplace(s, ',', '.', [rfReplaceAll]), 0, fs);
-end;
-
-function LoadTextFileUtf8(const APath: string): string;
-var
-  fs: TFileStream;
-  raw: UTF8String;
-  n: Integer;
-begin
-  Result := '';
-  fs := TFileStream.Create(APath, fmOpenRead or fmShareDenyWrite);
-  try
-    n := fs.Size;
-    if n <= 0 then
-      Exit;
-    SetLength(raw, n);
-    fs.ReadBuffer(raw[1], n);
-    if (n >= 3) and (Ord(raw[1]) = $EF) and (Ord(raw[2]) = $BB) and (Ord(raw[3]) = $BF) then
-      Result := UTF8ToString(Copy(raw, 4, MaxInt))
-    else
-      Result := UTF8ToString(raw);
-  finally
-    fs.Free;
-  end;
 end;
 
 function LookupPlaceName(const S: string): string;
@@ -275,14 +160,16 @@ begin
   GEntries[n].Level := ALevel;
 end;
 
-procedure RegisterObjectKeys(const Obj: string; ALat, ALon: Double; ALevel: Integer);
+procedure RegisterObjectKeys(const Obj: ISuperObject; ALat, ALon: Double; ALevel: Integer);
 var
   nameVal, shortName, provinceVal, cityVal: string;
 begin
-  nameVal := ExtractJsonStringField(Obj, 'name');
-  shortName := ExtractJsonStringField(Obj, 'shortName');
-  provinceVal := ExtractJsonStringField(Obj, 'province');
-  cityVal := ExtractJsonStringField(Obj, 'city');
+  if Obj = nil then
+    Exit;
+  nameVal := JsonStringField(Obj, 'name');
+  shortName := JsonStringField(Obj, 'shortName');
+  provinceVal := JsonStringField(Obj, 'province');
+  cityVal := JsonStringField(Obj, 'city');
   if shortName <> '' then
     MergeEntry(shortName, ALat, ALon, ALevel);
   if nameVal <> '' then
@@ -303,144 +190,91 @@ begin
   MergeEntry('东莞', 23.0207, 113.7518, 2);
 end;
 
-procedure LoadOverrideFromJsonFile(const APath: string);
+procedure LoadCityCoordsFile(const APath: string; AUserOverride: Boolean);
 var
-  json, objText: string;
+  root: ISuperObject;
+  arr: TSuperArray;
+  i, level, useLevel: Integer;
+  obj: ISuperObject;
   lat, lon: Double;
-  p, objStart: Integer;
 begin
   if not FileExists(APath) then
     Exit;
-  json := LoadTextFileUtf8(APath);
-  if json = '' then
+  root := JsonParseFile(APath);
+  if (root = nil) or (root.DataType <> stArray) then
     Exit;
-  p := 1;
-  while p <= Length(json) do
+  arr := root.AsArray;
+  for i := 0 to arr.Length - 1 do
   begin
-    objStart := FindCharFrom(json, '{', p);
-    if objStart = 0 then
-      Break;
-    objText := ExtractBalancedJsonObject(json, objStart);
-    if objText = '' then
-      Break;
-    lat := JsonCoordToFloat(objText, 'latitude');
-    lon := JsonCoordToFloat(objText, 'longitude');
+    obj := arr.O[i];
+    if obj = nil then
+      Continue;
+    level := JsonIntField(obj, 'level', 0);
+    useLevel := level;
+    if AUserOverride then
+      useLevel := cUserOverrideLevel
+    else if (level < 1) or (level > 2) then
+      Continue;
+    lat := JsonDoubleField(obj, 'latitude', 0);
+    lon := JsonDoubleField(obj, 'longitude', 0);
     if (lat <> 0) or (lon <> 0) then
-      RegisterObjectKeys(objText, lat, lon, cUserOverrideLevel);
-    p := objStart + Length(objText);
+      RegisterObjectKeys(obj, lat, lon, useLevel);
   end;
 end;
 
-function JsonEscapeString(const S: string): string;
-var
-  i: Integer;
-begin
-  Result := '';
-  for i := 1 to Length(S) do
-  begin
-    if S[i] = '\' then
-      Result := Result + '\\'
-    else if S[i] = '"' then
-      Result := Result + '\"'
-    else
-      Result := Result + S[i];
-  end;
-end;
-
-function BuildUserCityObject(const ACity: string; ALat, ALon: Double): string;
+function BuildUserCityObject(const ACity: string; ALat, ALon: Double): ISuperObject;
 var
   cityName, shortName: string;
-  latText, lonText: string;
 begin
+  Result := TSuperObject.Create(stObject);
   cityName := Trim(ACity);
   shortName := NormalizePlaceName(cityName);
   if shortName = '' then
     shortName := cityName;
-  latText := FloatToStrF(ALat, ffFixed, 15, 6);
-  lonText := FloatToStrF(ALon, ffFixed, 15, 6);
-  Result :=
-    '{' +
-    '"name":"' + JsonEscapeString(cityName) + '",' +
-    '"shortName":"' + JsonEscapeString(shortName) + '",' +
-    '"province":"",' +
-    '"city":"' + JsonEscapeString(cityName) + '",' +
-    '"latitude":"' + latText + '",' +
-    '"longitude":"' + lonText + '",' +
-    '"level":2' +
-    '}';
+  Result.S['name'] := cityName;
+  Result.S['shortName'] := shortName;
+  Result.S['province'] := '';
+  Result.S['city'] := cityName;
+  Result.S['latitude'] := FloatToStrF(ALat, ffFixed, 15, 6);
+  Result.S['longitude'] := FloatToStrF(ALon, ffFixed, 15, 6);
+  Result.I['level'] := 2;
 end;
 
 function SaveUserCityEntry(const ACity: string; ALat, ALon: Double): Boolean;
 var
-  path, json, objText, newObj, key, entryKey: string;
-  objects: TStringList;
-  p, objStart, i, idx: Integer;
-  fs: TFileStream;
-  raw: UTF8String;
+  path: string;
+  root: ISuperObject;
+  arr: TSuperArray;
+  key, entryKey: string;
+  i, idx: Integer;
 begin
   Result := False;
   key := NormalizePlaceName(ACity);
   if key = '' then
     Exit;
-  newObj := BuildUserCityObject(ACity, ALat, ALon);
   path := IpCityCoordsUserPath;
-  objects := TStringList.Create;
-  try
-    if FileExists(path) then
+  root := JsonParseFile(path);
+  if (root = nil) or (root.DataType <> stArray) then
+    root := TSuperObject.Create(stArray);
+  arr := root.AsArray;
+  idx := -1;
+  for i := 0 to arr.Length - 1 do
+  begin
+    entryKey := NormalizePlaceName(JsonStringField(arr.O[i], 'shortName'));
+    if entryKey = '' then
+      entryKey := NormalizePlaceName(JsonStringField(arr.O[i], 'name'));
+    if entryKey = key then
     begin
-      json := LoadTextFileUtf8(path);
-      p := 1;
-      while p <= Length(json) do
-      begin
-        objStart := FindCharFrom(json, '{', p);
-        if objStart = 0 then
-          Break;
-        objText := ExtractBalancedJsonObject(json, objStart);
-        if objText = '' then
-          Break;
-        objects.Add(objText);
-        p := objStart + Length(objText);
-      end;
+      idx := i;
+      Break;
     end;
-    idx := -1;
-    for i := 0 to objects.Count - 1 do
-    begin
-      entryKey := NormalizePlaceName(ExtractJsonStringField(objects[i], 'shortName'));
-      if entryKey = '' then
-        entryKey := NormalizePlaceName(ExtractJsonStringField(objects[i], 'name'));
-      if entryKey = key then
-      begin
-        idx := i;
-        Break;
-      end;
-    end;
-    if idx >= 0 then
-      objects[idx] := newObj
-    else
-      objects.Add(newObj);
-    json := '[' + sLineBreak;
-    for i := 0 to objects.Count - 1 do
-    begin
-      json := json + '  ' + objects[i];
-      if i < objects.Count - 1 then
-        json := json + ',' + sLineBreak
-      else
-        json := json + sLineBreak;
-    end;
-    json := json + ']' + sLineBreak;
-    ForceDirectories(TAppConfig.DataDirectory);
-    raw := UTF8String(json);
-    fs := TFileStream.Create(path, fmCreate);
-    try
-      if Length(raw) > 0 then
-        fs.WriteBuffer(raw[1], Length(raw));
-    finally
-      fs.Free;
-    end;
-    Result := True;
-  finally
-    objects.Free;
   end;
+  if idx >= 0 then
+    arr.O[idx] := BuildUserCityObject(ACity, ALat, ALon)
+  else
+    arr.Add(BuildUserCityObject(ACity, ALat, ALon));
+  ForceDirectories(TAppConfig.DataDirectory);
+  Result := root.SaveTo(path, True) > 0;
 end;
 
 procedure IpCityCoordsReload;
@@ -449,46 +283,15 @@ begin
   GLoaded := False;
 end;
 
-procedure LoadFromJsonFile(const APath: string);
-var
-  json, objText: string;
-  level: Integer;
-  lat, lon: Double;
-  p, objStart: Integer;
-begin
-  if not FileExists(APath) then
-    Exit;
-  json := LoadTextFileUtf8(APath);
-  if json = '' then
-    Exit;
-  p := 1;
-  while p <= Length(json) do
-  begin
-    objStart := FindCharFrom(json, '{', p);
-    if objStart = 0 then
-      Break;
-    objText := ExtractBalancedJsonObject(json, objStart);
-    if objText = '' then
-      Break;
-    level := ExtractJsonIntegerField(objText, 'level');
-    if (level >= 1) and (level <= 2) then
-    begin
-      lat := JsonCoordToFloat(objText, 'latitude');
-      lon := JsonCoordToFloat(objText, 'longitude');
-      if (lat <> 0) or (lon <> 0) then
-        RegisterObjectKeys(objText, lat, lon, level);
-    end;
-    p := objStart + Length(objText);
-  end;
-end;
-
 procedure IpCityCoordsEnsureLoaded;
 begin
   if GLoaded then
     Exit;
+  if (not FileExists(IpCityCoordsPath)) and TAppConfig.IsCityCoordsUpdateEnabled then
+    IpCityCoordsDownloadFromUrl(TAppConfig.GetCityCoordsUrl);
   LoadBuiltinEntries;
-  LoadFromJsonFile(IpCityCoordsPath);
-  LoadOverrideFromJsonFile(IpCityCoordsUserPath);
+  LoadCityCoordsFile(IpCityCoordsPath, False);
+  LoadCityCoordsFile(IpCityCoordsUserPath, True);
   GLoaded := True;
 end;
 

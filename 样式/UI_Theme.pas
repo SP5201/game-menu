@@ -113,7 +113,7 @@ initialization
   UITheme_ProgressBarHeight := 7;
   UITheme_ProgressBarCornerRadius := 3;
   UITheme_ProgressBarFill := ThemeRgba(239, 68, 68, 255);
-  UITheme_ProgressBarTrack := ThemeRgba(64, 64, 64, 255);
+  UITheme_ProgressBarTrack := ThemeRgba(64, 64, 64, 140);
   UITheme_StatRamFill := ThemeRgba(16, 185, 129, 255);
   UITheme_StatGpuFill := ThemeRgba(59, 130, 246, 255);
   UITheme_StatNetDownFill := ThemeRgba(125, 212, 232, 255);

@@ -119,7 +119,7 @@ end;
 
 procedure TPopupMenuUI.AddItemIconImage(nID: Integer; const pText: String; nParentID: Integer; const hImage: HIMAGE; nFlags: Integer);
 begin
-  if (hImage = 0) or (XC_GetObjectType(hImage) <> XC_IMAGE) then
+  if XC_GetObjectType(hImage) <> XC_IMAGE then
     inherited AddItem(nID, pText, nParentID, nFlags)
   else
     inherited AddItemIcon(nID, pText, nParentID, hImage, nFlags);

@@ -17,11 +17,23 @@ type
     constructor CreateEx(dwExStyle, dwStyle: DWORD; lpClassName: PWideChar; x, y, cx, cy: Integer; pTitle: PWideChar; hWndParent: XCGUI.HWINDOW; XCStyle: Integer); reintroduce;
     procedure ApplyDefault;
     destructor Destroy; override;
-    class function LoadLayout(const LayoutFile: PWideChar): TFormUI;
+    class function LoadLayoutFile(const LayoutFile: PWideChar; hParent: HXCGUI = 0; hAttachWnd: XCGUI.HWINDOW = 0): HXCGUI; static;
     class function TopModal: XCGUI.HWINDOW; static;
+    function GetNamed(const AName: string): HXCGUI;
     class procedure ReleaseModalStack; static;
     class procedure HandleWndSize(const hWindow: XCGUI.HWINDOW; const Msg: UINT; const wParam: WPARAM); static;
-    class procedure ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer = 20; hWindow: XCGUI.HWINDOW = 0); static;
+    procedure ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer = 20);
+    procedure SetupDialogChrome(const ALogoXmlName: string; const ACloseBtnXmlName: string = ''; ALogoSide: Integer = 20);
+    class procedure EndModalCancel(hEle: XCGUI.HELE); static;
+    class procedure EndModalOk(hEle: XCGUI.HELE); static;
+    class procedure EndModalCancelWnd(hWindow: XCGUI.HWINDOW); static;
+    class procedure EndModalOkWnd(hWindow: XCGUI.HWINDOW); static;
+    class function IsKeyFirstPress(lParam: LPARAM): Boolean; static;
+    class function HandleModalKeyEscape(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL; ACheckRepeat: Boolean = False): Boolean; static;
+    class function OnBtnModalCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnBtnModalOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
+    class function OnModalWndKeyDownEscape(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
+    procedure RegModalEscape;
   protected
     procedure Init; override;
   end;
@@ -31,7 +43,22 @@ implementation
 uses
   ShellIconHelper;
 
-class procedure TFormUI.ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer; hWindow: XCGUI.HWINDOW);
+function TFormUI.GetNamed(const AName: string): HXCGUI;
+var
+  h: HXCGUI;
+begin
+  Result := 0;
+  if Trim(AName) = '' then
+    Exit;
+  h := XC_GetObjectByName(PWideChar(AName));
+  if XC_GetObjectType(h) = XC_ERROR then
+    Exit;
+  if IsHWINDOW and (XWidget_GetHWINDOW(h) <> Handle) then
+    Exit;
+  Result := h;
+end;
+
+procedure TFormUI.ApplyTitleLogo(const ALogoXmlName: string; ALogoSide: Integer);
 var
   hLogo: HXCGUI;
   hLogoImg: HIMAGE;
@@ -42,16 +69,26 @@ begin
   logoSide := ALogoSide;
   if logoSide < 1 then
     logoSide := 20;
-  if XC_IsHWINDOW(hWindow) then
-    hLogo := XC_GetObjectByIDName(hWindow, PWideChar(ALogoXmlName))
-  else
-    hLogo := XC_GetObjectByName(PWideChar(ALogoXmlName));
+  hLogo := GetNamed(ALogoXmlName);
   if XC_GetObjectType(hLogo) = XC_SHAPE_PICTURE then
   begin
     hLogoImg := LoadApplicationIconToHImage(logoSide, logoSide);
     if XC_GetObjectType(hLogoImg) = XC_IMAGE then
       XShapePic_SetImage(hLogo, hLogoImg);
   end;
+end;
+
+procedure TFormUI.SetupDialogChrome(const ALogoXmlName: string; const ACloseBtnXmlName: string; ALogoSide: Integer);
+var
+  hClose: HXCGUI;
+begin
+  ApplyTitleLogo(ALogoXmlName, ALogoSide);
+  if Trim(ACloseBtnXmlName) = '' then
+    Exit;
+  hClose := GetNamed(ACloseBtnXmlName);
+  if XC_GetObjectType(hClose) = XC_BUTTON then
+    TButtonUI.FormHandle(hClose, BB_NONE, 'Resource\close.svg')
+      .RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
 end;
 
 class procedure TFormUI.UnregisterModal(hWindow: XCGUI.HWINDOW);
@@ -121,14 +158,72 @@ begin
   inherited;
 end;
 
-class function TFormUI.LoadLayout(const LayoutFile: PWideChar): TFormUI;
-var
-  h: HXCGUI;
+class function TFormUI.LoadLayoutFile(const LayoutFile: PWideChar; hParent: HXCGUI; hAttachWnd: XCGUI.HWINDOW): HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, 0, 0);
-  if h = 0 then
-    Exit(nil);
-  Result := TFormUI.FromHandle(h);
+  Result := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+end;
+
+class procedure TFormUI.EndModalCancel(hEle: XCGUI.HELE);
+begin
+  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
+end;
+
+class procedure TFormUI.EndModalOk(hEle: XCGUI.HELE);
+begin
+  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
+end;
+
+class procedure TFormUI.EndModalCancelWnd(hWindow: XCGUI.HWINDOW);
+begin
+  XModalWnd_EndModal(hWindow, IDCANCEL);
+end;
+
+class procedure TFormUI.EndModalOkWnd(hWindow: XCGUI.HWINDOW);
+begin
+  XModalWnd_EndModal(hWindow, IDOK);
+end;
+
+class function TFormUI.IsKeyFirstPress(lParam: LPARAM): Boolean;
+begin
+  Result := (lParam and $40000000) = 0;
+end;
+
+class function TFormUI.HandleModalKeyEscape(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL; ACheckRepeat: Boolean): Boolean;
+begin
+  Result := False;
+  if wParam <> VK_ESCAPE then
+    Exit;
+  if ACheckRepeat and not IsKeyFirstPress(lParam) then
+    Exit;
+  pbHandled^ := True;
+  EndModalCancelWnd(hWindow);
+  Result := True;
+end;
+
+class function TFormUI.OnBtnModalCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
+begin
+  Result := 0;
+  pbHandled^ := True;
+  EndModalCancel(hEle);
+end;
+
+class function TFormUI.OnBtnModalOk(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
+begin
+  Result := 0;
+  pbHandled^ := True;
+  EndModalOk(hEle);
+end;
+
+class function TFormUI.OnModalWndKeyDownEscape(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
+begin
+  Result := 0;
+  HandleModalKeyEscape(hWindow, wParam, lParam, pbHandled);
+end;
+
+procedure TFormUI.RegModalEscape;
+begin
+  if IsHWINDOW then
+    RegEvent(WM_KEYDOWN, @TFormUI.OnModalWndKeyDownEscape);
 end;
 
 class procedure TFormUI.HandleWndSize(const hWindow: XCGUI.HWINDOW; const Msg: UINT; const wParam: WPARAM);

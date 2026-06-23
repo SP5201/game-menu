@@ -12,27 +12,27 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    // 基本操作
+    // ????????
     procedure AddItem(nID: Integer; const pText: String; nParentID: Integer = 0; nFlags: Integer = 0);
     procedure AddItemIcon(nID: Integer; const pText: String; nParentID: Integer; hIcon: HIMAGE; nFlags: Integer);
     procedure InsertItem(nID: Integer; const pText: String; nFlags: Integer; insertID: Integer);
     procedure InsertItemIcon(nID: Integer; const pText: String; hIcon: HIMAGE; nFlags: Integer; insertID: Integer);
 
-    // 菜单项导航
+    // ???????
     function GetFirstChildItem(nID: Integer): Integer;
     function GetEndChildItem(nID: Integer): Integer;
     function GetPrevSiblingItem(nID: Integer): Integer;
     function GetNextSiblingItem(nID: Integer): Integer;
     function GetParentItem(nID: Integer): Integer;
 
-    // 菜单显示控制
+    // ??????????
     function Popup(hParentWnd: HWND; x, y: Integer; hParentEle: HELE; nPosition: Integer): Boolean;
     procedure CloseMenu;
     procedure SetAutoDestroy(bAuto: Boolean);
     procedure EnableDrawBackground(bEnable: Boolean);
     procedure EnableDrawItem(bEnable: Boolean);
 
-    // 菜单项属性
+    // ?????????
     function SetItemText(nID: Integer; const pText: String): Boolean;
     function GetItemText(nID: Integer): String;
     function GetItemTextLength(nID: Integer): Integer;
@@ -44,7 +44,7 @@ type
     function SetItemCheck(nID: Integer; bCheck: Boolean): Boolean;
     function IsItemCheck(nID: Integer): Boolean;
 
-    // 菜单外观
+    // ??????
     procedure SetBkImage(hImage: HIMAGE);
     procedure SetBorderColor(crColor: COLORREF);
     procedure SetBorderSize(nLeft, nTop, nRight, nBottom: Integer);
@@ -60,10 +60,17 @@ implementation
 constructor TXMenu.Create;
 begin
   Handle := XMenu_Create;
+  SetAutoDestroy(False);
 end;
 
 destructor TXMenu.Destroy;
+var
+  hMenu: HMENUX;
 begin
+  hMenu := Handle;
+  Handle := 0;
+  if XC_GetObjectType(hMenu) = XC_MENU then
+    XMenu_DestroyMenu(hMenu);
   inherited;
 end;
 

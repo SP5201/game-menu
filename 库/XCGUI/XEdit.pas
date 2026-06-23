@@ -397,17 +397,8 @@ begin
 end;
 
 function TXEdit.GetText(pOut: PWideChar; nOutLen: Integer): Integer;
-var
-  Len: Integer;
-  P: PChar;
 begin
-  Len := XEdit_GetLength(Handle);
-  P := StrAlloc(Len);
-  try
-   Result := XEdit_GetText(Handle, P, Len);
-  finally
-    StrDispose(P);
-  end;
+  Result := XEdit_GetText(Handle, pOut, nOutLen);
 end;
 
 function TXEdit.GetTextRow(iRow: Integer; pOut: PWideChar; nOutLen: Integer): Integer;
@@ -507,7 +498,7 @@ end;
 
 procedure TXEdit.SetCurStyle(iStyle: Integer);
 begin
-
+  XEdit_SetCurStyle(Handle, iStyle);
 end;
 
 function TXEdit.GetCurPos: Integer;

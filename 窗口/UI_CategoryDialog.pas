@@ -21,7 +21,6 @@ type
     procedure InitCategoryIconList;
     class function OnCategoryIconSelect(hEle: XCGUI.HELE; iGroup, iItem: Integer; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnBtnOK(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnOpenIconDir(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
     class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
     procedure SetDialogText(const AName, AIconFile, ATitle, AConfirmText: string);
@@ -122,10 +121,10 @@ class function TCategoryDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TCategoryDialogUI.FromHandle(h);
 end;
 
 class function TCategoryDialogUI.OnOpenIconDir(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -146,13 +145,12 @@ var
   hIconHintBtn: HELE;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_category_dialog_logo', 20, Handle);
-  TButtonUI.FromXmlName(ID_BTN_DIALOG_CLOSE, BB_NONE, 'Resource\close.svg');
+  SetupDialogChrome('pic_category_dialog_logo', ID_BTN_DIALOG_CLOSE);
   TButtonUI.FromXmlName(ID_BTN_ICON_HINT, BB_NONE, 'Resource\hint.svg');
   hIconHintBtn := XC_GetObjectByName(ID_BTN_ICON_HINT);
   THintPopupUI.BindHoverHint(hIconHintBtn, '请把SVG放到图标文件夹内' + sLineBreak + '重启软件后生效');
   TButtonUI.FromXmlName(ID_BTN_CONFIRM, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TCategoryDialogUI.OnBtnOK);
-  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TCategoryDialogUI.OnBtnCancel);
+  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
   FEdtCategoryName := TEditUI.FromXmlName(ID_EDIT_CATEGORY_NAME);
   InitCategoryIconList;
   if FListCategoryIcons <> nil then
@@ -236,14 +234,7 @@ begin
   if not Assigned(FListCategoryIcons) or
     (not FListCategoryIcons.GetSelectedSvgPath(FResultIconFile^)) then
     FResultIconFile^ := FSelectedIconFile;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
-end;
-
-class function TCategoryDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
+  TFormUI.EndModalOk(hEle);
 end;
 
 class function TCategoryDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
@@ -265,14 +256,11 @@ begin
       if not Assigned(FListCategoryIcons) or
         (not FListCategoryIcons.GetSelectedSvgPath(FResultIconFile^)) then
         FResultIconFile^ := FSelectedIconFile;
-      XModalWnd_EndModal(hWindow, IDOK);
+      TFormUI.EndModalOkWnd(hWindow);
     end;
   end
-  else if wParam = VK_ESCAPE then
-  begin
-    pbHandled^ := True;
-    XModalWnd_EndModal(hWindow, IDCANCEL);
-  end;
+  else
+    TFormUI.HandleModalKeyEscape(hWindow, wParam, lParam, pbHandled);
 end;
 
 class function TCategoryDialogUI.EditCategory(var AName, AIconFile: string; const ATitle,

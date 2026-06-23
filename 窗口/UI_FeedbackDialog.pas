@@ -12,8 +12,6 @@ type
     class var
       FEdtContent: TEditUI;
     class function OnBtnSend(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall; static;
-    class function OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall; static;
   protected
     procedure Init; override;
   public
@@ -37,23 +35,21 @@ class function TFeedbackDialogUI.LoadLayout(const LayoutFile: PWideChar; hParent
 var
   h: HXCGUI;
 begin
-  h := XC_LoadLayout(LayoutFile, hParent, hAttachWnd);
+  h := TFormUI.LoadLayoutFile(LayoutFile, hParent, hAttachWnd);
   if h = 0 then
     Exit(nil);
-  Result := FromHandle(h);
+  Result := TFeedbackDialogUI.FromHandle(h);
 end;
 
 procedure TFeedbackDialogUI.Init;
 begin
   inherited;
-  TFormUI.ApplyTitleLogo('pic_feedback_dialog_logo', 20, Handle);
-  TButtonUI.FromXmlName(ID_BTN_DIALOG_CLOSE, BB_NONE, 'Resource\close.svg');
+  SetupDialogChrome('pic_feedback_dialog_logo', ID_BTN_DIALOG_CLOSE);
   TButtonUI.FromXmlName(ID_BTN_SEND, BB_EnableHighlightBk, '').RegEvent(XE_BNCLICK, @TFeedbackDialogUI.OnBtnSend);
-  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFeedbackDialogUI.OnBtnCancel);
+  TButtonUI.FromXmlName(ID_BTN_CANCEL, BB_EnableNormalBk, '').RegEvent(XE_BNCLICK, @TFormUI.OnBtnModalCancel);
   XShapeText_SetTextColor(XC_GetObjectByName(ID_TXT_DIALOG_TITLE), UITheme_TextPrimary);
   FEdtContent := TEditUI.FromXmlName(ID_EDIT_CONTENT);
-  if IsHWINDOW then
-    RegEvent(WM_KEYDOWN, @TFeedbackDialogUI.OnWndKeyDown);
+  RegModalEscape;
 end;
 
 class function TFeedbackDialogUI.OnBtnSend(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
@@ -77,24 +73,7 @@ begin
     TMessageBoxUI.Confirm('打开失败', '无法在浏览器中打开 GitHub 反馈页面。' + sLineBreak + sLineBreak + errMsg, XWidget_GetHWINDOW(hEle));
     Exit;
   end;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDOK);
-end;
-
-class function TFeedbackDialogUI.OnBtnCancel(hEle: XCGUI.HELE; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  pbHandled^ := True;
-  XModalWnd_EndModal(XWidget_GetHWINDOW(hEle), IDCANCEL);
-end;
-
-class function TFeedbackDialogUI.OnWndKeyDown(hWindow: XCGUI.HWINDOW; wParam: WPARAM; lParam: LPARAM; pbHandled: PBOOL): Integer; stdcall;
-begin
-  Result := 0;
-  if wParam = VK_ESCAPE then
-  begin
-    pbHandled^ := True;
-    XModalWnd_EndModal(hWindow, IDCANCEL);
-  end;
+  TFormUI.EndModalOk(hEle);
 end;
 
 class procedure TFeedbackDialogUI.ShowDialog(const hParent: XCGUI.HWINDOW; hAttachWnd: XCGUI.HWINDOW);

@@ -147,9 +147,16 @@ begin
 end;
 
 destructor TXEle.Destroy;
+var
+  h: HELE;
 begin
-  if IsHELE then
-    XEle_Destroy(Handle);
+  h := Handle;
+  if XC_IsHELE(h) then
+  begin
+    RemoveEvent(XE_DESTROY, @TXEle.OnEleDestroy);
+    Handle := 0;
+    XEle_Destroy(h);
+  end;
   inherited;
 end;
 
@@ -717,12 +724,13 @@ var
   pObj: Pointer;
 begin
   Result := 0;
-
-  pObj :=  FromHandle(hEle);
-  begin
-    TXWidget(pObj).Handle := 0;
-    TObject(pObj).Free;
-  end;
+  if not TXWidget.IsReused(hEle) then
+    Exit;
+  pObj := FromHandle(hEle);
+  if pObj = nil then
+    Exit;
+  TXWidget(pObj).Handle := 0;
+  TObject(pObj).Free;
 end;
 
 end.
